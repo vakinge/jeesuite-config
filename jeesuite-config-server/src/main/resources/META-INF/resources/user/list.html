@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Table</title>
+		<link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="../webjars/css/global.css" media="all">
+		<link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="../webjars/css/table.css" />
+	</head>
+
+	<body>
+		<div class="admin-main">
+			<blockquote class="layui-elem-quote">
+				<a class="layui-btn layui-btn-small" href="./add.html">
+					<i class="layui-icon">&#xe608;</i> 添加用户
+				</a>
+			</blockquote>
+			<fieldset class="layui-elem-field">
+				<legend>用户列表</legend>
+				<div class="layui-field-box layui-form">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th width="80">姓名</th>
+								<th width="80">手机</th>
+								<th width="180">邮箱</th>
+								<th width="50">状态</th>
+								<th>权限</th>
+								<th width="160">操作</th>
+							</tr>
+						</thead>
+						<tbody id="content" templateLoad="../admin/user/list" template-id="list_tpl"></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板-->
+		<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+				<td>{{ item.name }}</td>
+				<td>{{ item.mobile }}</td>
+				<td>{{ item.email }}</td>
+                <td>{{ item.status == 1 ? '启用' : '禁用' }}</td>
+                <td>{{ item.gantEnvs }}</td>
+				<td>
+                    <a href="./grant_permisson.html?dataloadurl=/admin/user/get/{{ item.id }}" class="layui-btn layui-btn-mini">分配权限</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-mini J_confirmurl" act-url="../admin/user/switch/{{ item.id }}">{{ item.status == 1 ? '禁用' : '启用'}}</a>
+					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/user/delete/{{ item.id }}">删除</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
+        <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>
+	</body>
+
+</html>

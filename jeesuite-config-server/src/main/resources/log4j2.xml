@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="OFF">
+    
+	<appenders>
+	    <Console name="Console" target="SYSTEM_OUT" follow="true">  
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />  
+        </Console> 		
+		<RollingFile name="LogFileAppender" fileName="logs/admin.log" filePattern="logs/admin-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
+            <SizeBasedTriggeringPolicy size="10M"/>
+            <Filters>
+                <ThresholdFilter level="error" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+              </Filters>
+        </RollingFile>
+        
+         <RollingFile name="ErrorLogFileAppender" fileName="logs/admin-error.log" filePattern="logs/admin-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
+            <SizeBasedTriggeringPolicy size="10M"/>
+            <Filters>
+                <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+              </Filters>
+        </RollingFile> 
+
+	</appenders>
+
+	<loggers>
+	    <logger name="com.jeesuite" level="debug" />
+		<root level="info">
+		    <appender-ref ref="Console" />
+			<!-- <appender-ref ref="LogFileAppender" />
+			<appender-ref ref="ErrorLogFileAppender" /> -->
+		</root>
+	</loggers>
+
+</configuration>

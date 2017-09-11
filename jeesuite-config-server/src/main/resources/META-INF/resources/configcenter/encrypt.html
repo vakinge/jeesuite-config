@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>Table</title> 
+  <link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../webjars/css/global.css" media="all" /> 
+  <link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css" /> 
+  <link rel="stylesheet" href="../webjars/css/table.css" /> 
+ </head> 
+ <body> 
+  <div class="admin-main"> 
+   <form class="layui-form" action="../admin/cc/encrypt">   
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">Profile</label> 
+     <div class="layui-input-block"> 
+       <select id="env" name="env" lay-verify="required" asnycSelect="../admin/profile/options" lay-filter="env_select">
+          <option value="">请选择环境</option> 
+       </select> 
+     </div> 
+    </div> 
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">应用</label> 
+     <div class="layui-input-block"> 
+      <select id="appName" name="appName" lay-verify="required" asnycSelect="../admin/cc/app/options" lay-filter="app_select"> 
+        <option value="">请选择应用</option> 
+      </select> 
+     </div> 
+    </div> 
+    <div class="layui-form-item">
+    <label class="layui-form-label">加密方式</label>
+    <div class="layui-input-block">
+      <input type="radio" name="encryptType" value="DES" title="DES" checked="">
+      <input type="radio" name="encryptType" value="RSA" title="RSA">
+    </div>
+  </div> 
+    <div class="layui-form-item">
+    <div class="layui-inline">
+      <label class="layui-form-label">数据</label>
+      <div class="layui-input-inline" style="width: 505px;">
+         <textarea name="data" required="" lay-verify="required" placeholder="请输入要加密的配置" class="layui-textarea" style="width: 500px;"></textarea> 
+      </div>
+      <div class="layui-input-inline" style="width: 100px;">
+        <input type="button"  class="layui-btn J_ajaxSubmit" id="encrypt_btn" onSuccessCallback="setResult" value="加密"/>
+      </div>
+    </div>
+    </div>     
+    <div class="layui-form-item layui-form-text"> 
+     <label class="layui-form-label">加密结果</label> 
+     <div class="layui-input-block"> 
+      <textarea id="result" placeholder="双击复制加密结果" class="layui-textarea"></textarea> 
+     </div> 
+    </div> 
+   </form> 
+  </div> 
+  <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>  
+  <script type="text/javascript">
+    function setResult(data){
+    	document.getElementById("result").value=data;
+    	document.getElementById("encrypt_btn").disabled=false; 
+    }
+  </script>
+ </body>
+</html>

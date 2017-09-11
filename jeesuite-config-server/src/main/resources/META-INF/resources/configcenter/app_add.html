@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>新增app</title> 
+  <link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../webjars/css/global.css" media="all" /> 
+  <link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css" /> 
+  <link rel="stylesheet" href="../webjars/css/table.css" /> 
+ </head> 
+ <body> 
+  <div class="admin-main"> 
+   <blockquote class="layui-elem-quote"> 
+    <a href="./apps.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 应用列表 </a> 
+   </blockquote> 
+   <form class="layui-form" action="../admin/cc/app/add">
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用标识</label>
+			<div class="layui-input-block">
+				<input type="text" name="name" placeholder="字母、数字、下划线、中划线" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用名称</label>
+			<div class="layui-input-block">
+				<input type="text" name="alias" placeholder="中文名称" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">负责人</label>
+			<div class="layui-input-block"> 
+             <select id="masterUid" name="masterUid" lay-verify="required" asnycSelect="../admin/user/options" lay-filter="masterUid_select"> 
+               <option value="">请选择负责人</option> 
+             </select> 
+            </div>
+		</div>
+       <div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">相关人员邮箱</label>
+			<div class="layui-input-block">
+				<textarea name="notifyEmails" placeholder="相关人员邮箱，多个‘,’隔开(可选)" class="layui-textarea"></textarea>
+			</div>
+		</div>
+		<div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">备注</label>
+			<div class="layui-input-block">
+				<textarea name="remarks" placeholder="备注内容(可选)" class="layui-textarea"></textarea>
+			</div>
+		</div>
+		<div class="layui-form-item"> 
+          <div class="layui-input-block"> 
+           <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./apps.html" value="保存"/>
+           <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
+          </div> 
+       </div> 
+	</form>
+  </div> 
+  <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>  
+ </body>
+</html>

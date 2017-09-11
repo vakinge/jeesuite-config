@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Table</title>
+		<link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="../webjars/css/global.css" media="all">
+		<link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="../webjars/css/table.css" />
+	</head>
+
+	<body>
+		<div class="admin-main">
+			<blockquote class="layui-elem-quote">
+				<a href="javascript:;" class="layui-btn layui-btn-small J_form_dialog" templdate-url="add.html" act-url="../admin/profile/add">
+					<i class="layui-icon">&#xe608;</i> 添加Profile
+				</a>
+			</blockquote>
+			<fieldset class="layui-elem-field">
+				<legend>Profile列表</legend>
+				<div class="layui-field-box layui-form">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th>环境标识</th>
+								<th>中文名称</th>
+								<th>是否默认</th>
+								<th>是否启用</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody id="content" templateLoad="../admin/profile/list" template-id="list_tpl"></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板-->
+		<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+				<td>{{ item.name }}</td>
+				<td>{{ item.alias }}</td>
+				<td>{{ item.isDefault ? '默认' : ''}}</td>
+                <td>{{ item.enabled ? '启用' : '禁用'}}</td>
+				<td>
+                    <a href="javascript:;" class="layui-btn layui-btn-mini J_confirmurl" act-url="../admin/profile/switch/{{ item.id }}">{{ item.enabled ? '禁用' : '启用'}}</a>
+					<a href="javascript:;" class="layui-btn layui-btn-mini J_form_dialog" templdate-url="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
+					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/profile/delete/{{ item.id }}">删除</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
+        <script type="text/javascript" src="../webjars/js/common.js?v20170728?a=91"></script>
+	</body>
+
+</html>

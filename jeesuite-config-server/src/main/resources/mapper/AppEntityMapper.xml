@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jeesuite.admin.dao.mapper.AppEntityMapper" >
+  <resultMap id="BaseResultMap" type="com.jeesuite.admin.dao.entity.AppEntity" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="alias" property="alias" jdbcType="VARCHAR" />
+    <result column="notify_emails" property="notifyEmails" jdbcType="VARCHAR" />
+    <result column="master" property="master" jdbcType="VARCHAR" />
+    <result column="master_uid" property="masterUid" jdbcType="INTEGER" />
+    <result column="remarks" property="remarks" jdbcType="LONGVARCHAR" />
+  </resultMap>
+</mapper>

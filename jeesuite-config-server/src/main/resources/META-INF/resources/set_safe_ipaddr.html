@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="utf-8" /> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" /> 
+  <title>Jeesuite-统一运行管理后台 - 设置安全ip</title> 
+  <link rel="stylesheet" href="webjars/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="webjars/css/login.css" /> 
+ </head> 
+ <body> 
+  <div style="width:400px;"> 
+   <form class="layui-form" action=""> 
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">允许ip</label> 
+     <div class="layui-input-block"> 
+      <input type="text" name="safeips" lay-verify="required" autocomplete="off" placeholder="请输入ip白名单，多个,隔开" class="layui-input" /> 
+     </div> 
+    </div> 
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">操作安全码</label> 
+     <div class="layui-input-block"> 
+      <input type="password" name="authcode" lay-verify="required" placeholder="请输入操作安全码" autocomplete="off" class="layui-input" /> 
+     </div> 
+    </div> 
+    <div class="layui-form-item"> 
+     <button class="layui-btn" lay-submit="" lay-filter="set">设置</button> 
+    </div> 
+   </form> 
+  </div> 
+  <script type="text/javascript" src="./webjars/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="./webjars/js/common.js?v20170728"></script> 
+  <script>
+			layui.use(['layer', 'form'], function() {
+				var layer = layui.layer,
+					$ = layui.jquery,
+					form = layui.form();
+				
+				form.on('submit(set)',function(data){
+					var loading = layer.load();
+					$.ajax({
+						dataType:"json",
+					    type: "POST",
+				        url: './auth/set_safe_ipaddr',
+				        contentType: "application/json",
+				        data:JSON.stringify(data.field) ,
+						complete: function(){layer.close(loading);},
+						success: function(data){
+							layer.msg(data.msg || '设置成功', {
+								icon: 5
+							});
+					        if(data.code==200){
+					        	 setTimeout(function(){window.location.href = './login.html';},500);
+					          }
+					        },
+						error: function(xhr, type){
+							layer.msg('系统错误', {
+								icon: 5
+							});
+						}
+					});
+					return false;
+				});
+			});
+		</script>  
+ </body>
+</html>

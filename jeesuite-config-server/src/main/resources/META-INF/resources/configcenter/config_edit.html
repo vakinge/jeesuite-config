@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>Table</title> 
+  <link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../webjars/css/global.css" media="all" /> 
+  <link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css" /> 
+  <link rel="stylesheet" href="../webjars/css/table.css" /> 
+  <style type="text/css">
+     .applist{}
+     .applist li{
+        float:left;width:24%;
+     }
+  </style>
+ </head> 
+ <body> 
+  <div class="admin-main" templateLoad="" onFinishCallback="onFinishCallback"> 
+   <blockquote class="layui-elem-quote"> 
+    <a href="./configs.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 配置列表 </a> 
+   </blockquote> 
+   <form class="layui-form" action="../admin/cc/config/update">  
+     <input type="hidden" bindAttr="id" name="id">
+     <div class="layui-form-item"> 
+     <label class="layui-form-label">全局配置</label> 
+     <div class="layui-input-block"> 
+      <input type="checkbox" bindAttr="global" name="global" value="1" lay-skin="switch" lay-text="是|否" disabled="disabled"/> 
+     </div> 
+    </div>  
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">Profile</label> 
+     <div class="layui-input-block"> 
+      <input type="text" bindAttr="env" class="layui-input" style="width:200px;" disabled/> 
+     </div> 
+    </div> 
+    <div class="layui-form-item" id="div_app_list"> 
+     <label class="layui-form-label">绑定应用</label> 
+     <div class="layui-input-block"> 
+      <ul id="applist" class="applist"></ul>
+        <script type="text/html" id="applist_tpl">
+	     {{# layui.each(d, function(index, item){ }}
+          <li><input type="checkbox" name="appName" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}"></li>
+	     {{# }); }}
+       </script>
+     </div> 
+    </div> 
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">版本</label> 
+     <div class="layui-input-block"> 
+       <input type="text" bindAttr="version" class="layui-input" style="width:200px;" disabled/> 
+     </div> 
+    </div> 
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">配置类型</label> 
+     <div class="layui-input-block"> 
+      <input type="radio" bindAttr="type" name="type" value="1" title="配置文件" disabled/> 
+      <input type="radio" bindAttr="type" name="type" value="2" title="配置项" disabled/> 
+      <input type="radio" bindAttr="type" name="type" value="3" title="JSON" disabled/> 
+     </div> 
+    </div> 
+    <div class="layui-form-item">
+    <div class="layui-inline">
+      <label class="layui-form-label">配置名</label>
+      <div class="layui-input-inline" style="width: 200px;">
+        <input type="text" bindAttr="name" name="name" id="fileName" lay-verify="required" placeholder="请输入配置名或者直接上传" autocomplete="off" class="layui-input" style="width:200px;" /> 
+      </div>
+      <div class="layui-input-inline" style="width: 200px;">
+        <input type="file" name="file" lay-title="上传配置文件" class="layui-upload-file">
+      </div>
+    </div>
+    </div>     
+    <div class="layui-form-item layui-form-text"> 
+     <label class="layui-form-label">配置内容</label> 
+     <div class="layui-input-block"> 
+      <textarea bindAttr="contents" id="fileContent" name="contents" placeholder="请输入内容" class="layui-textarea"></textarea> 
+     </div> 
+    </div> 
+    <div class="layui-form-item"> 
+     <div class="layui-input-block"> 
+        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessJumpurl="./configs.html" value="保存"/>
+        <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
+     </div> 
+    </div> 
+   </form> 
+  </div> 
+  <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>  
+  <script type="text/javascript">
+  layui.use('upload', function(){
+  	var $ = layui.jquery;
+  	layui.upload({
+  	  url: '/admin/cc/config/upload',
+  	  method: 'POST',
+  	  ext: 'properties|xml|yml',
+  	  before: function(input){
+  		console.log('文件上传中');
+  	  },
+  	  success: function(res){
+  		if(res.code == 200){
+  			$('#fileContent').val(res.data.content);
+  			$('#fileName').val(res.data.fileName);
+  		}else{
+  			layui.layer.msg(res.msg, {icon: 5});
+  		}
+  	  }
+  	});
+  });
+  
+  function onFinishCallback(data){
+	  var $ = layui.jquery;
+	  if(data.global==1){
+		  layui.jquery("#div_app_list").remove();
+	  }else{
+		  var $cont = $('#applist');
+		  $.getJSON('../admin/cc/app/options',function(res){
+			  var tpl = $('#applist_tpl').html();
+			  layui.laytpl(tpl).render(res, function(html){
+				  $cont.html(html);
+			  });
+			  
+			  $cont.find(':checkbox').each(function(){
+				  var $this = $(this);
+				  if(data.appName.indexOf($this.attr('value')) >= 0){
+					  $this.attr('checked',true);
+				  }
+			  });
+		     layui.form().render();
+		  });
+	  }
+  }
+  </script>
+ </body>
+</html>

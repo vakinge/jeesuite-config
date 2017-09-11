@@ -1,0 +1,18 @@
+<div style="margin: 15px;">
+	<form class="layui-form" action="../admin/profile/update">
+	    <input type="hidden" bindAttr="id" name="id">
+		<div class="layui-form-item">
+			<label class="layui-form-label">profile标识</label>
+			<div class="layui-input-block">
+				<input type="text" bindAttr="name" name="name" class="layui-input" readonly="readonly">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">profile名称</label>
+			<div class="layui-input-block">
+				<input type="text" bindAttr="alias" name="alias" placeholder="中文名称" equired lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<button lay-filter="submitbtn" lay-submit style="display: none;"></button>
+	</form>
+</div>

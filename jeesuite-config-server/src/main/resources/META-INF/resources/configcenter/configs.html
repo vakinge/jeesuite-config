@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Table</title>
+		<link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="../webjars/css/global.css" media="all">
+		<link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="../webjars/css/table.css" />
+	</head>
+
+	<body>
+		<div class="admin-main">
+			<blockquote class="layui-elem-quote">
+				<a class="layui-btn layui-btn-small" href="./config_add.html">
+					<i class="layui-icon">&#xe608;</i> 添加配置
+				</a>
+			</blockquote>
+			
+			<form action="" class="layui-form" method="post">
+              <div class="layui-inline">
+                <select name="env" asnycSelect="../admin/profile/options" lay-filter="env_select" lay-verify="required" onDataLoadCallback="onEnvSelectLoadFinish">
+                  <option value="">请选择环境</option>
+                </select>     
+              </div>
+              <div class="layui-inline">
+                <select name="appName" asnycSelect="../admin/cc/app/options" lay-filter="app_select" onDataLoadCallback="onAppSelectLoadFinish">
+                  <option value="">请选择应用</option>
+                  <option value="global">全局(global)</option>
+                </select>     
+              </div>
+              <div class="layui-inline">
+                <select name="version" lay-verify="">
+                  <option value="">请选择版本</option>
+                  <option value="0.0.0">0.0.0</option>
+                </select>     
+              </div> 
+              <div class="layui-inline">
+                <input type="button" class="layui-btn J_search" lay-submit lay-filter="search" value="筛选"/>    
+              </div>                           
+           </form>
+    
+			<fieldset class="layui-elem-field">
+				<legend>配置列表</legend>
+				<div class="layui-field-box layui-form">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th>应用</th>
+								<th>profile</th>
+								<th>版本</th>
+								<th>配置名称</th>
+								<th>配置类型</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody id="content"></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板-->
+		<script type="text/html" id="list_tpl">
+			{{# layui.each(d.data, function(index, item){ }}
+			<tr>
+				<td>{{ item.appName == 'global' ? '全局配置(global)' : item.appName.replace(/,/g, "<br>") }}</td>
+				<td>{{ item.env }}</td>
+				<td>{{ item.version }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.typeAlias }}</td>
+				<td>
+                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-mini J_show_content" act-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
+                    <div id="content{{ item.id }}" style="display:none;"><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:335px;width:570px;">{{item.contents}}</textarea></div>
+					<a href="./config_edit.html?dataloadurl=/admin/cc/config/{{ item.id }}" class="layui-btn layui-btn-mini">编辑</a>
+					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/cc/config/delete/{{ item.id }}">删除</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
+        <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>
+        <script type="text/javascript">
+          layui.use(['layer','laytpl', 'form'], function(){
+        	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form();
+        	  
+        	  $("#content").on('click',".J_show_content",function() {
+        		  var contentId = "content"+$(this).attr('data-id');
+        		  layer.open({
+        		        type: 1
+        		        ,title: false 
+        		        ,closeBtn: false
+        		        ,area: ['600px', '400px']
+        		        ,shade: 0.8
+        		        ,id: 'layer_'+contentId 
+        		        ,btn: ['关闭']
+        		        ,moveType: 1 
+        		        ,content:$('#'+contentId).html()
+        		        ,success: function(layero){
+        		          var btn = layero.find('.layui-layer-btn');
+        		          btn.css('text-align', 'center');
+        		        }
+        		      });
+        	  });
+        	  
+        	  form.on('submit(search)',function(data){
+					var loading = layer.load();
+					var cookieValue = data.field.env + ":" + data.field.appName;
+					setCookie('congfig_search',cookieValue);
+					$.ajax({
+						dataType:"json",
+					    type: "POST",
+				        url: '../admin/cc/configs',
+				        contentType: "application/json",
+				        data:JSON.stringify(data.field) ,
+						complete: function(){layer.close(loading);},
+						success: function(data){
+					        if(data.code==200){
+					        	var tpl = $('#list_tpl').html();
+								laytpl(tpl).render(data, function(html){
+									$("#content").html(html);
+								});
+					          }else{
+					        	  layer.msg(data.msg, {
+										icon: 5
+								  }); 
+					          }
+					        },
+						error: function(xhr, type){
+							layer.msg('系统错误', {
+								icon: 5
+							});
+						}
+					});
+					return false;
+				});
+          });
+          
+          function onEnvSelectLoadFinish(data){
+        	  var lastInput = getCookie('congfig_search');
+        	  if(!lastInput)return;
+        	  var def = lastInput.split(':')[0];
+        	  for(var index in data){
+        		  data[index].selected = data[index].value == def;
+        	  }
+          }
+          
+          function onAppSelectLoadFinish(data){
+        	  var lastInput = getCookie('congfig_search');
+        	  if(!lastInput || lastInput.split(':').length < 2)return;
+        	  var def = lastInput.split(':')[1];
+        	  
+        	  for(var index in data){
+        		  data[index].selected = data[index].value == def;
+        	  }
+          }
+        </script>
+	</body>
+
+</html>
