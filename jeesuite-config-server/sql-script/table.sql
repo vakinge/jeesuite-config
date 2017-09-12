@@ -17,7 +17,7 @@ CREATE TABLE `profiles` (
 DROP TABLE IF EXISTS `app_configs`;
 CREATE TABLE `app_configs` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
-  `app_name` varchar(32) DEFAULT NULL,
+  `app_name` varchar(200) DEFAULT NULL,
   `env` varchar(16) DEFAULT NULL,
   `version` varchar(16) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
@@ -38,7 +38,6 @@ CREATE TABLE `apps` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) DEFAULT NULL,
   `alias` varchar(32) DEFAULT NULL,
-  `secret` varchar(128) DEFAULT NULL,
   `notify_emails` varchar(255) DEFAULT NULL,
   `master` varchar(16) DEFAULT NULL,
   `master_uid` int(10) DEFAULT NULL,
@@ -66,19 +65,6 @@ CREATE TABLE `users` (
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-DROP TABLE IF EXISTS `monitor_servers`;
-CREATE TABLE `monitor_servers` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
-  `moudule` varchar(32) DEFAULT NULL,
-  `env` varchar(32) DEFAULT NULL,
-  `servers` varchar(128) DEFAULT NULL,
-  `enabled` tinyint(1) DEFAULT 1,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `profiles` VALUES (1,'test','测试环境',1,1),(2,'dev','开发环境',1,1),(3,'prep',' 预发布环境',1,1),(4,'prod','线上环境',1,1);
-INSERT INTO `users` (`name`, `password`, `type`, `status`) VALUES ('admin', 'f5866c4a4d6014ecced47960c2e3d07f', '1', '1');
-
 
 DROP TABLE IF EXISTS `operate_logs`;
 CREATE TABLE `operate_logs` (
@@ -86,7 +72,7 @@ CREATE TABLE `operate_logs` (
   `uid` int(10) DEFAULT NULL,
   `uname` varchar(32) DEFAULT NULL,
   `act_name` varchar(32) DEFAULT NULL,
-  `biz_data` varchar(100) DEFAULT NULL,
+  `biz_data` varchar(500) DEFAULT NULL,
   `before_data` text DEFAULT NULL,
   `after_data` text DEFAULT NULL,
   `ip_addr` varchar(15) DEFAULT NULL,
@@ -108,10 +94,6 @@ CREATE TABLE `app_secret` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-ALTER TABLE `apps` DROP COLUMN `secret`;
+INSERT INTO `profiles` VALUES (1,'test','测试环境',1,1),(2,'dev','开发环境',1,1),(3,'prep',' 预发布环境',1,1),(4,'prod','线上环境',1,1);
+INSERT INTO `users` (`name`, `password`, `type`, `status`) VALUES ('admin', 'f5866c4a4d6014ecced47960c2e3d07f', '1', '1');
 
-ALTER TABLE `app_configs` 
-CHANGE COLUMN `app_name` `app_name` VARCHAR(200) NULL DEFAULT NULL ;
-
-ALTER TABLE `operate_logs` 
-CHANGE COLUMN `biz_data` `biz_data` VARCHAR(500) NULL DEFAULT NULL ;
