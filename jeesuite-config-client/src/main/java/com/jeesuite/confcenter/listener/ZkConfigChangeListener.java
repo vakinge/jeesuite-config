@@ -22,7 +22,7 @@ public class ZkConfigChangeListener implements ConfigChangeListener {
 	private static final String NOTIFY_UPLOAD_CMD = "upload";
 	private ZkClient zkClient;
 	private String zkServers;
-
+	
 	public ZkConfigChangeListener(String zkServers) {
 		this.zkServers = zkServers;
 	}
@@ -50,7 +50,6 @@ public class ZkConfigChangeListener implements ConfigChangeListener {
 				if(NOTIFY_UPLOAD_CMD.equals(data)){
 					logger.info("receive cmd[{}] from path[{}]",data,path);
 					if(context.pingCcServer(10)){	
-						ResourceUtils.getProperty("spring.cloud.client.ipAddress");
 						Properties properties = ResourceUtils.getAllProperties();
 						context.syncConfigToServer(properties,false);
 						logger.info("process cmd[{}] ok~",data);

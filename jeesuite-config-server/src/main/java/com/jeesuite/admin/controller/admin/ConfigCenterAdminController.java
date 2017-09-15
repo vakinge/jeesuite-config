@@ -246,6 +246,10 @@ public class ConfigCenterAdminController {
 			SecurityUtil.requireProfileGanted(query.getEnv());
 		}
 		
+        if(StringUtils.isBlank(query.getAppName()) && !SecurityUtil.isSuperAdmin()){
+        	throw new JeesuiteBaseException(417, "请选择应用");
+		}
+		
 		Map<String, Object> queyParams = BeanCopyUtils.beanToMap(query);
 		
 		if(StringUtils.isBlank(query.getEnv()) && !SecurityUtil.isSuperAdmin()){

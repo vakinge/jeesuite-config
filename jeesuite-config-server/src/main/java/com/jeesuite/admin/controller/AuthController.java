@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.dao.entity.UserEntity;
@@ -23,8 +24,10 @@ import com.jeesuite.admin.interceptor.SecurityInterceptor;
 import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.WrapperResponseEntity;
+import com.jeesuite.admin.util.IpUtils;
+import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.util.DigestUtils;
-import com.jeesuite.common.util.ResourceUtils;
+import com.jeesuite.spring.helper.EnvironmentHelper;
 
 @Controller
 @RequestMapping("/auth")
@@ -71,14 +74,16 @@ public class AuthController {
 		return "redirect:" + request.getContextPath() + "/login.html"; 
 	}
 	
-	@RequestMapping(value = "set_safe_ipaddr", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<WrapperResponseEntity> setSafeIpaddr(@RequestBody Map<String, String> params){
-		String authcode = params.get("authcode");
-		String safeips = params.get("safeips");
-		if(StringUtils.isBlank(authcode))throw new JeesuiteBaseException(411, "安全码不能为空");
-		if(!authcode.equals(ResourceUtils.getProperty("safe.ipfilter.authcode")))throw new JeesuiteBaseException(411, "安全码错误");
+	@RequestMapping(value = "update_safe_ipaddr", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<WrapperResponseEntity> updateSafeIpaddr(HttpServletRequest request,@RequestParam("authcode") String authcode){
 		
-		SecurityInterceptor.setIpWhiteList(safeips);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK); 
+		SecurityUtil.requireSuperAdmin();
+		//
+		if(StringUtils.isBlank(authcode))throw new JeesuiteBaseException(411, "安全码不能为空");
+		if(!authcode.equals(EnvironmentHelper.getProperty("sensitive.operation.authcode")))throw new JeesuiteBaseException(411, "安全码错误");
+		
+		String ipAddr = IpUtils.getIpAddr(request);
+		SecurityInterceptor.setIpWhiteList(ipAddr);
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(ipAddr),HttpStatus.OK); 
 	}
 }

@@ -34,6 +34,7 @@ import com.jeesuite.common.util.SimpleCryptUtils;
 import com.jeesuite.confcenter.listener.HttpConfigChangeListener;
 import com.jeesuite.confcenter.listener.ZkConfigChangeListener;
 import com.jeesuite.spring.InstanceFactory;
+import com.jeesuite.spring.helper.EnvironmentHelper;
 
 
 public class ConfigcenterContext {
@@ -217,12 +218,6 @@ public class ConfigcenterContext {
 		params.put("springboot", String.valueOf(isSpringboot));
 		params.put("syncIntervalSeconds", String.valueOf(syncIntervalSeconds));
 		params.put("syncType", syncType);
-		if(properties.containsKey("server.port")){
-			params.put("serverport", properties.getProperty("server.port"));
-		}
-		if(properties.containsKey("spring.cloud.client.ipAddress")){
-			params.put("serverip", properties.getProperty("spring.cloud.client.ipAddress"));
-		}
 		
 		Set<Entry<Object, Object>> entrySet = properties.entrySet();
 		for (Entry<Object, Object> entry : entrySet) {
@@ -236,6 +231,17 @@ public class ConfigcenterContext {
 			params.put(key, hideSensitive(key, value));
 			sortKeys.add(key);
 		}
+		
+		String serverport = EnvironmentHelper.getProperty("server.port");
+		if(StringUtils.isNotBlank(serverport)){
+			params.put("serverport", serverport);
+		}
+		
+		String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
+		if(StringUtils.isNotBlank(serverip)){
+			params.put("serverip", serverip);
+		}
+		
 		
 		if(first){			
 			Collections.sort(sortKeys);

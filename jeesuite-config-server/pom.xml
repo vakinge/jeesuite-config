@@ -9,19 +9,6 @@
 	<artifactId>jeesuite-config-server</artifactId>
 
 
-	<repositories>
-		<repository>
-			<id>releases</id>
-			<name>Team Nexus Repository</name>
-			<url>http://test.aiyuangong.com/nexus/content/groups/public</url>
-		</repository>
-		<repository>
-			<id>oss-snapshots</id>
-			<name>Team oss snapshots Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</repository>
-	</repositories>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -169,7 +156,7 @@
 
 
 	<build>
-		<finalName>jeesuite-admin</finalName>
+		<finalName>jeesuite-config-server</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

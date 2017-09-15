@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +74,7 @@ public class ConfigStateHolder implements InitializingBean{
 				parentPath = ZK_ROOT_PATH + "/" + env + "/" + app + "/nodes";
 				
 				int activeNodeCount = zkClient.countChildren(parentPath);
+				if(activeNodeCount == 0)continue;
 				List<ConfigState> localCacheConfigs = configStates.get(app + "#" + env);
 				
 				if(activeNodeCount > 0 && (localCacheConfigs == null || localCacheConfigs.size() < activeNodeCount)){
@@ -101,9 +101,13 @@ public class ConfigStateHolder implements InitializingBean{
 		
 		List<ConfigState> result = new ArrayList<>();
 		Set<String> keys = configStates.keySet();
+		
 		for (String key : keys) {
 			if(key.endsWith(env)){
-				result.addAll(configStates.get(key));
+				//
+				clearExpireNodes(key);
+				List<ConfigState> list = configStates.get(key);
+				result.addAll(list);
 			}
 		}
 		return result;
@@ -112,6 +116,47 @@ public class ConfigStateHolder implements InitializingBean{
 	public List<ConfigState> get(String appName,String env){
 		List<ConfigState> clist = configStates.get(appName + "#" + env);
 		return clist == null ? new ArrayList<>() : clist;
+	}
+	
+	private static void clearExpireNodes(String appNameAnaEnvKey){
+		try {
+			List<ConfigState> sameAppNodes = configStates.get(appNameAnaEnvKey);
+			if(sameAppNodes == null || sameAppNodes.isEmpty())return;
+			String syncType = sameAppNodes.get(0).syncType;
+			String zkPath = sameAppNodes.get(0).zkPath;
+			
+			Date nowTime = new Date();
+			if(SYNC_TYPE_ZK.equals(syncType)){
+				List<String> activeNodes = zkClient.getChildren(zkPath);
+				if(activeNodes == null)return;
+				if(activeNodes.isEmpty()){
+					sameAppNodes.clear();
+					return;
+				}
+				Iterator<ConfigState> iterator = sameAppNodes.iterator();
+				while (iterator.hasNext()) {  
+					ConfigState c = iterator.next();
+		            if (!activeNodes.contains(c.getNodeId())) {  
+		            	logger.info("remove expire node:{}",c.getNodeId());
+		            	iterator.remove();  
+		            }else{
+		            	c.setSyncTime(nowTime);
+		            } 
+		        } 
+			}else{
+				synchronized (sameAppNodes) {				
+					Iterator<ConfigState> iter = sameAppNodes.iterator();  
+					while (iter.hasNext()) {
+						ConfigState s = iter.next(); 
+						if (DateUtils.getDiffSeconds(nowTime, s.syncTime) > s.syncIntervalSeconds * 2) {  
+							iter.remove();  
+						}  
+					}  
+				}
+			}
+		} catch (Exception e) {
+			logger.error("clearExpireNodes:"+ appNameAnaEnvKey,e);
+		}
 	}
 
 	public static class ConfigState{
@@ -162,37 +207,10 @@ public class ConfigStateHolder implements InitializingBean{
 				
 				if(!zkClient.exists(zkPath))return;
 				//
-				clearExpireNodes(zkClient.getChildren(zkPath));
+				clearExpireNodes(appName + "#" + env);
 				
-				zkClient.subscribeChildChanges(zkPath, new IZkChildListener() {
-					@Override
-					public void handleChildChange(String path, List<String> children) throws Exception {
-						
-						logger.info("path[{}] Node change ,current nodes:{}",zkPath,children);
-						clearExpireNodes(children);
-					}
-				});
-				
-				logger.info("subscribeChildChanges path:" + zkPath);
+				logger.info("int ConfigState ok");
 			}
-		}
-		
-		private void clearExpireNodes(List<String> activeNodes){
-			List<ConfigState> list = configStates.get(appName + "#" + env);
-			
-			if(list == null)return;
-			if(activeNodes.isEmpty()){
-				list.clear();
-				return;
-			}
-			Iterator<ConfigState> iterator = list.iterator();
-			while (iterator.hasNext()) {  
-				ConfigState c = iterator.next();
-	            if (!activeNodes.contains(c.getNodeId())) {  
-	            	logger.info("remove expire node:{}",c.getNodeId());
-	            	iterator.remove();  
-	            }  
-	        } 
 		}
 		
 		public void update(String nodeId,Map<String, String> datas){
@@ -200,20 +218,8 @@ public class ConfigStateHolder implements InitializingBean{
 				serverip = datas.get("serverip");
 			}
 			syncTime = new Date();
-			
 			//清理失效节点
-			List<ConfigState> sameAppNodes = configStates.get(appName + "#" + env);
-			Date now = new Date();
-			synchronized (sameAppNodes) {				
-				Iterator<ConfigState> iter = sameAppNodes.iterator();  
-				while (iter.hasNext()) {
-					ConfigState s = iter.next(); 
-					if(s.getNodeId().equals(nodeId))continue;
-					if (DateUtils.getDiffSeconds(now, s.syncTime) > syncIntervalSeconds * 2) {  
-						iter.remove();  
-					}  
-				}  
-			}
+			//clearExpireNodes(appName + "#" + env);
 		}
 		
 		public void onConfigSyncSuccess(){
@@ -300,6 +306,9 @@ public class ConfigStateHolder implements InitializingBean{
 				if(zkClient == null){
 					logger.warn("Zookeeper client not init,skip");
 					return ;
+				}
+				if(zkClient.countChildren(zkPath) == 0){
+					return;
 				}
 				zkClient.writeData(zkPath, JsonUtils.toJson(changeConfigs));
 			}else{
