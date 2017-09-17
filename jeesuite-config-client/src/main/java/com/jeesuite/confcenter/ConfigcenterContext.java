@@ -205,7 +205,7 @@ public class ConfigcenterContext {
 		
 		if(!remoteEnabled)return;
 		
-		String syncType = ResourceUtils.getProperty("jeesuite.configcenter.sync-type");
+		String syncType = properties.getProperty("jeesuite.configcenter.sync-type");
 		
 		List<String> sortKeys = new ArrayList<>();
 
@@ -232,18 +232,12 @@ public class ConfigcenterContext {
 			sortKeys.add(key);
 		}
 		
-		String serverport = EnvironmentHelper.getProperty("server.port");
-		if(StringUtils.isNotBlank(serverport)){
-			params.put("serverport", serverport);
-		}
-		
-		String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
-		if(StringUtils.isNotBlank(serverip)){
-			params.put("serverip", serverip);
-		}
-		
-		
-		if(first){			
+		if(first){	
+			String serverport = properties.getProperty("server.port");
+			if(StringUtils.isNotBlank(serverport)){
+				params.put("serverport", serverport);
+			}
+			
 			Collections.sort(sortKeys);
 			System.out.println("==================final config list start==================");
 			for (String key : sortKeys) {
@@ -252,6 +246,16 @@ public class ConfigcenterContext {
 			System.out.println("==================final config list end====================");
 			//register listener
 			registerListener(syncType);
+		}else{
+			String serverport = EnvironmentHelper.getProperty("server.port");
+			if(StringUtils.isNotBlank(serverport)){
+				params.put("serverport", serverport);
+			}
+			
+			String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
+			if(StringUtils.isNotBlank(serverip)){
+				params.put("serverip", serverip);
+			}
 		}
 		
 		String url = apiBaseUrl + "/api/notify_final_config";

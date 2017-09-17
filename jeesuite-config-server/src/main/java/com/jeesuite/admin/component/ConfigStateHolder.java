@@ -190,6 +190,9 @@ public class ConfigStateHolder implements InitializingBean{
 			if(allMaps.containsKey("serverport")){
 				serverport = Integer.parseInt(allMaps.remove("serverport"));
 			}
+			if(allMaps.containsKey("serverip")){
+				serverip = allMaps.remove("serverip");
+			}
 			
 			ArrayList<String> keys = new ArrayList<>(allMaps.keySet());
 			Collections.sort(keys);
