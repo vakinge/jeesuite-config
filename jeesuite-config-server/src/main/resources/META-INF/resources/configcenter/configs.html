@@ -71,7 +71,7 @@
                 <td>{{ item.typeAlias }}</td>
 				<td>
                     <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-mini J_show_content" act-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
-                    <div id="content{{ item.id }}" style="display:none;"><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:335px;width:570px;">{{item.contents}}</textarea></div>
+                    <div id="content{{ item.id }}" style="display:none;"><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:1000px;">{{item.contents}}</textarea></div>
 					<a href="./config_edit.html?dataloadurl=/admin/cc/config/{{ item.id }}" class="layui-btn layui-btn-mini">编辑</a>
 					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/cc/config/delete/{{ item.id }}">删除</a>
 				</td>
@@ -86,11 +86,11 @@
         	  
         	  $("#content").on('click',".J_show_content",function() {
         		  var contentId = "content"+$(this).attr('data-id');
-        		  layer.open({
+        		  parent.layer.open({
         		        type: 1
         		        ,title: false 
         		        ,closeBtn: false
-        		        ,area: ['600px', '400px']
+        		        ,area: ['1024px', '600px']
         		        ,shade: 0.8
         		        ,id: 'layer_'+contentId 
         		        ,btn: ['关闭']

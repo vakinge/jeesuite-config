@@ -66,10 +66,13 @@
     </div>     
     <div class="layui-form-item layui-form-text"> 
      <label class="layui-form-label">配置内容</label> 
-     <div class="layui-input-block"> 
-      <textarea id="fileContent" name="contents" placeholder="请输入内容" class="layui-textarea"></textarea> 
-     </div> 
-    </div> 
+     <div class="layui-input-inline" style="width: 750px;">
+        <textarea id="fileContent" name="contents" placeholder="请输入内容" class="layui-textarea"></textarea> 
+      </div>
+      <div class="layui-input-inline" style="width: 100px;">
+        <input type="button" id="content_pop_btn" class="layui-btn layui-btn-warm layui-btn-min" value="全屏显示"/>
+      </div>
+    </div>
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
         <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./configs.html" value="保存"/>
@@ -81,8 +84,8 @@
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
   <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>  
   <script type="text/javascript">
-    layui.use('upload', function(){
-    	var $ = layui.jquery;
+    layui.use(['layer','upload'], function(){
+    	var $ = layui.jquery ,  layer = layui.layer;
     	layui.upload({
     	  url: '/admin/cc/config/upload',
     	  method: 'POST',
@@ -109,6 +112,25 @@
     		}
     		//form.render('select');
     	 });
+      
+      //
+      $('#content_pop_btn').on('click',function(){
+    	  parent.layer.open({
+    	    type: 1 
+    	    ,area: ['1024px', '660px']
+    	    ,title: '编辑配置内容'
+    	    ,shade: 0.6 //遮罩透明度
+    	    ,maxmin: true //允许全屏最小化
+    	    ,anim: 1 //0-6的动画形式，-1不开启
+    	    ,content: '<div style="padding:5px;"><textarea id="pop_fileContent" style="width:1000px;height:550px;border:1px dashed #000;">'+$('#fileContent').val()+'</textarea> </div>'
+    	    ,btn: ['确认']
+    	    ,yes: function(index, layero){
+    	    	var content = $('#pop_fileContent', window.parent.document).val();
+    	    	$('#fileContent').val(content);
+    	    	parent.layer.close(index);
+    	    }
+    	  }); 
+      });
 	});
     
     function onFinishCallback(){
