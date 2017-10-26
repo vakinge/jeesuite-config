@@ -1,5 +1,7 @@
 ### 分布式配置中心(Distributed configuration center)
-
+#### 为什么要造轮子？
+试用过几个开源的配置中心，各有弊端(或者是不满足我们的需求)、譬如部署复杂、不支持全局配置、不支持敏感配置加密，对springboot支持不友好等等。所以就有了这个项目。
+目前已经在生产环境多个公司生产环境稳定运行，欢迎点赞。
 #### 实现功能
    1. 支持全局配置、多应用共享配置
    2. 支持配置文件、配置项、json配置支持
@@ -28,6 +30,7 @@
 ![image](http://ojmezn0eq.bkt.clouddn.com/admin_ms.png)
 ![image](http://ojmezn0eq.bkt.clouddn.com/admin_kafka.png)
 ![image](http://ojmezn0eq.bkt.clouddn.com/admin_sch.png)
+
 
 
 

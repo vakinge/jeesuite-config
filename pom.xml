@@ -53,7 +53,7 @@
 		<junit.version>4.12</junit.version>
 		<jeesuite.cache.version>1.1.5</jeesuite.cache.version>
 		<jeesuite.mybatis.version>1.1.5</jeesuite.mybatis.version>
-		<jeesuite.common.version>1.1.5</jeesuite.common.version>
+		<jeesuite.common.version>1.1.6-SNAPSHOT</jeesuite.common.version>
 		<zkclient.version>0.10</zkclient.version>
 		<zookeeper.version>3.4.9</zookeeper.version>
 		<springboot.version>1.5.2.RELEASE</springboot.version>
@@ -64,7 +64,7 @@
 		<dependency>
 			<groupId>com.jeesuite</groupId>
 			<artifactId>jeesuite-common</artifactId>
-			<version>1.1.4</version>
+			<version>${jeesuite.common.version}</version>
 		</dependency>
 	</dependencies>
 	
