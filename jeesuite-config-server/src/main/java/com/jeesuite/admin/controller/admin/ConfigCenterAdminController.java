@@ -1,7 +1,5 @@
 package com.jeesuite.admin.controller.admin;
 
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -156,19 +152,19 @@ public class ConfigCenterAdminController {
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
 		SecurityUtil.requireProfileGanted(addRequest.getEnv());
-		
-		if(addRequest.getGlobal() == 1){
-			addRequest.setAppName("global");
+
+		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
+			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
 		
-		if(StringUtils.isAnyBlank(addRequest.getName(),addRequest.getEnv(),addRequest.getAppName())){
-			throw new JeesuiteBaseException(4001,"请完整填写相关信息");
+		if(StringUtils.isBlank(addRequest.getEnv())){
+			throw new JeesuiteBaseException(4001,"绑定环境profile不能为空");
+		}
+		
+		if(addRequest.getType().intValue() == 2 && StringUtils.isBlank(addRequest.getName())){
+			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
 
-		int count = appconfigMapper.countByQueryParams(BeanCopyUtils.beanToMap(addRequest));
-		if(count > 0){
-			throw new JeesuiteBaseException(1002, "配置["+addRequest.getName()+"]["+addRequest.getEnv()+"]["+addRequest.getVersion()+"]已存在");
-		}
 		AppconfigEntity entity = BeanCopyUtils.copy(addRequest, AppconfigEntity.class);
 		appconfigMapper.insertSelective(entity);
 		
@@ -191,14 +187,15 @@ public class ConfigCenterAdminController {
 		operateLog.setBeforeData(entity.getContents());
 		operateLog.setAfterData(addRequest.getContents());
 		
-		if(entity.getGlobal() != 1){
-			if(StringUtils.isBlank(addRequest.getAppName())){
-				throw new JeesuiteBaseException(1003, "请选择绑定应用");
-			}else{
-				operateLog.addBizData("beforeAppName", entity.getAppName()).addBizData("afterAppName", addRequest.getAppName());
-				entity.setAppName(addRequest.getAppName());
-			}
+		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
+			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
+		
+		operateLog.addBizData("beforeAppIds", entity.getAppIds()).addBizData("afterAppIds", addRequest.getAppIds());
+		entity.setAppIds(addRequest.getAppIds());
+		
+		operateLog.addBizData("beforeVersion", entity.getVersion()).addBizData("afterVersion", addRequest.getVersion());
+		entity.setVersion(addRequest.getVersion());
 		
 		String orignContents = entity.getContents();
 		entity.setContents(addRequest.getContents());
@@ -212,33 +209,6 @@ public class ConfigCenterAdminController {
 	}
 	
 	
-
-	@RequestMapping(value = "config/download/{id}", method = RequestMethod.GET)
-	public void downConfigFile(@PathVariable("id") int id,HttpServletResponse response){
-		AppconfigEntity config = appconfigMapper.selectByPrimaryKey(id);
-		
-		SecurityUtil.requireProfileGanted(config.getEnv());
-		OutputStream output = null;
-		try {
-			String content = config.getContents();
-			response.addHeader("Content-Disposition", "attachment;filename=" + new String(config.getName().getBytes()));
-			response.addHeader("Content-Length", "" + content.length());
-			output = new BufferedOutputStream(response.getOutputStream());
-			response.setContentType("application/octet-stream");
-			byte[] bytes = content.getBytes();
-			output.write(bytes);
-			output.flush();
-			
-			operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("id", config.getId()));
-		} catch (Exception e) {
-			throw new JeesuiteBaseException(9999, "下载失败");
-		}finally {			
-			if(output != null){
-				try {output.close(); } catch (Exception e) {}
-			}
-		}
-	}
-	
 	@RequestMapping(value = "configs", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
 		
@@ -246,7 +216,7 @@ public class ConfigCenterAdminController {
 			SecurityUtil.requireProfileGanted(query.getEnv());
 		}
 		
-        if(StringUtils.isBlank(query.getAppName()) && !SecurityUtil.isSuperAdmin()){
+        if(StringUtils.isBlank(query.getAppId()) && !SecurityUtil.isSuperAdmin()){
         	throw new JeesuiteBaseException(417, "请选择应用");
 		}
 		
@@ -261,6 +231,20 @@ public class ConfigCenterAdminController {
 		}
 		
 		List<AppconfigEntity> list = appconfigMapper.findByQueryParams(queyParams);
+		//set appName
+		for (AppconfigEntity appconfigEntity : list) {
+			String appName = "";
+			if(StringUtils.isBlank(appconfigEntity.getAppIds())){
+				appName = "全局配置";
+			}else{
+				String[] appIds = appconfigEntity.getAppIds().split(",");
+				for (int i = 0; i < appIds.length; i++) {
+					AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
+					appName = appName + appEntity.getAlias() + (i < appIds.length - 1 ? "," : "" );
+				}
+			}
+			appconfigEntity.setAppNames(appName);
+		}
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
 	}
@@ -275,7 +259,7 @@ public class ConfigCenterAdminController {
 			list = appMapper.findByMaster(SecurityUtil.getLoginUserInfo().getId());
 		}
 		for (AppEntity entity : list) {
-			result.add(new SelectOption(entity.getName(), entity.getAlias()));
+			result.add(new SelectOption(String.valueOf(entity.getId()), entity.getAlias()));
 		}
 		return result;
 	}
@@ -285,7 +269,7 @@ public class ConfigCenterAdminController {
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
 		if(entity != null)SecurityUtil.requireProfileGanted(entity.getEnv());
 		//全局配置
-		if(entity.getGlobal() == 1)SecurityUtil.requireSuperAdmin();
+		if(entity.getGlobal())SecurityUtil.requireSuperAdmin();
 		int delete = entity == null ? 0 : appconfigMapper.deleteByPrimaryKey(id);
 		operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("id", entity.getId()));
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
@@ -405,7 +389,7 @@ public class ConfigCenterAdminController {
 	
 	private void publishConfigChangeEvent(String orignContents,AppconfigEntity entity) {
 		try {
-			logger.info("begin publishConfigChangeEvent,{}-{}",entity.getAppName(),entity.getEnv());
+			logger.info("begin publishConfigChangeEvent,{}-{}",entity.getAppIds(),entity.getEnv());
 			//更新后的配置
 			Map<String, Object> currentConfigMap = ConfigParseUtils.parseConfigToKVMap(entity);
 			
@@ -413,14 +397,14 @@ public class ConfigCenterAdminController {
 			Map<String, Object> orignConfigMap = ConfigParseUtils.parseConfigToKVMap(entity);
 			
 			List<ConfigState> configStates;
-			boolean isGlobal = entity.getGlobal() == 1;
-			if(isGlobal){
+			if(entity.getGlobal()){
 				configStates = configStateHolder.get(entity.getEnv());
 			}else{	
 				configStates = new ArrayList<>();
-				String[] appNames = entity.getAppName().split(",");
-				for (int i = 0; i < appNames.length; i++) {
-					List<ConfigState> tmpList = configStateHolder.get(appNames[i], entity.getEnv());
+				String[] appIds = entity.getAppIds().split(",");
+				for (int i = 0; i < appIds.length; i++) {
+					AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
+					List<ConfigState> tmpList = configStateHolder.get(appEntity.getName(), entity.getEnv());
 					if(tmpList != null && !tmpList.isEmpty())configStates.addAll(tmpList);
 				}
 			}

@@ -15,22 +15,38 @@
    10. 支持查看日志变更记录并一键恢复
    11. 支持开启安全ip功能
  
-#### 如何运行
- 1. 执行sql脚本
- 2. 修改application.properties文件对应数据配置
- 3. 直接运行Application.java,或者打包后通过java -jar 运行
- 4. 初始账号密码：admin/admin123
+#### 文档
+[部署文档](http://www.jeesuite.com/docs/quickstart/confcenter.html) 
+[使用文档](http://www.jeesuite.com/docs/integration/confcenter.html) 
+
+#### 关联项目
+ - 基础库
+  - [http://git.oschina.net/vakinge/jeesuite-config](http://git.oschina.net/vakinge/jeesuite-libs)
+  - [https://github.com/vakinge/jeesuite-config](https://github.com/vakinge/jeesuite-libs)
+ - 模板项目
+  - [http://git.oschina.net/vakinge/jeesuite-bestpl](http://git.oschina.net/vakinge/jeesuite-bestpl)
+  - [https://github.com/vakinge/jeesuite-bestpl](https://github.com/vakinge/jeesuite-bestpl)
+ - 统一认证中心
+  - [http://git.oschina.net/vakinge/jeesuite-passport](http://git.oschina.net/vakinge/jeesuite-passport)
+  - [https://github.com/vakinge/jeesuite-passport](https://github.com/vakinge/jeesuite-passport)
+ - api网关
+  - [http://git.oschina.net/vakinge/jeesuite-apigateway](http://git.oschina.net/vakinge/jeesuite-apigateway)
+  - [https://github.com/vakinge/jeesuite-apigateway](https://github.com/vakinge/jeesuite-apigateway)
+ - 应用监控平台
+  - [http://git.oschina.net/vakinge/jeesuite-admin](http://git.oschina.net/vakinge/jeesuite-admin)
+  - [https://github.com/vakinge/jeesuite-admin](https://github.com/vakinge/jeesuite-admin)
+
 
 #### 页面截图
 页面基于`layui-beginner_admin`构建。
 
-![image](http://ojmezn0eq.bkt.clouddn.com/admin_profile.png)
-![image](http://ojmezn0eq.bkt.clouddn.com/admin_config.png)
-![image](http://ojmezn0eq.bkt.clouddn.com/admin_config_jm.png)
-![image](http://ojmezn0eq.bkt.clouddn.com/admin_ms.png)
-![image](http://ojmezn0eq.bkt.clouddn.com/admin_kafka.png)
-![image](http://ojmezn0eq.bkt.clouddn.com/admin_sch.png)
-
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_profiles.png)
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_apps.png)
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_configs.png)
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_config_add.png)
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_config_jm.png)
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_app_secret.png)
+![image](http://ojmezn0eq.bkt.clouddn.com/cc_show_active.png)
 
 
 

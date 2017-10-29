@@ -1,0 +1,3 @@
+ZooKeeper JMX enabled by default
+Using config: /usr/local/opt/zookeeper-3.4.10/conf/zookeeper.properties
+Starting zookeeper ... STARTED

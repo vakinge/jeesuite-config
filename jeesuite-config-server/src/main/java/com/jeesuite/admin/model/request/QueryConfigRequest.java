@@ -1,17 +1,20 @@
 package com.jeesuite.admin.model.request;
 
+import com.jeesuite.admin.model.Constants;
+
 public class QueryConfigRequest {
 
-	private String appName;
+	private String appId;
 	private String env;
-	private String version = "0.0.0";
+	private String version = Constants.DEFAULT_CONFIG_VERSION;
 	private String name;
 
-	public String getAppName() {
-		return appName;
+	
+	public String getAppId() {
+		return appId;
 	}
-	public void setAppName(String appName) {
-		this.appName = appName;
+	public void setAppId(String appId) {
+		this.appId = appId;
 	}
 	public String getEnv() {
 		return env;

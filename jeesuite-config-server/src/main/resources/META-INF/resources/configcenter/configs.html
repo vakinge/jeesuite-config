@@ -25,15 +25,14 @@
                 </select>     
               </div>
               <div class="layui-inline">
-                <select name="appName" asnycSelect="../admin/cc/app/options" lay-filter="app_select" onDataLoadCallback="onAppSelectLoadFinish">
+                <select name="appId" asnycSelect="../admin/cc/app/options" lay-filter="app_select" onDataLoadCallback="onAppSelectLoadFinish">
                   <option value="">请选择应用</option>
-                  <option value="global">全局(global)</option>
                 </select>     
               </div>
               <div class="layui-inline">
                 <select name="version" lay-verify="">
                   <option value="">请选择版本</option>
-                  <option value="0.0.0">0.0.0</option>
+                  <option value="release">release</option>
                 </select>     
               </div> 
               <div class="layui-inline">
@@ -64,7 +63,7 @@
 		<script type="text/html" id="list_tpl">
 			{{# layui.each(d.data, function(index, item){ }}
 			<tr>
-				<td>{{ item.appName == 'global' ? '全局配置(global)' : item.appName.replace(/,/g, "<br>") }}</td>
+				<td>{{ item.appNames.replace(/,/g, "<br>") }}</td>
 				<td>{{ item.env }}</td>
 				<td>{{ item.version }}</td>
                 <td>{{ item.name }}</td>

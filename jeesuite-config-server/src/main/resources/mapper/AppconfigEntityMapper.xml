@@ -6,7 +6,7 @@
       WARNING - @mbg.generated
     -->
     <id column="id" property="id" jdbcType="INTEGER" />
-    <result column="app_name" property="appName" jdbcType="VARCHAR" />
+    <result column="app_ids" property="appIds" jdbcType="VARCHAR" />
     <result column="env" property="env" jdbcType="VARCHAR" />
     <result column="version" property="version" jdbcType="VARCHAR" />
     <result column="name" property="name" jdbcType="VARCHAR" />
@@ -18,12 +18,16 @@
     <result column="contents" property="contents" jdbcType="LONGVARCHAR" />
   </resultMap>
   
+  <select id="findGlobalConfig" resultMap="BaseResultMap" parameterType="map">
+      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND (app_ids is null OR app_ids = '') LIMIT 1
+  </select>
+  
   <select id="findByQueryParams" resultMap="BaseResultMap" parameterType="map">
       SELECT * FROM app_configs where 1=1
       <if test="env != null">  AND env = #{env}</if> 
       <if test="name != null">  AND name = #{name}</if> 
       <if test="version != null and version !=''">  AND version = #{version}</if> 
-      <if test="appName != null and appName !=''">  AND find_in_set(#{appName},app_name)</if> 
+      <if test="appId != null and appId !=''">  AND (find_in_set(#{appId},app_ids) OR app_ids is null)</if> 
       <if test="envs != null">
         AND env in
       <foreach item="item" index="index" collection="envs" open="(" separator="," close=")">
@@ -37,7 +41,7 @@
       <if test="env != null">  AND env = #{env}</if> 
       <if test="name != null">  AND name = #{name}</if> 
       <if test="version != null and version !='' ">  AND version = #{version}</if> 
-      <if test="appName != null and appName !='' ">  AND find_in_set(#{appName},app_name)</if>
+      <if test="appId != null and appId !=''">  AND (find_in_set(#{appId},app_ids) OR app_ids is null)</if> 
       <if test="envs != null">
         AND env in
       <foreach item="item" index="index" collection="envs" open="(" separator="," close=")">

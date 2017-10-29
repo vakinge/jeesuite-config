@@ -1,12 +1,8 @@
 package com.jeesuite.admin.controller.api;
 
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +25,7 @@ import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
+import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.ConfigParseUtils;
 
@@ -43,77 +40,33 @@ public class ConfigCenterApiController {
 	private @Autowired CryptComponent cryptComponent;
 	private @Autowired ConfigStateHolder configStateHolder;
 	
-	@RequestMapping(value = "download_config_file", method = RequestMethod.GET)
-	public void downConfigFile(HttpServletResponse response,
-			                     @RequestParam(value = "appName") String appName,
-			                     @RequestParam(value = "env") String env,
-			                     @RequestParam(value = "version",required = false) String version,
-			                     @RequestParam(value = "fileName") String fileName){
-		
-		Map<String, Object> queyParams = new HashMap<>();
-		queyParams.put("env", env);
-		queyParams.put("name", fileName);
-		queyParams.put("version", version);
-		//先查全局的
-		queyParams.put("appName", appName);
-		
-		List<AppconfigEntity> configList = appconfigMapper.findByQueryParams(queyParams);
-		
-		if(configList == null || configList.isEmpty()){
-			throw new JeesuiteBaseException(1001, "配置不存在");
-		}
-		OutputStream output = null;
-		try {
-			AppconfigEntity config = configList.get(0);
-			String content = config.getContents();
-			response.addHeader("Content-Disposition", "attachment;filename=" + new String(config.getName().getBytes()));
-			response.addHeader("Content-Length", "" + content.length());
-			output = new BufferedOutputStream(response.getOutputStream());
-			response.setContentType("application/octet-stream");
-			byte[] bytes = content.getBytes();
-			output.write(bytes);
-			output.flush();
-			
-			//operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("env", env).addBizData("fileName", fileName).addBizData("appName", appName));
-		} catch (Exception e) {
-			throw new JeesuiteBaseException(9999, "下载失败");
-		}finally {			
-			if(output != null){
-				try {output.close(); } catch (Exception e) {}
-			}
-		}
-	}
-	
 	@RequestMapping(value = "fetch_all_configs", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> downConfigFile(  @RequestParam(value = "appName") String appName,
 			                     @RequestParam(value = "env") String env,
 			                     @RequestParam(value = "version",required = false) String version){
 		
-		if(StringUtils.isBlank(version))version = "0.0.0";
+		if(StringUtils.isBlank(version) || "0.0.0".equals(version))version = Constants.DEFAULT_CONFIG_VERSION;
 		
 		AppEntity appEntity = appMapper.findByName(appName);
 		if(appEntity == null)throw new JeesuiteBaseException(1001, "app不存在");
 		
+		AppconfigEntity globalConfig = appconfigMapper.findGlobalConfig(env, version);
+		//再查应用的
 		Map<String, Object> queyParams = new HashMap<>();
 		queyParams.put("env", env);
 		queyParams.put("version", version);
-		//先查全局的
-		queyParams.put("appName", "global");
-		
-		List<AppconfigEntity> globalConfigs = appconfigMapper.findByQueryParams(queyParams);
-		//再查应用的
-		queyParams.put("appName", appName);
+		queyParams.put("appId", appEntity.getId());
         List<AppconfigEntity> appConfigs = appconfigMapper.findByQueryParams(queyParams);
 		
-		if(globalConfigs.isEmpty() &&  appConfigs.isEmpty()){
+		if(globalConfig == null &&  appConfigs.isEmpty()){
 			throw new JeesuiteBaseException(1001, "配置不存在");
 		}
 		
 		Map<String, Object> result = new HashMap<>();
 		
-        for (AppconfigEntity config : globalConfigs) {
-        	ConfigParseUtils.parseConfigToKVMap(result, config);
-		}
+        if(globalConfig != null){
+        	ConfigParseUtils.parseConfigToKVMap(result, globalConfig);
+        }
         
         for (AppconfigEntity config : appConfigs) {
         	ConfigParseUtils.parseConfigToKVMap(result, config);

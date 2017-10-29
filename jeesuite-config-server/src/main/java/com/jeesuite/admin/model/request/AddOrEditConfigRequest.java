@@ -2,16 +2,18 @@ package com.jeesuite.admin.model.request;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.jeesuite.admin.model.Constants;
+
 public class AddOrEditConfigRequest {
 
 	private Integer id;
-	private String appName;
+	private String appIds;
 	private String env;
-	private String version = "0.0.0";
+	private String version = Constants.DEFAULT_CONFIG_VERSION;
 	private String name;
 	private Short type;
 	private String contents;
-	private int global = 0;
+	private Boolean global = false;
 	
 	
 	public Integer getId() {
@@ -20,11 +22,12 @@ public class AddOrEditConfigRequest {
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	public String getAppName() {
-		return appName;
+	
+	public String getAppIds() {
+		return appIds;
 	}
-	public void setAppName(String appName) {
-		this.appName = appName;
+	public void setAppIds(String appIds) {
+		this.appIds = appIds;
 	}
 	public String getEnv() {
 		return env;
@@ -56,13 +59,12 @@ public class AddOrEditConfigRequest {
 	public void setContents(String contents) {
 		this.contents = contents;
 	}
-	public int getGlobal() {
-		return global;
+	public Boolean getGlobal() {
+		return global == null ? false : global;
 	}
-	public void setGlobal(int global) {
+	public void setGlobal(Boolean global) {
 		this.global = global;
 	}
-	
 	
 	
 }

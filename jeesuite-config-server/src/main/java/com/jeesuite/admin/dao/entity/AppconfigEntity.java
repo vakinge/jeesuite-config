@@ -1,8 +1,17 @@
 package com.jeesuite.admin.dao.entity;
 
-import com.jeesuite.admin.dao.BaseEntity;
 import java.util.Date;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.jeesuite.admin.dao.BaseEntity;
 
 @Table(name = "app_configs")
 public class AppconfigEntity extends BaseEntity {
@@ -10,8 +19,8 @@ public class AppconfigEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "app_name")
-    private String appName;
+    @Column(name = "app_ids")
+    private String appIds;
     @Column(name = "env",updatable = false)
     private String env;
 
@@ -38,6 +47,9 @@ public class AppconfigEntity extends BaseEntity {
     private Integer updatedBy;
 
     private String contents;
+    
+    @Transient
+    private String appNames;
 
     /**
      * @return id
@@ -53,21 +65,16 @@ public class AppconfigEntity extends BaseEntity {
         this.id = id;
     }
 
-    /**
-     * @return app_name
-     */
-    public String getAppName() {
-        return appName;
-    }
+    
+    public String getAppIds() {
+		return appIds;
+	}
 
-    /**
-     * @param appName
-     */
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
+	public void setAppIds(String appIds) {
+		this.appIds = appIds;
+	}
 
-    /**
+	/**
      * @return env
      */
     public String getEnv() {
@@ -197,8 +204,9 @@ public class AppconfigEntity extends BaseEntity {
         this.contents = contents;
     }
     
-    public int getGlobal() {
-		return "global".equals(appName) ? 1 : 0;
+    //全局配置
+    public boolean getGlobal() {
+		return StringUtils.isBlank(appIds);
 	}
     
     //类型(1:文件，2:配置项,3:JSON)
@@ -208,4 +216,13 @@ public class AppconfigEntity extends BaseEntity {
     	if(type.intValue() == 3)return "JSON";
     	return null;
     }
+
+	public String getAppNames() {
+		return appNames;
+	}
+
+	public void setAppNames(String appNames) {
+		this.appNames = appNames;
+	}
+
 }
