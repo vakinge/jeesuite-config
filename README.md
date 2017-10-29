@@ -16,8 +16,8 @@
    11. 支持开启安全ip功能
  
 #### 文档
-[部署文档](http://www.jeesuite.com/docs/quickstart/confcenter.html) 
-[使用文档](http://www.jeesuite.com/docs/integration/confcenter.html) 
+ - [部署文档](http://www.jeesuite.com/docs/quickstart/confcenter.html) 
+ - [使用文档](http://www.jeesuite.com/docs/integration/confcenter.html) 
 
 #### 关联项目
  - 基础库
