@@ -47,6 +47,7 @@ public class ZkConfigChangeListener implements ConfigChangeListener {
 			
 			@Override
 			public void handleDataChange(String path, Object data) throws Exception {
+				if(data == null)return;
 				if(NOTIFY_UPLOAD_CMD.equals(data)){
 					logger.info("receive cmd[{}] from path[{}]",data,path);
 					if(context.pingCcServer(10)){	

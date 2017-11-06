@@ -218,6 +218,8 @@ public class ConfigcenterContext {
 		params.put("springboot", String.valueOf(isSpringboot));
 		params.put("syncIntervalSeconds", String.valueOf(syncIntervalSeconds));
 		params.put("syncType", syncType);
+		params.put("serverport", ServerEnvUtils.getServerPort());
+		params.put("serverip", ServerEnvUtils.getServerIpAddr());
 		
 		Set<Entry<Object, Object>> entrySet = properties.entrySet();
 		for (Entry<Object, Object> entry : entrySet) {
@@ -233,11 +235,6 @@ public class ConfigcenterContext {
 		}
 		
 		if(first){	
-			String serverport = properties.getProperty("server.port");
-			if(StringUtils.isNotBlank(serverport)){
-				params.put("serverport", serverport);
-			}
-			
 			Collections.sort(sortKeys);
 			System.out.println("==================final config list start==================");
 			for (String key : sortKeys) {
@@ -247,11 +244,6 @@ public class ConfigcenterContext {
 			//register listener
 			registerListener(syncType);
 		}else{
-			String serverport = EnvironmentHelper.getProperty("server.port");
-			if(StringUtils.isNotBlank(serverport)){
-				params.put("serverport", serverport);
-			}
-			
 			String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
 			if(StringUtils.isNotBlank(serverip)){
 				params.put("serverip", serverip);
