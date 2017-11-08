@@ -24,18 +24,18 @@ public class AdminIndexController {
 			menu = new Menu("全局管理", "fa-cubes", true);
 			menu.getChildren().add(new SubMenu("profile管理", "&#xe61d;", "profiles/list.html"));
 			menu.getChildren().add(new SubMenu("用户管理", "&#xe612;", "user/list.html"));
-			menu.getChildren().add(new SubMenu("应用管理", "&#xe63b;", "configcenter/apps.html"));
+			menu.getChildren().add(new SubMenu("应用管理", "&#xe63b;", "app/list.html"));
 			baseMenus.add(menu);
 		}
 		
 		menu = new Menu("配置管理", "fa-cubes", !SecurityUtil.isSuperAdmin());
-		menu.getChildren().add(new SubMenu("配置列表", "&#xe609;", "configcenter/configs.html"));
-		menu.getChildren().add(new SubMenu("新建配置", "&#xe609;", "configcenter/config_add.html"));
-		menu.getChildren().add(new SubMenu("配置加密工具", "&#xe64e;", "configcenter/encrypt.html"));
+		menu.getChildren().add(new SubMenu("配置列表", "&#xe609;", "config/list.html"));
+		menu.getChildren().add(new SubMenu("新建配置", "&#xe609;", "config/add.html"));
+		menu.getChildren().add(new SubMenu("配置加密工具", "&#xe64e;", "config/encrypt.html"));
 		baseMenus.add(menu);
 		
 		menu = new Menu("监控管理", "fa-cubes", true);
-		menu.getChildren().add(new SubMenu("接入应用节点", "&#xe64e;", "configcenter/active_app.html"));
+		menu.getChildren().add(new SubMenu("接入应用节点", "&#xe64e;", "monitor/app.html"));
 		baseMenus.add(menu);
 		
 		return baseMenus;

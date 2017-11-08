@@ -69,7 +69,7 @@
         	  $("#content").on('click',".J_view_config",function() {
         		  var $pa = $(this).parent(),appName = $pa.attr('data-appName'),
         		       env = $pa.attr('data-env'),nodeId = $pa.attr('data-nodeId');
-        		  var url = "../admin/cc/node_config/" + env + "/" + appName + "?nodeId=" + nodeId;
+        		  var url = "../monitor/app/config/" + env + "/" + appName + "?nodeId=" + nodeId;
         		  $.getJSON(url,function(data){
         			  if(data.code==200){
         				  parent.layer.open({
@@ -95,7 +95,7 @@
         	  
         	  form.on('submit(search)',function(data){
 					var loading = layer.load();
-					$.getJSON('../admin/cc/active_nodes/' + data.field.env,function(data){
+					$.getJSON('../monitor/app/' + data.field.env,function(data){
 						layer.close(loading);
 						if(data.code==200){
 				        	var tpl = $('#list_tpl').html();

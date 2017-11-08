@@ -91,9 +91,12 @@ public class ConfigStateHolder implements InitializingBean{
 		if(list == null){
 			list = new ArrayList<>();
 			configStates.put(key, list);
+			list.add(cs);
+		}else{
+			if(!list.contains(cs)){
+				list.add(cs);
+			}
 		}
-		list.add(cs);
-		
 		logger.info("New node[{}-{}-{}] registered!",cs.getAppName(),cs.getEnv(),cs.getNodeId());
 	}
 	
@@ -318,6 +321,39 @@ public class ConfigStateHolder implements InitializingBean{
 				waitingSyncConfigs.putAll(changeConfigs);
 			}
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			if(StringUtils.isNotBlank(serverip) && serverport > 0){				
+				result = prime * result + ((serverip == null) ? 0 : serverip.hashCode());
+				result = prime * result + serverport;
+			}else{
+				result = prime * result + ((nodeId == null) ? 0 : nodeId.hashCode());
+			}
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ConfigState other = (ConfigState) obj;
+			if(StringUtils.isNotBlank(serverip) && serverport > 0){	
+				if (!serverip.equals(other.serverip))return false;
+				if (serverport != other.serverport)return false;
+			}else{
+				if (!nodeId.equals(other.nodeId))return false;
+			}
+			return true;
+		}
+
+		
 	}
 
 	

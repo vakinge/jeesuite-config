@@ -2,7 +2,6 @@ package com.jeesuite.admin.controller.admin;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.jeesuite.admin.component.ConfigStateHolder;
@@ -30,105 +28,37 @@ import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
 import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.AppSecretEntity;
-import com.jeesuite.admin.dao.entity.AppSecretEntity.SecretType;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.entity.OperateLogEntity;
-import com.jeesuite.admin.dao.entity.ProfileEntity;
-import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
-import com.jeesuite.admin.dao.mapper.AppSecretEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
 import com.jeesuite.admin.dao.mapper.OperateLogEntityMapper;
-import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
-import com.jeesuite.admin.dao.mapper.UserEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
-import com.jeesuite.admin.model.SelectOption;
 import com.jeesuite.admin.model.WrapperResponseEntity;
-import com.jeesuite.admin.model.request.AddOrEditAppRequest;
 import com.jeesuite.admin.model.request.AddOrEditConfigRequest;
 import com.jeesuite.admin.model.request.EncryptRequest;
 import com.jeesuite.admin.model.request.QueryConfigRequest;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.util.BeanCopyUtils;
-import com.jeesuite.common.util.SimpleCryptUtils;
 
 import tk.mybatis.mapper.entity.Example;
 
 @Controller
-@RequestMapping("/admin/cc")
-public class ConfigCenterAdminController {
+@RequestMapping("/admin/config")
+public class ConfigAdminController {
 
 	final static Logger logger = LoggerFactory.getLogger("controller");
 	
 	private @Autowired AppEntityMapper appMapper;
-	private @Autowired UserEntityMapper userMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
 	private @Autowired OperateLogEntityMapper operateLogMapper;
-	private @Autowired AppSecretEntityMapper appSecretMapper;
-	private @Autowired ProfileEntityMapper profileMapper;
 	private @Autowired CryptComponent cryptComponent;
 	private @Autowired ConfigStateHolder configStateHolder;
 	
-	@RequestMapping(value = "apps", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> findAllApps(){
-		List<AppEntity> list = appMapper.selectAll();
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
-	}
+
 	
-	@RequestMapping(value = "app/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> getApp(@PathVariable("id") int id){
-		AppEntity entity = appMapper.selectByPrimaryKey(id);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "app/add", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> addApp(@RequestBody AddOrEditAppRequest addAppRequest){
-		SecurityUtil.requireSuperAdmin();
-		if(addAppRequest.getMasterUid() == null || addAppRequest.getMasterUid() == 0){
-			throw new JeesuiteBaseException(1002, "请选择项目负责人");
-		}
-		Example example = new Example(AppEntity.class);
-		example.createCriteria().andEqualTo("name", addAppRequest.getName());
-		int count = appMapper.selectCountByExample(example);
-		if(count > 0){
-			throw new JeesuiteBaseException(1002, "应用["+addAppRequest.getName()+"]已存在");
-		}
-		AppEntity appEntity = BeanCopyUtils.copy(addAppRequest, AppEntity.class);
-		//
-		UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getMasterUid());
-		appEntity.setMaster(master.getName());
-		appMapper.insertSelective(appEntity);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "app/update", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> updateApp(@RequestBody AddOrEditAppRequest addAppRequest){
-		SecurityUtil.requireSuperAdmin();
-		AppEntity app = appMapper.selectByPrimaryKey(addAppRequest.getId());
-		if(app == null){
-			throw new JeesuiteBaseException(1002, "应用不存在");
-		}
-		AppEntity appEntity = BeanCopyUtils.copy(addAppRequest, AppEntity.class);
-		
-		if(addAppRequest.getMasterUid() != null && addAppRequest.getMasterUid() > 0 
-				&& !addAppRequest.getMasterUid().equals(app.getMasterUid())){
-			UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getMasterUid());
-			appEntity.setMaster(master.getName());
-		}
-		
-		appMapper.updateByPrimaryKeySelective(appEntity);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "app/delete/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> deleteApp(@PathVariable("id") int id){
-		SecurityUtil.requireSuperAdmin();
-		int delete = appMapper.deleteByPrimaryKey(id);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "config/upload", method = RequestMethod.POST)
+	@RequestMapping(value = "upload", method = RequestMethod.POST)
 	public ResponseEntity<Object> uploadConfigFile(@RequestParam("file") MultipartFile file){
 		try {
 			Map<String, String> result = new HashMap<>();
@@ -140,7 +70,7 @@ public class ConfigCenterAdminController {
 		}
 	}
 	
-	@RequestMapping(value = "config/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
 		SecurityUtil.requireProfileGanted(entity.getEnv());
@@ -148,7 +78,7 @@ public class ConfigCenterAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "config/add", method = RequestMethod.POST)
+	@RequestMapping(value = "add", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
 		SecurityUtil.requireProfileGanted(addRequest.getEnv());
@@ -175,7 +105,7 @@ public class ConfigCenterAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "config/update", method = RequestMethod.POST)
+	@RequestMapping(value = "update", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> updateConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		if(addRequest.getId() == null || addRequest.getId() == 0){
 			throw new JeesuiteBaseException(1003, "id参数缺失");
@@ -209,7 +139,7 @@ public class ConfigCenterAdminController {
 	}
 	
 	
-	@RequestMapping(value = "configs", method = RequestMethod.POST)
+	@RequestMapping(value = "list", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
 		
 		if(StringUtils.isNotBlank(query.getEnv())){
@@ -249,22 +179,9 @@ public class ConfigCenterAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "app/options", method = RequestMethod.GET)
-	public @ResponseBody List<SelectOption> getAppOptions(){
-		List<SelectOption> result = new ArrayList<>();
-		List<AppEntity> list = null;
-		if(SecurityUtil.isSuperAdmin()){
-			list = appMapper.selectAll();
-		}else{
-			list = appMapper.findByMaster(SecurityUtil.getLoginUserInfo().getId());
-		}
-		for (AppEntity entity : list) {
-			result.add(new SelectOption(String.valueOf(entity.getId()), entity.getAlias()));
-		}
-		return result;
-	}
 	
-	@RequestMapping(value = "config/delete/{id}", method = RequestMethod.GET)
+	
+	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> deleteConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
 		if(entity != null)SecurityUtil.requireProfileGanted(entity.getEnv());
@@ -275,7 +192,7 @@ public class ConfigCenterAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "config/copy", method = RequestMethod.POST)
+	@RequestMapping(value = "copy", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> copyConfig(@RequestBody Map<String, String> params){
 		String from = params.get("from");
 		SecurityUtil.requireProfileGanted(from);
@@ -298,54 +215,6 @@ public class ConfigCenterAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "app_secret/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> appSecrets(@PathVariable("id") int id){
-		
-		Map<String, List<AppSecretEntity>> result = new HashMap<>();
-		
-		List<ProfileEntity> profiles = profileMapper.selectAll();
-		for (ProfileEntity profile : profiles) {
-			AppSecretEntity appSecret = cryptComponent.getAppSecret(id, profile.getName(), SecretType.DES.name());
-			appSecret.setSecretKey(appSecret.getSecretKey().substring(0,28) + "****") ;
-			result.put(profile.getName(), new ArrayList<>(Arrays.asList(appSecret)));
-		}
-		
-		List<AppSecretEntity> secrets = appSecretMapper.findByAppid(id,SecretType.RSA.name());
-		
-		for (AppSecretEntity appSecret : secrets) {
-			result.get(appSecret.getEnv()).add(appSecret);
-		}
-			
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(result),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "app_secret/update", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> appSecretupdate(@RequestBody Map<String, String> params){
-		SecurityUtil.requireSuperAdmin();
-		int appId = Integer.parseInt(params.get("appId"));
-		String env = params.get("env");
-		String secretKey = params.get("secretKey");
-		String secretPass = params.get("secretPass");
-		
-		AppSecretEntity secretEntity = appSecretMapper.get(appId, env, SecretType.RSA.name());
-		if(secretEntity == null){
-			secretEntity = new AppSecretEntity();
-			secretEntity.setAppId(appId);
-			secretEntity.setEnv(env);
-			secretEntity.setSecretType( SecretType.RSA.name());
-			secretEntity.setSecretKey(secretKey);
-			secretEntity.setSecretPass(SimpleCryptUtils.encrypt(secretKey, secretPass));
-			appSecretMapper.insertSelective(secretEntity);
-		}else{
-			if(secretKey.equals(secretEntity.getSecretKey()) == false || secretPass.equals(secretEntity.getSecretPass()) == false){				
-				secretEntity.setSecretKey(secretKey);
-				secretEntity.setSecretPass(SimpleCryptUtils.encrypt(secretKey, secretPass));
-				appSecretMapper.updateByPrimaryKey(secretEntity);
-			}
-		}
-		
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
-	}
 	
 	@RequestMapping(value = "encrypt", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> encryptConfig(@RequestBody EncryptRequest param){
@@ -362,30 +231,6 @@ public class ConfigCenterAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(encodeStr),HttpStatus.OK);
 	}
 	
-	
-	@RequestMapping(value="active_nodes/{env}", method = RequestMethod.GET) 
-	public ResponseEntity<WrapperResponseEntity> getActiveAppNodes(@PathVariable("env") String env){
-		SecurityUtil.requireProfileGanted(env);
-		List<ConfigState> list = configStateHolder.get(env);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value="node_config/{env}/{appName}", method = RequestMethod.GET) 
-	public ResponseEntity<WrapperResponseEntity> getNodeConfig(@PathVariable("env") String env,@PathVariable("appName") String appName,@RequestParam("nodeId") String nodeId){
-		SecurityUtil.requireProfileGanted(env);
-		StringBuilder content = new StringBuilder();
-		List<ConfigState> list = configStateHolder.get(appName, env);
-		for (ConfigState configState : list) {
-			if(configState.getNodeId().equals(nodeId)){
-				Map<String, String> configs = configState.getConfigs();
-				for (String key : configs.keySet()) {
-					content.append(key).append(" = ").append(configs.get(key)).append("<br>");
-				}
-				break;
-			}
-		}
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(content),HttpStatus.OK);
-	}
 	
 	private void publishConfigChangeEvent(String orignContents,AppconfigEntity entity) {
 		try {

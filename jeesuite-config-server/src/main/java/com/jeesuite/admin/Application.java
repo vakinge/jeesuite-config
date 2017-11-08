@@ -19,7 +19,7 @@ public class Application {
 		new SpringApplicationBuilder(Application.class).web(true).run(args);
 	}
 	
-	@RequestMapping("/index")
+	@RequestMapping("/")
     String home() {
         return "redirect:/admin.html";
     }

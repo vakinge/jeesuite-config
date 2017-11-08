@@ -11,9 +11,9 @@
  <body> 
   <div class="admin-main"> 
    <blockquote class="layui-elem-quote"> 
-    <a href="./apps.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 应用列表 </a> 
+    <a href="./list.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 应用列表 </a> 
    </blockquote> 
-   <form class="layui-form" action="../admin/cc/app/add">
+   <form class="layui-form" action="../admin/app/add">
 		<div class="layui-form-item">
 			<label class="layui-form-label">应用标识</label>
 			<div class="layui-input-block">
@@ -24,6 +24,12 @@
 			<label class="layui-form-label">应用名称</label>
 			<div class="layui-input-block">
 				<input type="text" name="alias" placeholder="中文名称" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用SCM</label>
+			<div class="layui-input-block">
+				<input type="text" name="scmLink" placeholder="git地址" autocomplete="off" class="layui-input">
 			</div>
 		</div>
 		<div class="layui-form-item">
@@ -48,7 +54,7 @@
 		</div>
 		<div class="layui-form-item"> 
           <div class="layui-input-block"> 
-           <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./apps.html" value="保存"/>
+           <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./list.html" value="保存"/>
            <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
           </div> 
        </div> 

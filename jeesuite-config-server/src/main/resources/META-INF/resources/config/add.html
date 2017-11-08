@@ -17,13 +17,13 @@
  <body> 
   <div class="admin-main"> 
    <blockquote class="layui-elem-quote"> 
-    <a href="./configs.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 配置列表 </a> 
+    <a href="./list.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 配置列表 </a> 
    </blockquote> 
-   <form class="layui-form" action="../admin/cc/config/add">  
+   <form class="layui-form" action="../admin/config/add">  
      <div class="layui-form-item"> 
      <label class="layui-form-label">全局配置</label> 
      <div class="layui-input-block"> 
-      <input type="checkbox" name="global" value="true" lay-skin="switch" lay-text="是|否" /> 
+      <input type="checkbox" name="global" value="1" lay-skin="switch" lay-text="是|否" /> 
      </div> 
     </div>  
     <div class="layui-form-item"> 
@@ -37,7 +37,7 @@
     <div class="layui-form-item" id="div_app_list"> 
      <label class="layui-form-label">绑定应用</label> 
      <div class="layui-input-block"> 
-      <ul id="applist" class="applist" templateLoad="../admin/cc/app/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
+      <ul id="applist" class="applist" templateLoad="../admin/app/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
         <script type="text/html" id="checklist_tpl">
 	     {{# layui.each(d, function(index, item){ }}
           <li><input type="checkbox" name="appIds" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}"></li>
@@ -75,7 +75,7 @@
     </div>
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./configs.html" value="保存"/>
+        <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./list.html" value="保存"/>
         <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
      </div> 
     </div> 
@@ -87,7 +87,7 @@
     layui.use(['layer','upload'], function(){
     	var $ = layui.jquery ,  layer = layui.layer;
     	layui.upload({
-    	  url: '/admin/cc/config/upload',
+    	  url: '/admin/config/upload',
     	  method: 'POST',
     	  ext: 'properties|xml|yml',
     	  before: function(input){

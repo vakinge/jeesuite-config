@@ -17,15 +17,15 @@
  <body> 
   <div class="admin-main" templateLoad="" onFinishCallback="onFinishCallback"> 
    <blockquote class="layui-elem-quote"> 
-    <a href="./configs.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 配置列表 </a> 
+    <a href="./list.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 配置列表 </a> 
    </blockquote> 
-   <form class="layui-form" action="../admin/cc/config/update">  
+   <form class="layui-form" action="../admin/config/update">  
      <input type="hidden" bindAttr="id" name="id">
      <div class="layui-form-item"> 
      <label class="layui-form-label">全局配置</label> 
      <div class="layui-input-block"> 
-      <input type="checkbox" bindAttr="global" value="true" lay-skin="switch" lay-text="是|否" disabled="disabled"/> 
-      <input type="hidden" bindAttr="global" name="global"/>
+       <input type="checkbox" bindAttr="global" value="true" lay-skin="switch"  disabled="disabled"/> 
+       <input type="hidden" bindAttr="global" name="global"/>
      </div> 
     </div>  
     <div class="layui-form-item"> 
@@ -81,7 +81,7 @@
     </div> 
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessJumpurl="./configs.html" value="保存"/>
+        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessJumpurl="./list.html" value="保存"/>
         <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
      </div> 
     </div> 
@@ -93,7 +93,7 @@
   layui.use(['layer','upload'], function(){
   	var $ = layui.jquery ,  layer = layui.layer;
   	layui.upload({
-  	  url: '/admin/cc/config/upload',
+  	  url: '/admin/config/upload',
   	  method: 'POST',
   	  ext: 'properties|xml|yml',
   	  before: function(input){
@@ -132,11 +132,11 @@
   
   function onFinishCallback(data){
 	  var $ = layui.jquery;
-	  if(data.global){
+	  if(data.global==1){
 		  layui.jquery("#div_app_list").remove();
 	  }else{
 		  var $cont = $('#applist');
-		  $.getJSON('../admin/cc/app/options',function(res){
+		  $.getJSON('../admin/app/options',function(res){
 			  var tpl = $('#applist_tpl').html();
 			  layui.laytpl(tpl).render(res, function(html){
 				  $cont.html(html);
