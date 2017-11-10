@@ -58,15 +58,30 @@ public class ConfigParseUtils {
 			seg = StringUtils.trimToNull(segments[i]);
 			if(StringUtils.isBlank(seg))continue;
 			
-			if(seg.contains("}")){				
+			if(seg.contains("}")){	
 				String refKey = seg.substring(0, seg.indexOf("}")).trim();
+				//其他非${}的占位符如：{{host}}
+				String withBraceString = null;
+				if(seg.contains("{")){
+					withBraceString = seg.substring(seg.indexOf("}")+1);
+				}
 				
-				String refValue = result.containsKey(refKey) ? result.get(refKey).toString() : "${" + refKey + "}";
+				//如果包含默认值，如：${host:127.0.0.1}
+				String orginKey = refKey;
+				if(refKey.contains(":")){
+					refKey = refKey.split(":")[0];
+				}
+				
+				String refValue = result.containsKey(refKey) ? result.get(refKey).toString() : "${" + orginKey + "}";
 				finalValue.append(refValue);
 				
-				String[] segments2 = seg.split("\\}");
-				if(segments2.length == 2){
-					finalValue.append(segments2[1]);
+				if(withBraceString != null){
+					finalValue.append(withBraceString);
+				}else{
+					String[] segments2 = seg.split("\\}");
+					if(segments2.length == 2){
+						finalValue.append(segments2[1]);
+					}
 				}
 			}else{
 				finalValue.append(seg);
