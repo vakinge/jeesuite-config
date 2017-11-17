@@ -24,7 +24,11 @@ public class HttpConfigChangeListener implements ConfigChangeListener {
 	public void register(final ConfigcenterContext context) {
 		hbScheduledExecutor = Executors.newScheduledThreadPool(1);
 
-		final String url = context.getApiBaseUrl() + "/api/sync_status";
+		final String[] syncStatusUrls = new String[context.getApiBaseUrls().length];
+		for (int i = 0; i < context.getApiBaseUrls().length; i++) {
+			syncStatusUrls[i] = context.getApiBaseUrls()[i] + "/api/sync_status";
+		}
+		
 		final Map<String, String> params = new HashMap<>();
 		params.put("nodeId", context.getNodeId());
 		params.put("appName", context.getApp());
@@ -40,13 +44,17 @@ public class HttpConfigChangeListener implements ConfigChangeListener {
 					}
 				}
 
-				HttpResponseEntity response = HttpUtils.postJson(url, JsonUtils.toJson(params),
-						HttpUtils.DEFAULT_CHARSET);
-				// 刷新服务端更新的配置
-				if (response.isSuccessed()) {
-					JsonNode jsonNode = JsonUtils.getNode(response.getBody(), "data");
-					Map map = JsonUtils.toObject(jsonNode.toString(), Map.class);
-					context.updateConfig(map);
+				boolean updated = false;
+				for (String url : syncStatusUrls) {
+					HttpResponseEntity response = HttpUtils.postJson(url, JsonUtils.toJson(params),
+							HttpUtils.DEFAULT_CHARSET);
+					if(updated)return;
+					// 刷新服务端更新的配置
+					if (updated = response.isSuccessed()) {
+						JsonNode jsonNode = JsonUtils.getNode(response.getBody(), "data");
+						Map map = JsonUtils.toObject(jsonNode.toString(), Map.class);
+						context.updateConfig(map);
+					}
 				}
 
 			}

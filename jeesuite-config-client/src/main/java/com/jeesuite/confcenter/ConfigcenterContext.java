@@ -14,6 +14,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.MapPropertySource;
@@ -54,7 +55,7 @@ public class ConfigcenterContext {
 	private Boolean remoteEnabled;
 
 	private final String nodeId = NodeNameHolder.getNodeId();
-	private String apiBaseUrl;
+	private String[] apiBaseUrls;
 	private String app;
 	private String env;
 	private String version;
@@ -62,7 +63,7 @@ public class ConfigcenterContext {
 	private boolean remoteFirst = false;
 	private boolean isSpringboot;
 	private int syncIntervalSeconds = 90;
-	private String pingUrl;
+	private String pingUri = "/api/ping";
 	private ConfigChangeListener configChangeListener;
 	
 	private List<ConfigChangeHanlder> configChangeHanlders;
@@ -75,8 +76,12 @@ public class ConfigcenterContext {
 		app = getValue("jeesuite.configcenter.appName",defaultAppName);
 		if(remoteEnabled == null)remoteEnabled = Boolean.parseBoolean(getValue("jeesuite.configcenter.enabled","true"));
 		
+		if(!remoteEnabled)return;
+		
 		String defaultEnv = getValue("spring.profiles.active");
 		env = getValue("jeesuite.configcenter.profile",defaultEnv);
+		
+		Validate.notBlank(env,"[jeesuite.configcenter.profile] is required");
 		
 		setApiBaseUrl(getValue("jeesuite.configcenter.base.url"));
 		
@@ -115,13 +120,25 @@ public class ConfigcenterContext {
 	public void setRemoteEnabled(boolean remoteEnabled) {
 		this.remoteEnabled = remoteEnabled;
 	}
-	public String getApiBaseUrl() {
-		return apiBaseUrl;
+	public String[] getApiBaseUrls() {
+		return apiBaseUrls;
 	}
+	
 	public void setApiBaseUrl(String apiBaseUrl) {
-		if(apiBaseUrl != null)if(apiBaseUrl.endsWith("/"))apiBaseUrl = apiBaseUrl.substring(0, apiBaseUrl.length() - 1);
-		this.apiBaseUrl = apiBaseUrl;
-		pingUrl = apiBaseUrl + "/api/ping";
+		
+		Validate.notBlank(apiBaseUrl,"[jeesuite.configcenter.base.url] is required");
+		
+		String[] urls = apiBaseUrl.split(",|;");
+		this.apiBaseUrls = new String[urls.length];
+		
+		for (int i = 0; i < urls.length; i++) {
+			if(urls[i].endsWith("/")){
+				this.apiBaseUrls[i] = urls[i].substring(0, urls[i].length() - 1);
+			}else{
+				this.apiBaseUrls[i] = urls[i];
+			}
+			
+		}
 	}
 	public String getApp() {
 		return app;
@@ -155,37 +172,15 @@ public class ConfigcenterContext {
 		return isSpringboot;
 	}
 	
-	
 
-	@SuppressWarnings("unchecked")
 	public Properties getAllRemoteProperties(){
 		if(!remoteEnabled)return null;
-		if(StringUtils.isBlank(apiBaseUrl))return null;
+		
 		Properties properties = new Properties();
-		
-		String url = String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s", apiBaseUrl,app,env,version);
-		System.out.println("fetch configs url:" + url);
-		
-//		if(!pingCcServer(5)){
-//			throw new RuntimeException("配置中心无法连接-" + pingUrl);
-//		}
-		String jsonString = null;
-		HttpResponseEntity response = HttpUtils.get(url);
-		if(!response.isSuccessed()){
-			try {Thread.sleep(1000);} catch (Exception e2) {}
-			//重试一次
-			jsonString = HttpUtils.get(url).getBody();
-		}
-		
-		if(!response.isSuccessed()){
-			throw new RuntimeException(response.getException());
-		}
-		
-		jsonString = response.getBody();
-		
-		Map<String,Object> map = JsonUtils.toObject(jsonString, Map.class);
-		if(map.containsKey("code")){
-			throw new RuntimeException(map.get("msg").toString());
+
+		Map<String,Object> map = fetchConfigFromServer(2);
+		if(map == null){
+			throw new RuntimeException("fetch remote config error!");
 		}
 		
 		//DES解密密匙
@@ -199,6 +194,35 @@ public class ConfigcenterContext {
 		}
 	
 		return properties;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Map<String,Object> fetchConfigFromServer(int retry){
+		if(retry == 0)return null;
+		Map<String,Object> result = null;
+		String errorMsg = null;
+        for (String apiBaseUrl : apiBaseUrls) {
+        	String url = String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s", apiBaseUrl,app,env,version);
+    		System.out.println("fetch configs url:" + url);
+    		String jsonString = null;
+    		HttpResponseEntity response = HttpUtils.get(url);
+    		if(response.isSuccessed()){
+    			jsonString = response.getBody();
+    			result = JsonUtils.toObject(jsonString, Map.class);
+    			if(result.containsKey("code")){
+    				errorMsg = result.get("msg").toString();
+    				System.out.println("fetch error:"+errorMsg);
+    				result = null;
+    			}else{
+    				break;
+    			}
+    		}
+		}
+        
+        if(result == null){
+        	result = fetchConfigFromServer(--retry);
+        }
+        return result;
 	}
 	
 	public void syncConfigToServer(Properties properties,boolean first){
@@ -250,8 +274,12 @@ public class ConfigcenterContext {
 			}
 		}
 		
-		String url = apiBaseUrl + "/api/notify_final_config";
-		HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
+		for (String apiBaseUrl : apiBaseUrls) {			
+			String url = apiBaseUrl + "/api/notify_final_config";
+			logger.info("syncConfigToServer,url:" + url);
+			HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
+			logger.info("syncConfigToServer Ok");
+		}
 	
 	}
 
@@ -324,7 +352,7 @@ public class ConfigcenterContext {
 		}
 	}
 	
-	public boolean pingCcServer(int retry){
+	public boolean pingCcServer(String pingUrl,int retry){
 		boolean result = false;
 		try {
 			System.out.println("pingCcServer ,retry:"+retry);
@@ -333,7 +361,7 @@ public class ConfigcenterContext {
 		if(retry == 0)return false;
 		if(!result){
 			try {Thread.sleep(1500);} catch (Exception e) {}
-			return pingCcServer(--retry);
+			return pingCcServer(pingUrl,--retry);
 		} 
 		
 		return result;
@@ -420,7 +448,10 @@ public class ConfigcenterContext {
 		return getValue(key,null);
 	}
 	private String getValue(String key,String defVal){
-		String value = StringUtils.trimToNull(ResourceUtils.getProperty(key,defVal));
+		//jvm 启动参数优先
+		String value = System.getProperty(key);
+		if(StringUtils.isNotBlank(value))return value;
+		value = StringUtils.trimToNull(ResourceUtils.getProperty(key,defVal));
 		if(StringUtils.isNotBlank(value)){	
 			if(value.startsWith("${")){
 				String refKey = value.substring(2, value.length() - 1).trim();

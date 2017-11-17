@@ -6,6 +6,7 @@ import java.util.Properties;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,20 +48,18 @@ public class ZkConfigChangeListener implements ConfigChangeListener {
 			
 			@Override
 			public void handleDataChange(String path, Object data) throws Exception {
-				if(data == null)return;
+				if(data == null || StringUtils.isBlank(data.toString()))return;
 				if(NOTIFY_UPLOAD_CMD.equals(data)){
 					logger.info("receive cmd[{}] from path[{}]",data,path);
-					if(context.pingCcServer(10)){	
-						Properties properties = ResourceUtils.getAllProperties();
-						context.syncConfigToServer(properties,false);
-						logger.info("process cmd[{}] ok~",data);
-					}
+					Properties properties = ResourceUtils.getAllProperties();
+					context.syncConfigToServer(properties,false);
+					logger.info("process cmd[{}] ok~",data);
 				}else{		
 					try {						
 						Map<String, Object> changeDatas = JsonUtils.toObject(data.toString(),Map.class);
 						context.updateConfig(changeDatas);
 					} catch (Exception e) {
-						logger.error("",e);
+						logger.error("updateConfig error",e);
 					}
 				}
 				
