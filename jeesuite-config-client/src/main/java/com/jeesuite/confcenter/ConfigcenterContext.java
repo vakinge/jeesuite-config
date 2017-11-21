@@ -52,6 +52,9 @@ public class ConfigcenterContext {
 
 	private static final String RSA_PREFIX = "{Cipher:RSA}";
 	
+	private static final String PLACEHOLDER_PREFIX = "${";
+	private static final String PLACEHOLDER_SUFFIX = "}";
+	
 	private Boolean remoteEnabled;
 
 	private final String nodeId = NodeNameHolder.getNodeId();
@@ -67,6 +70,12 @@ public class ConfigcenterContext {
 	private ConfigChangeListener configChangeListener;
 	
 	private List<ConfigChangeHanlder> configChangeHanlders;
+	
+	private ConfigStatus status;
+	
+	public enum ConfigStatus{
+		INITED,FETCHED,UPLOAED
+	}
 	
 	private ConfigcenterContext() {}
 
@@ -108,6 +117,8 @@ public class ConfigcenterContext {
 			System.out.println("load private key:"+location);
 			e.printStackTrace();
 		}
+		
+		status = ConfigStatus.INITED; 
 	}
 
 	public static ConfigcenterContext getInstance() {
@@ -172,8 +183,36 @@ public class ConfigcenterContext {
 		return isSpringboot;
 	}
 	
+	public void mergeRemoteProperties(Properties properties){
+		Properties remoteProperties = getAllRemoteProperties();
+		if(remoteProperties != null){
+			//合并属性
+			Set<Entry<Object, Object>> entrySet = remoteProperties.entrySet();
+			for (Entry<Object, Object> entry : entrySet) {
+				//本地配置优先
+				if(isRemoteFirst() == false && properties.containsKey(entry.getKey())){
+					logger.info("config[{}] exists in location,skip~",entry.getKey());
+					continue;
+				}
+				properties.setProperty(entry.getKey().toString(), entry.getValue().toString());
+			}
+		}
+		
+		//替换本地变量占位符
+		Set<Entry<Object, Object>> entrySet = properties.entrySet();
+		for (Entry<Object, Object> entry : entrySet) {
+			String key = entry.getKey().toString();
+			String value = entry.getValue().toString();
+			if(value.contains(PLACEHOLDER_PREFIX)){
+				value = setReplaceHolderRefValue(properties,key,value);
+				properties.setProperty(key, value);
+			}
+			ResourceUtils.add(key, value);
+		}
+	}
+	
 
-	public Properties getAllRemoteProperties(){
+	private Properties getAllRemoteProperties(){
 		if(!remoteEnabled)return null;
 		
 		Properties properties = new Properties();
@@ -193,6 +232,8 @@ public class ConfigcenterContext {
 			properties.put(key, value);
 		}
 	
+		status = ConfigStatus.FETCHED; 
+		
 		return properties;
 	}
 	
@@ -228,11 +269,10 @@ public class ConfigcenterContext {
 	public void syncConfigToServer(Properties properties,boolean first){
 		
 		if(!remoteEnabled)return;
+		if(status.equals(ConfigStatus.INITED))return;
 		
 		String syncType = properties.getProperty("jeesuite.configcenter.sync-type");
-		
 		List<String> sortKeys = new ArrayList<>();
-
 		Map<String, String> params = new  HashMap<>();
 		
 		params.put("nodeId", nodeId);
@@ -242,7 +282,10 @@ public class ConfigcenterContext {
 		params.put("springboot", String.valueOf(isSpringboot));
 		params.put("syncIntervalSeconds", String.valueOf(syncIntervalSeconds));
 		params.put("syncType", syncType);
-		params.put("serverport", ServerEnvUtils.getServerPort());
+		String serverPort = ServerEnvUtils.getServerPort();
+	    if(StringUtils.isNumeric(serverPort)){	    	
+	    	params.put("serverport", serverPort);
+	    }
 		params.put("serverip", ServerEnvUtils.getServerIpAddr());
 		
 		Set<Entry<Object, Object>> entrySet = properties.entrySet();
@@ -250,7 +293,7 @@ public class ConfigcenterContext {
 			String key = entry.getKey().toString();
 			String value = entry.getValue().toString();
 			//如果远程配置了占位符，希望引用本地变量
-			if(value.contains("${")){
+			if(value.contains(PLACEHOLDER_PREFIX)){
 				value = setReplaceHolderRefValue(properties,key,value);
 			}
 			
@@ -281,6 +324,7 @@ public class ConfigcenterContext {
 			logger.info("syncConfigToServer Ok");
 		}
 	
+		status = ConfigStatus.UPLOAED; 
 	}
 
 	private void registerListener(String syncType) {
@@ -381,12 +425,12 @@ public class ConfigcenterContext {
 			seg = StringUtils.trimToNull(segments[i]);
 			if(StringUtils.isBlank(seg))continue;
 			
-			if(seg.contains("}")){	
-				String refKey = seg.substring(0, seg.indexOf("}")).trim();
+			if(seg.contains(PLACEHOLDER_SUFFIX)){	
+				String refKey = seg.substring(0, seg.indexOf(PLACEHOLDER_SUFFIX)).trim();
 				//其他非${}的占位符如：{{host}}
 				String withBraceString = null;
 				if(seg.contains("{")){
-					withBraceString = seg.substring(seg.indexOf("}")+1);
+					withBraceString = seg.substring(seg.indexOf(PLACEHOLDER_SUFFIX)+1);
 				}
 				
 				//如果包含默认值，如：${host:127.0.0.1}
@@ -395,7 +439,22 @@ public class ConfigcenterContext {
 					refKey = refKey.split(":")[0];
 				}
 				
-				String refValue = properties.containsKey(refKey) ? properties.get(refKey).toString() : "${" + orginKey + "}";
+				String refValue = properties.getProperty(refKey);
+				
+				//
+				if(StringUtils.isNotBlank(refValue) && refValue.contains(PLACEHOLDER_PREFIX)){
+					//TODO 避免多层嵌套死循环
+					//refValue = setReplaceHolderRefValue(properties, refKey, refValue);
+					String subRefKey = refValue.replace(PLACEHOLDER_PREFIX, "").replace(PLACEHOLDER_SUFFIX, "");
+					refValue = properties.getProperty(subRefKey);
+				}
+				
+				if(StringUtils.isBlank(refValue)){
+					refValue = System.getProperty(refKey);
+				}
+				if(StringUtils.isBlank(refValue)){
+					refValue = PLACEHOLDER_PREFIX + orginKey + PLACEHOLDER_SUFFIX;
+				}
 				finalValue.append(refValue);
 				
 				if(withBraceString != null){
@@ -453,7 +512,7 @@ public class ConfigcenterContext {
 		if(StringUtils.isNotBlank(value))return value;
 		value = StringUtils.trimToNull(ResourceUtils.getProperty(key,defVal));
 		if(StringUtils.isNotBlank(value)){	
-			if(value.startsWith("${")){
+			if(value.startsWith(PLACEHOLDER_PREFIX)){
 				String refKey = value.substring(2, value.length() - 1).trim();
 				value = ResourceUtils.getProperty(refKey);
 			}

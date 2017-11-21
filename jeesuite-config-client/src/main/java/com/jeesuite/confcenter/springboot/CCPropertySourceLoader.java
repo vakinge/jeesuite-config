@@ -1,9 +1,7 @@
 package com.jeesuite.confcenter.springboot;
 
 import java.io.IOException;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.env.PropertySourceLoader;
@@ -13,7 +11,6 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import com.jeesuite.common.util.ResourceUtils;
 import com.jeesuite.confcenter.ConfigcenterContext;
 
 public class CCPropertySourceLoader implements PropertySourceLoader,PriorityOrdered,DisposableBean {
@@ -29,21 +26,10 @@ public class CCPropertySourceLoader implements PropertySourceLoader,PriorityOrde
 			throws IOException {
 		if (profile == null) {
 			Properties properties = PropertiesLoaderUtils.loadProperties(resource);
-			ResourceUtils.merge(properties);
 			
 			ccContext.init(true);
 			
-			Properties remoteProperties = ccContext.getAllRemoteProperties();
-			if(remoteProperties != null){
-				Set<Entry<Object, Object>> entrySet = remoteProperties.entrySet();
-				for (Entry<Object, Object> entry : entrySet) {
-					//本地配置优先
-					if(ccContext.isRemoteFirst() == false && properties.containsKey(entry.getKey()))continue;
-					properties.put(entry.getKey(), entry.getValue());
-					//
-					ResourceUtils.add(entry.getKey().toString(), entry.getValue().toString());
-				}
-			}
+			ccContext.mergeRemoteProperties(properties);
 			
 			ccContext.syncConfigToServer(properties,true);
 			

@@ -13,6 +13,8 @@ import javax.management.ObjectName;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.jeesuite.common.util.ResourceUtils;
+
 
 public class ServerEnvUtils {
 
@@ -20,7 +22,7 @@ public class ServerEnvUtils {
 
 	private static String serverIpAddr = getServerIpAddr();
 	
-	private static String serverPort = getServerPort();
+	private static String serverPort;
 
 	public static String getServerIpAddr()  {  
 		if(serverIpAddr != null)return serverIpAddr;
@@ -46,19 +48,22 @@ public class ServerEnvUtils {
 	
 	
 	public static String getServerPort(){
-		if(serverPort != null)return serverPort;
-		serverPort = System.getProperty("server.port");
+		if(serverPort != null && !UNKNOW.equals(serverPort)){
+			return serverPort;
+		}
+		serverPort = ResourceUtils.getProperty("server.port");
 		if(StringUtils.isBlank(serverPort)){
-			serverPort = System.getProperty("dubbo.port");
+			serverPort = ResourceUtils.getProperty("dubbo.port");
 		}
 		if(StringUtils.isBlank(serverPort)){
 			serverPort = getTomcatServerPortByMBean();
 		}
-		return UNKNOW;
+		
+		return serverPort;
 	}
 	
 	private static String getTomcatServerPortByMBean() {
-		String sport = null;
+		String sport = UNKNOW;
 		try {
 			MBeanServer mBeanServer = null;
 			ArrayList<MBeanServer> mBeanServers = MBeanServerFactory.findMBeanServer(null);
