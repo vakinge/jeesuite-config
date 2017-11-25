@@ -180,7 +180,7 @@
 		</repository>
 		<snapshotRepository>
 			<id>snapshots</id>
-			<url>http://test.aiyuangong.com/nexus/content/repositories/snapshots</url>
+			<url>http://test.com/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
 </distributionManagement>
 </project>

@@ -320,8 +320,12 @@ public class ConfigcenterContext {
 		for (String apiBaseUrl : apiBaseUrls) {			
 			String url = apiBaseUrl + "/api/notify_final_config";
 			logger.info("syncConfigToServer,url:" + url);
-			HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
-			logger.info("syncConfigToServer Ok");
+			HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
+			if(responseEntity.isSuccessed()){
+				logger.info("syncConfigToServer[{}] Ok",url);
+			}else{
+				logger.warn("syncConfigToServer[{}] error",url);
+			}
 		}
 	
 		status = ConfigStatus.UPLOAED; 
