@@ -14,9 +14,9 @@ import com.jeesuite.springboot.starter.mybatis.EnableJeesuiteMybatis;
 @MapperScan(basePackages = "com.jeesuite.admin.dao.mapper")
 @ComponentScan(value = {"com.jeesuite.admin"})
 @EnableJeesuiteMybatis
-public class Application {
+public class ConfigApplication {
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(Application.class).web(true).run(args);
+		new SpringApplicationBuilder(ConfigApplication.class).web(true).run(args);
 	}
 	
 	@RequestMapping("/")
