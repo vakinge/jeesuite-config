@@ -17,9 +17,9 @@ CREATE TABLE `profiles` (
 DROP TABLE IF EXISTS `app_configs`;
 CREATE TABLE `app_configs` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
-  `app_name` varchar(200) DEFAULT NULL,
+  `app_ids` varchar(100) DEFAULT NULL,
   `env` varchar(16) DEFAULT NULL,
-  `version` varchar(16) DEFAULT NULL,
+  `version` varchar(32) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
   `type` smallint(1) DEFAULT NULL COMMENT '类型(1:文件，2:配置项)',
   `contents` text,
