@@ -288,19 +288,6 @@ public class ConfigcenterContext {
 	    }
 		params.put("serverip", ServerEnvUtils.getServerIpAddr());
 		
-		Set<Entry<Object, Object>> entrySet = properties.entrySet();
-		for (Entry<Object, Object> entry : entrySet) {
-			String key = entry.getKey().toString();
-			String value = entry.getValue().toString();
-			//如果远程配置了占位符，希望引用本地变量
-			if(value.contains(PLACEHOLDER_PREFIX)){
-				value = setReplaceHolderRefValue(properties,key,value);
-			}
-			
-			params.put(key, hideSensitive(key, value));
-			sortKeys.add(key);
-		}
-		
 		if(first){	
 			Collections.sort(sortKeys);
 			System.out.println("==================final config list start==================");

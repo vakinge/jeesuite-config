@@ -20,13 +20,16 @@ public class ServerEnvUtils {
 
 	private static final String UNKNOW = "unknow";
 
-	private static String serverIpAddr = getServerIpAddr();
+	private static String serverIpAddr;
 	
 	private static String serverPort;
 
 	public static String getServerIpAddr()  {  
+		if(ResourceUtils.containsProperty("spring.cloud.client.ipAddress")){
+			return ResourceUtils.getProperty("spring.cloud.client.ipAddress");
+		}
 		if(serverIpAddr != null)return serverIpAddr;
-		try {			
+		try {
 			Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();  
 			outter:while (en.hasMoreElements()) {  
 				NetworkInterface i = en.nextElement();  
