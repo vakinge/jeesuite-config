@@ -80,6 +80,8 @@ public class ConfigcenterContext {
 	private ConfigcenterContext() {}
 
 	public void init(boolean isSpringboot) {
+		System.setProperty("client.nodeId", nodeId);
+		System.setProperty("springboot", String.valueOf(isSpringboot));
 		this.isSpringboot = isSpringboot;
 		String defaultAppName = getValue("spring.application.name");
 		app = getValue("jeesuite.configcenter.appName",defaultAppName);
@@ -98,27 +100,49 @@ public class ConfigcenterContext {
 		
 		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 90);
 		
-		System.out.println(String.format("\n=====configcenter=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\n=====configcenter=====", app,env,version,remoteEnabled));
+		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,remoteEnabled,JsonUtils.toJson(apiBaseUrls)));
 		
-		String location = StringUtils.trimToNull(ResourceUtils.getProperty("jeesuite.configcenter.encrypt-keyStore-location"));
-		String storeType = ResourceUtils.getProperty("jeesuite.configcenter.encrypt-keyStore-type", "JCEKS");
-		String storePass = ResourceUtils.getProperty("jeesuite.configcenter.encrypt-keyStore-password");
-		String alias = ResourceUtils.getProperty("jeesuite.configcenter.encrypt-keyStore-alias");
-		String keyPass = ResourceUtils.getProperty("jeesuite.configcenter.encrypt-keyStore-keyPassword", storePass);
-		try {			
-			if(StringUtils.isNotBlank(location)){
-				if(location.toLowerCase().startsWith("classpath")){
-					Resource resource = new ClassPathResource(location.substring(location.indexOf(":") + 1));
-					location = resource.getFile().getAbsolutePath();
-				}
-				rsaPrivateKey = RSA.loadPrivateKeyFromKeyStore(location, alias, storeType, storePass, keyPass);
-			}
-		} catch (Exception e) {
-			System.out.println("load private key:"+location);
-			e.printStackTrace();
-		}
+		initRSAPrivateKey(null);
 		
 		status = ConfigStatus.INITED; 
+	}
+
+	private void initRSAPrivateKey(Properties properties) {
+		if(rsaPrivateKey != null)return;
+		String location = getValue("jeesuite.configcenter.encrypt-keyStore-location");
+		String storeType = getValue("jeesuite.configcenter.encrypt-keyStore-type", "JCEKS");
+		String storePass = getValue("jeesuite.configcenter.encrypt-keyStore-password");
+		String alias = getValue("jeesuite.configcenter.encrypt-keyStore-alias");
+		String keyPass = getValue("jeesuite.configcenter.encrypt-keyStore-keyPassword", storePass);
+		
+		if(properties != null){
+			location = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-location",location);
+			storeType = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-type",storeType);
+			storePass = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-password",storePass);
+			alias = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-alias",alias);
+			keyPass = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-keyPassword",keyPass);
+		}
+		
+		//pass 支持DES加密
+		if(storePass != null)storePass = decodeEncryptIfRequire(storePass).toString();
+		if(keyPass != null)keyPass = decodeEncryptIfRequire(keyPass).toString();
+				
+		System.out.println(String.format("\n=====RSA config=====\nlocation:%s\ntype:%s\npassword:%s\nalias:%s\nkeyPassword:%s\n=====RSA config=====", 
+				location,storeType,hideSensitive("storePass", storePass),alias,hideSensitive("keyPass", keyPass)));
+		
+		if(StringUtils.isAnyBlank(location,storePass,alias,keyPass))return;
+		
+		try {
+			System.out.println("begin to init RSA private key...");
+			if(location.toLowerCase().startsWith("classpath")){
+				Resource resource = new ClassPathResource(location.substring(location.indexOf(":") + 1));
+				location = resource.getFile().getAbsolutePath();
+			}
+			rsaPrivateKey = RSA.loadPrivateKeyFromKeyStore(location, alias, storeType, storePass, keyPass);
+			System.out.println("init RSA private key OK!");
+		} catch (Exception e) {
+			System.err.println("load RSA private key error,location:"+location + ",error:" + e.getMessage());
+		}
 	}
 
 	public static ConfigcenterContext getInstance() {
@@ -226,6 +250,11 @@ public class ConfigcenterContext {
 		secret =  Objects.toString(map.remove("jeesuite.configcenter.encrypt-secret"),null);
 		remoteFirst = Boolean.parseBoolean(Objects.toString(map.remove("jeesuite.configcenter.remote-config-first"),"false"));
 		
+		//如果rsa配置在配置中心，先初始化rsa私钥
+		properties.putAll(map);
+		initRSAPrivateKey(properties);
+		properties.clear();
+		
 		Set<String> keys = map.keySet();
 		for (String key : keys) {
 			Object value = decodeEncryptIfRequire(map.get(key));
@@ -288,6 +317,14 @@ public class ConfigcenterContext {
 	    }
 		params.put("serverip", ServerEnvUtils.getServerIpAddr());
 		
+		Set<Entry<Object, Object>> entrySet = properties.entrySet();
+		for (Entry<Object, Object> entry : entrySet) {
+			String key = entry.getKey().toString();
+			String value = entry.getValue().toString();
+			params.put(key, hideSensitive(key, value));
+			sortKeys.add(key);
+		}
+		
 		if(first){	
 			Collections.sort(sortKeys);
 			System.out.println("==================final config list start==================");
@@ -320,10 +357,8 @@ public class ConfigcenterContext {
 
 	private void registerListener(String syncType) {
 		if("zookeeper".equals(syncType)){
-			String zkServers = ResourceUtils.getProperty("jeesuite.configcenter.sync-zk-servers");
-			if(StringUtils.isBlank(zkServers)){
-				throw new RuntimeException("config[jeesuite.configcenter.sync-zk-servers] is required for syncType [zookeepr] ");
-			}
+			String zkServers = getValue("jeesuite.configcenter.sync-zk-servers");
+			Validate.notBlank(zkServers,"config[jeesuite.configcenter.sync-zk-servers] is required for syncType [zookeepr]");
 			configChangeListener = new ZkConfigChangeListener(zkServers);
 		}else{
 			configChangeListener = new HttpConfigChangeListener();
@@ -356,33 +391,25 @@ public class ConfigcenterContext {
 				properties.putAll(map);
 				properties.putAll(updateConfig);
 				propertySources.replace(source.getName(), new PropertiesPropertySource(source.getName(), properties));
-				//publish change event
-				if(InstanceFactory.getInstance(EnvironmentChangeListener.class) != null){
-					try {								
-						InstanceFactory.getInstanceProvider().getApplicationContext().publishEvent(new EnvironmentChangeEvent(updateConfig.keySet()));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				
-				if(configChangeHanlders == null){
-					configChangeHanlders = new ArrayList<>();					
-					Map<String, ConfigChangeHanlder> interfaces = InstanceFactory.getInstanceProvider().getInterfaces(ConfigChangeHanlder.class);
-					if(interfaces != null){
-						configChangeHanlders.addAll(interfaces.values());
-					}
-				}
-				
-				for (ConfigChangeHanlder hander : configChangeHanlders) {
-					try {
-						hander.onConfigChanged(updateConfig);
-						logger.info("invoke {}.onConfigChanged successed!",hander.getClass().getName());
-					} catch (Exception e) {
-						logger.warn("invoke {}.onConfigChanged error,msg:{}",hander.getClass().getName(),e.getMessage());
-					}
-				}
-				
 		        logger.info("Config [{}] Change,oldValue:{},newValue:{}",key,oldValue,updateConfig.get(key));
+			}
+			
+			if(configChangeHanlders == null){
+				configChangeHanlders = new ArrayList<>();					
+				Map<String, ConfigChangeHanlder> interfaces = InstanceFactory.getInstanceProvider().getInterfaces(ConfigChangeHanlder.class);
+				if(interfaces != null){
+					configChangeHanlders.addAll(interfaces.values());
+				}
+			}
+			
+			for (ConfigChangeHanlder hander : configChangeHanlders) {
+				try {
+					hander.onConfigChanged(updateConfig);
+					logger.info("invoke {}.onConfigChanged successed!",hander.getClass().getName());
+				} catch (Exception e) {
+					e.printStackTrace();
+					logger.warn("invoke {}.onConfigChanged error,msg:{}",hander.getClass().getName(),e.getMessage());
+				}
 			}
 		}
 	}
@@ -468,15 +495,11 @@ public class ConfigcenterContext {
 
 	private Object decodeEncryptIfRequire(Object data) {
 		if (data.toString().startsWith(RSA_PREFIX)) {
-			if(rsaPrivateKey == null){
-				throw new RuntimeException("configcenter [rsaPrivateKey] is required");
-			}
+			Validate.notNull(rsaPrivateKey,"[rsaPrivateKey] not  initialized!");
 			data = data.toString().replace(RSA_PREFIX, "");
 			return RSA.decrypt(rsaPrivateKey, data.toString());
 		} else if (data.toString().startsWith(DES_PREFIX)) {
-			if(StringUtils.isBlank(secret)){
-				throw new RuntimeException("configcenter [jeesuite.configcenter.encrypt-secret] is required");
-			}
+			Validate.notBlank(secret,"config[jeesuite.configcenter.encrypt-secret] is required");
 			data = data.toString().replace(DES_PREFIX, "");
 			return SimpleCryptUtils.decrypt(secret, data.toString());
 		}
