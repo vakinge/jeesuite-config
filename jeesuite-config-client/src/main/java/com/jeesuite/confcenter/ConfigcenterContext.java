@@ -508,6 +508,7 @@ public class ConfigcenterContext {
 
 	List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));
 	private String hideSensitive(String key,String orign){
+		if(StringUtils.isAnyBlank(key,orign))return "";
 		boolean is = false;
 		for (String k : sensitiveKeys) {
 			if(is = key.toLowerCase().contains(k))break;
