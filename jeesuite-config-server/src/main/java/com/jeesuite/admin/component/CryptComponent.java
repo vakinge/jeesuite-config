@@ -34,7 +34,7 @@ public class CryptComponent implements EnvironmentAware {
 
 	private static final String RSA_PREFIX = "{Cipher:RSA}";
 
-	private static String keyStoreInitErrorMsg;
+	private static String keyStoreInitErrorMsg = "";
 
 	public AppSecretEntity getAppSecret(int appId, String env, String encryptType) {
 		AppSecretEntity entity = appSecretMapper.get(appId, env, encryptType);
@@ -90,7 +90,7 @@ public class CryptComponent implements EnvironmentAware {
 			} catch (Exception e) {
 				keyStore = null;
 				keyStoreInitErrorMsg = e.getMessage();
-				e.printStackTrace();
+				System.err.println("load RSA KeyStore error,"+keyStoreInitErrorMsg);
 			}
 		}
 
