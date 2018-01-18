@@ -3,7 +3,7 @@ package com.jeesuite.admin.model.request;
 public class EncryptRequest {
 
 	private String encryptType = "DES";
-	private String appName;
+	private int appId;
 	private String env;
 	private String data;
 	
@@ -13,11 +13,12 @@ public class EncryptRequest {
 	public void setEncryptType(String encryptType) {
 		this.encryptType = encryptType;
 	}
-	public String getAppName() {
-		return appName;
+	
+	public int getAppId() {
+		return appId;
 	}
-	public void setAppName(String appName) {
-		this.appName = appName;
+	public void setAppId(int appId) {
+		this.appId = appId;
 	}
 	public String getEnv() {
 		return env;

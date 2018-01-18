@@ -218,11 +218,11 @@ public class ConfigAdminController {
 	
 	@RequestMapping(value = "encrypt", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> encryptConfig(@RequestBody EncryptRequest param){
-		if(StringUtils.isAnyBlank(param.getEnv(),param.getAppName(),param.getData(),param.getEncryptType())){
+		if(StringUtils.isAnyBlank(param.getEnv(),param.getData(),param.getEncryptType()) || param.getAppId() <= 0){
 			throw new JeesuiteBaseException(1001, "请完整填写输入项");
 		}
 		SecurityUtil.requireProfileGanted(param.getEnv());
-		AppEntity entity = appMapper.findByName(param.getAppName());
+		AppEntity entity = appMapper.selectByPrimaryKey(param.getAppId());
 		
 		AppSecretEntity appSecret = cryptComponent.getAppSecret(entity.getId(), param.getEnv(), param.getEncryptType());
 		
