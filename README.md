@@ -16,6 +16,10 @@
    9. 支持在线查看应用当前运行时配置（配置中心与本地合并后的最终配置）
    10. 支持查看日志变更记录并一键恢复
    11. 支持开启安全ip功能
+   
+#### 在线演示
+http://47.93.239.14:7777/admin.html
+账号密码：admin/admin123
  
 #### 文档
  - [部署文档](http://www.jeesuite.com/docs/quickstart/confcenter.html) 
@@ -23,8 +27,8 @@
 
 #### 关联项目
  - 基础库
-  - [http://git.oschina.net/vakinge/jeesuite-config](http://git.oschina.net/vakinge/jeesuite-libs)
-  - [https://github.com/vakinge/jeesuite-config](https://github.com/vakinge/jeesuite-libs)
+  - [http://git.oschina.net/vakinge/jeesuite-libs](http://git.oschina.net/vakinge/jeesuite-libs)
+  - [https://github.com/vakinge/jeesuite-libs](https://github.com/vakinge/jeesuite-libs)
  - 模板项目
   - [http://git.oschina.net/vakinge/jeesuite-bestpl](http://git.oschina.net/vakinge/jeesuite-bestpl)
   - [https://github.com/vakinge/jeesuite-bestpl](https://github.com/vakinge/jeesuite-bestpl)
