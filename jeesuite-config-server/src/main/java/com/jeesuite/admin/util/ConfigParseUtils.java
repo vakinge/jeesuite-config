@@ -12,6 +12,7 @@ import org.dom4j.io.SAXReader;
 import org.xml.sax.InputSource;
 
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
+import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.common.json.JsonUtils;
 
 public class ConfigParseUtils {
@@ -125,6 +126,9 @@ public class ConfigParseUtils {
                 }
             }
         } catch (Exception e) {
+        	if(e instanceof  org.dom4j.DocumentException){
+        		throw new JeesuiteBaseException(500, "xml文件格式错误");
+        	}
         	throw new RuntimeException(e);
         }
 	}
