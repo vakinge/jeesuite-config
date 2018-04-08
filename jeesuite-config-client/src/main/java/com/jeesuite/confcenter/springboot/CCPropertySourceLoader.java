@@ -27,7 +27,7 @@ public class CCPropertySourceLoader implements PropertySourceLoader,PriorityOrde
 		if (profile == null) {
 			Properties properties = PropertiesLoaderUtils.loadProperties(resource);
 			
-			ccContext.init(true);
+			ccContext.init(properties,true);
 			
 			ccContext.mergeRemoteProperties(properties);
 			

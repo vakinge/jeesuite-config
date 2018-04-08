@@ -3,11 +3,7 @@
  */
 package com.jeesuite.confcenter.spring;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -19,7 +15,6 @@ import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.jeesuite.common.util.ResourceUtils;
 import com.jeesuite.confcenter.ConfigcenterContext;
 import com.jeesuite.spring.InstanceFactory;
 import com.jeesuite.spring.SpringInstanceProvider;
@@ -50,17 +45,8 @@ public class CCPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigur
 	@Override
 	protected Properties mergeProperties() throws IOException {
 		Properties properties = super.mergeProperties();
-		
-		URL resource = Thread.currentThread().getContextClassLoader().getResource("confcenter.properties");
-		Properties config = null;
-		if(resource != null){			
-			config = new Properties();
-			config.load(new FileReader(new File(resource.getPath())));
-			ResourceUtils.merge(config);
-		}else{
-			config = ResourceUtils.getAllProperties("jeesuite.configcenter");
-		}
-		ccContext.init(false);
+	
+		ccContext.init(properties,false);
 		
 		ccContext.mergeRemoteProperties(properties);
 		

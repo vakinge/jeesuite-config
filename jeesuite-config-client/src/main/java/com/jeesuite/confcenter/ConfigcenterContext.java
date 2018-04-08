@@ -79,7 +79,10 @@ public class ConfigcenterContext {
 	
 	private ConfigcenterContext() {}
 
-	public void init(boolean isSpringboot) {
+	public void init(Properties properties,boolean isSpringboot) {
+		
+		ResourceUtils.merge(properties);
+		
 		System.setProperty("client.nodeId", nodeId);
 		System.setProperty("springboot", String.valueOf(isSpringboot));
 		this.isSpringboot = isSpringboot;

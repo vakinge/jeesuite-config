@@ -29,19 +29,9 @@ http://47.93.239.14:7777/admin.html
  - 基础库
   - [http://git.oschina.net/vakinge/jeesuite-libs](http://git.oschina.net/vakinge/jeesuite-libs)
   - [https://github.com/vakinge/jeesuite-libs](https://github.com/vakinge/jeesuite-libs)
- - 模板项目
-  - [http://git.oschina.net/vakinge/jeesuite-bestpl](http://git.oschina.net/vakinge/jeesuite-bestpl)
-  - [https://github.com/vakinge/jeesuite-bestpl](https://github.com/vakinge/jeesuite-bestpl)
- - 统一认证中心
-  - [http://git.oschina.net/vakinge/jeesuite-passport](http://git.oschina.net/vakinge/jeesuite-passport)
-  - [https://github.com/vakinge/jeesuite-passport](https://github.com/vakinge/jeesuite-passport)
- - api网关
-  - [http://git.oschina.net/vakinge/jeesuite-apigateway](http://git.oschina.net/vakinge/jeesuite-apigateway)
-  - [https://github.com/vakinge/jeesuite-apigateway](https://github.com/vakinge/jeesuite-apigateway)
- - 应用监控平台
-  - [http://git.oschina.net/vakinge/jeesuite-admin](http://git.oschina.net/vakinge/jeesuite-admin)
-  - [https://github.com/vakinge/jeesuite-admin](https://github.com/vakinge/jeesuite-admin)
-
+ - 应用开发平台(开发中...)
+  - [https://gitee.com/vakinge/superms](https://gitee.com/vakinge/superms)
+  - [https://gitee.com/vakinge/superms](https://gitee.com/vakinge/superms)
 
 #### 页面截图
 页面基于`layui-beginner_admin`构建。
