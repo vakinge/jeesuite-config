@@ -18,7 +18,7 @@
    11. 支持开启安全ip功能
    
 #### 在线演示
-http://47.93.239.14:7777/admin.html
+http://47.93.239.14:19992/admin.html
 账号密码：admin/admin123
  
 #### 文档
@@ -30,7 +30,6 @@ http://47.93.239.14:7777/admin.html
   - [http://git.oschina.net/vakinge/jeesuite-libs](http://git.oschina.net/vakinge/jeesuite-libs)
   - [https://github.com/vakinge/jeesuite-libs](https://github.com/vakinge/jeesuite-libs)
  - 应用开发平台(开发中...)
-  - [https://gitee.com/vakinge/superms](https://gitee.com/vakinge/superms)
   - [https://gitee.com/vakinge/superms](https://gitee.com/vakinge/superms)
 
 #### 页面截图
