@@ -13,9 +13,9 @@
 	<body>
 		<div class="admin-main">
 			<blockquote class="layui-elem-quote">
-				<a href="add.html" class="layui-btn layui-btn-small">
-					<i class="layui-icon">&#xe608;</i> 添加应用
-				</a>
+				<a class="layui-btn layui-btn-small J_iframe_dialog" href="javascript:;" data-url="./add.html" data-title="添加应用"> 
+			      <i class="layui-icon">&#xe608;</i> 添加应用
+			    </a>
 			</blockquote>
 			<fieldset class="layui-elem-field">
 				<legend>应用列表</legend>
@@ -48,15 +48,15 @@
                 <td>{{ item.notifyEmails }}</td>
                 <td>{{ item.remarks }}</td>
 				<td>
-					<a href="./edit.html?dataloadurl=/admin/app/{{ item.id }}" class="layui-btn layui-btn-mini">编辑</a>
-                    <a href="./secret.html?dataloadurl=/admin/app/secret/{{ item.id }}" class="layui-btn layui-btn-mini">密钥管理</a>
+					<a class="layui-btn layui-btn-mini J_iframe_dialog" href="javascript:;" data-title="编辑应用" data-url href="./edit.html?dataloadurl=/admin/app/{{ item.id }}">编辑</a>
+                    <a class="layui-btn layui-btn-mini J_iframe_dialog" href="javascript:;" data-title="密钥配置" data-url href="./secret.html?dataloadurl=/admin/app/secret/{{ item.id }}">密钥管理</a>
 					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/app/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>
 			{{# }); }}
 		</script>
 		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
-        <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>
+        <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>
 	</body>
 
 </html>

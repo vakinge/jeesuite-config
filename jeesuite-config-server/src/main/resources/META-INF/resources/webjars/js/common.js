@@ -189,11 +189,13 @@ layui.define(['layer','laytpl','form'], function(exports) {
 		        	 common.msgSuccess(data.msg || '操作成功');
 		             data = data.data;
 		             if(callback != undefined){
-					    eval(callback+"(data)");
-		             }
-		             if(jumpUrl){
-		            	 setTimeout(function(){window.location.href = jumpUrl;},500);
-					 }
+						eval(callback+"(data)");
+			         } else if(jumpUrl){
+			            setTimeout(function(){window.location.href = jumpUrl;},500);
+					}else{		
+						//parent.window.location.reload();
+					}
+			        setTimeout(function(){parent.layer.closeAll();},1000);
 		          }else{
 		        	 $this.removeAttr('disabled');
 		        	 common.msgError(data.msg);
@@ -288,6 +290,21 @@ layui.define(['layer','laytpl','form'], function(exports) {
 			});
 		});
 	});
+	
+	$('body').on('click','.J_iframe_dialog', function(){
+		var self = $(this),
+	     url = self.attr('data-url'),
+	     title = self.attr('data-title') || '弹窗';
+		 var index = layer.open({
+			  type: 2,
+			  title: title,
+			  shadeClose: true,
+			  shade: 0.8,
+			  content: [url, 'yes']
+			}); 
+		 layer.full(index);
+	});
+	
 	//
 	$('body').on('click','.J_confirmurl', function(){
 		var self = $(this),

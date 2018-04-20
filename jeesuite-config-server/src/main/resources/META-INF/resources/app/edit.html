@@ -10,9 +10,6 @@
  </head> 
  <body> 
   <div class="admin-main" templateLoad="" onFinishCallback="onPageFinish"> 
-   <blockquote class="layui-elem-quote"> 
-    <a href="./list.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 应用列表 </a> 
-   </blockquote> 
    <form class="layui-form" action="../admin/app/update">
 	    <input type="hidden" bindAttr="id" name="id">
 		<div class="layui-form-item">
@@ -55,14 +52,14 @@
 		</div>
 		<div class="layui-form-item"> 
           <div class="layui-input-block"> 
-           <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./list.html" value="更新"/>
+           <input type="button"  class="layui-btn J_ajaxSubmit" value="更新"/>
            <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
           </div> 
        </div>		
 	</form>
   </div> 
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
-  <script type="text/javascript" src="../webjars/js/common.js?v20170728"></script>
+  <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>
   <script type="text/javascript">
   var defMasterUid;
   function onPageFinish(data){
