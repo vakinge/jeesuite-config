@@ -29,8 +29,10 @@ http://47.93.239.14:19992/admin.html
  - 基础库
   - [http://git.oschina.net/vakinge/jeesuite-libs](http://git.oschina.net/vakinge/jeesuite-libs)
   - [https://github.com/vakinge/jeesuite-libs](https://github.com/vakinge/jeesuite-libs)
- - 应用开发平台(开发中...)
-  - [https://gitee.com/vakinge/superms](https://gitee.com/vakinge/superms)
+  - 应用开发平台
+  - [https://gitee.com/vakinge/oneplatform](https://gitee.com/vakinge/oneplatform)
+  - [https://github.com/vakinge/oneplatform](https://github.com/vakinge/oneplatform)
+
 
 #### 页面截图
 页面基于`layui-beginner_admin`构建。
