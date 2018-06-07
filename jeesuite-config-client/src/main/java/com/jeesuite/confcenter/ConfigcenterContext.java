@@ -81,6 +81,8 @@ public class ConfigcenterContext {
 
 	public void init(Properties properties,boolean isSpringboot) {
 		
+		logger.info("client.nodeId:",nodeId);
+		
 		ResourceUtils.merge(properties);
 		
 		System.setProperty("client.nodeId", nodeId);
@@ -92,8 +94,7 @@ public class ConfigcenterContext {
 		
 		if(!remoteEnabled)return;
 		
-		String defaultEnv = getValue("spring.profiles.active");
-		env = getValue("jeesuite.configcenter.profile",defaultEnv);
+		env = getValue("jeesuite.configcenter.profile","dev");
 		
 		Validate.notBlank(env,"[jeesuite.configcenter.profile] is required");
 		
@@ -210,6 +211,12 @@ public class ConfigcenterContext {
 		return isSpringboot;
 	}
 	
+	
+	
+	public ConfigStatus getStatus() {
+		return status;
+	}
+
 	public void mergeRemoteProperties(Properties properties){
 		Properties remoteProperties = getAllRemoteProperties();
 		if(remoteProperties != null){

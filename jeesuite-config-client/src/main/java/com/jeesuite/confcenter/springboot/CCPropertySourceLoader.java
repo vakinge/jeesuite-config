@@ -16,6 +16,7 @@ import com.jeesuite.confcenter.ConfigcenterContext;
 public class CCPropertySourceLoader implements PropertySourceLoader,PriorityOrdered,DisposableBean {
 
 	private ConfigcenterContext ccContext = ConfigcenterContext.getInstance();
+	private String profiles = null;
 	@Override
 	public String[] getFileExtensions() {
 		return new String[] { "properties"};
@@ -26,12 +27,18 @@ public class CCPropertySourceLoader implements PropertySourceLoader,PriorityOrde
 			throws IOException {
 		if (profile == null) {
 			Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+			if(profiles == null){
+				profiles = properties.getProperty("spring.profiles.active");
+			}else{
+				System.out.println("spring.profiles.active = " + profiles + ",ignore load remote config");
+			}
+			//如果指定了profile，则也不加载远程配置
+			if(profiles == null && ccContext.getStatus() == null){
+				ccContext.init(properties,true);
+				ccContext.mergeRemoteProperties(properties);
+				ccContext.syncConfigToServer(properties,true);
+			}
 			
-			ccContext.init(properties,true);
-			
-			ccContext.mergeRemoteProperties(properties);
-			
-			ccContext.syncConfigToServer(properties,true);
 			
 			if (!properties.isEmpty()) {
 				return new PropertiesPropertySource(name, properties);

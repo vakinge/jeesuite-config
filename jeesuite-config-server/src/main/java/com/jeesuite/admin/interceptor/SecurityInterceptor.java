@@ -33,15 +33,21 @@ public class SecurityInterceptor implements HandlerInterceptor {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		
+		String uri = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		if(StringUtils.isNotBlank(contextPath)){
+			uri = uri.replace(contextPath, StringUtils.EMPTY);
+		}
+		
 		String ipAddr = IpUtils.getIpAddr(request);
 		
 		boolean isInnerIpaddr = IpUtils.isInnerIp(ipAddr);
 		
 		SecurityUtil.getOperateLog().setIpAddr(ipAddr);
-		SecurityUtil.getOperateLog().setActName(request.getRequestURI());
+		SecurityUtil.getOperateLog().setActName(uri);
 		
 		//客户端APi鉴权
-		if(request.getRequestURI().startsWith(API_URI_PREFIX)){
+		if(uri.startsWith(API_URI_PREFIX)){
 			//只允许内网
 			if(extranetEnabled == false && isInnerIpaddr == false ){
 				WebUtils.responseOutWithJson(response,"{\"code\": 403,\"msg\":\"禁止外网访问\"}");
@@ -54,7 +60,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
 			return true;
 		}
 		
-		if(request.getRequestURI().startsWith(ADMIN_URI_PREFIX) && ipfilterEnabled && !isInnerIpaddr && !ipWhiteList.contains(ipAddr)){
+		if(uri.startsWith(ADMIN_URI_PREFIX) && ipfilterEnabled && !isInnerIpaddr && !ipWhiteList.contains(ipAddr)){
 			WebUtils.responseOutWithJson(response,ipForbiddenRspJson);
 			return false;
 		}
