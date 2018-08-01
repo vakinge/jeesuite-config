@@ -40,7 +40,7 @@ import com.jeesuite.spring.helper.EnvironmentHelper;
 
 public class ConfigcenterContext {
 
-	private final static Logger logger = LoggerFactory.getLogger(ConfigcenterContext.class);
+	private final static Logger logger = LoggerFactory.getLogger("com.jeesuite");
 	
 	private static ConfigcenterContext instance = new ConfigcenterContext();
 	
