@@ -79,7 +79,7 @@ public class ConfigcenterContext {
 	
 	private ConfigcenterContext() {}
 
-	public void init(Properties properties,boolean isSpringboot) {
+	public synchronized void init(Properties properties,boolean isSpringboot) {
 		
 		logger.info("client.nodeId:",nodeId);
 		

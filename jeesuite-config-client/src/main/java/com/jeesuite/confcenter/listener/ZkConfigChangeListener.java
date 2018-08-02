@@ -39,6 +39,11 @@ public class ZkConfigChangeListener implements ConfigChangeListener {
 		}
 		
 		String appNodePath = appParentPath + "/" + context.getNodeId();
+		
+		if(zkClient.exists(appNodePath)){
+			logger.info("node path[{}] exists",appNodePath);
+			return;
+		}
 		//创建node节点
 		zkClient.createEphemeral(appNodePath);
 		
