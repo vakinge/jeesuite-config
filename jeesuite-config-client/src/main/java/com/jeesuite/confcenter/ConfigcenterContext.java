@@ -44,7 +44,7 @@ public class ConfigcenterContext {
 	
 	private static ConfigcenterContext instance = new ConfigcenterContext();
 	
-	private static final String MANAGER_PROPERTY_SOURCE = "manager";
+	public static final String MANAGER_PROPERTY_SOURCE = "configcenter";
 	
 	private PrivateKey rsaPrivateKey;
 	
