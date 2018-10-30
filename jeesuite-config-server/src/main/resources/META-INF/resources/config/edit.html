@@ -133,6 +133,7 @@
 		  layui.jquery("#div_app_list").remove();
 	  }else{
 		  var $cont = $('#applist');
+		  var appIds = data.appIds.split(',');
 		  $.getJSON('../admin/app/options',function(res){
 			  var tpl = $('#applist_tpl').html();
 			  layui.laytpl(tpl).render(res, function(html){
@@ -141,8 +142,10 @@
 			  
 			  $cont.find(':checkbox').each(function(){
 				  var $this = $(this);
-				  if(data.appIds.indexOf($this.attr('value')) >= 0){
-					  $this.attr('checked',true);
+				  for(var i in appIds){
+					  if(appIds[i] === $this.attr('value')){
+						  $this.attr('checked',true);
+					  }
 				  }
 			  });
 		     layui.form().render();

@@ -2,10 +2,12 @@ package com.jeesuite.admin.controller.admin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,9 +121,16 @@ public class AppAdminController {
 		}else{
 			list = appMapper.findByMaster(SecurityUtil.getLoginUserInfo().getId());
 		}
-		for (AppEntity entity : list) {
-			result.add(new SelectOption(String.valueOf(entity.getId()), entity.getAlias()));
-		}
+		
+		list.stream().sorted(new Comparator<AppEntity>() {
+			@Override
+			public int compare(AppEntity o1, AppEntity o2) {
+				return o1.getName().compareTo(o2.getName());
+			}
+		}).forEach( entity -> {
+			String text = StringUtils.equals(entity.getName(), entity.getAlias()) ? entity.getName() : entity.getName() + "(" + entity.getAlias() + ")";
+			result.add(new SelectOption(String.valueOf(entity.getId()), text));
+		});
 		return result;
 	}
 	

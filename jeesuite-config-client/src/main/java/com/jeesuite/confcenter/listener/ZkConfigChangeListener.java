@@ -31,7 +31,12 @@ public class ZkConfigChangeListener implements ConfigChangeListener {
 	@Override
 	public void register(ConfigcenterContext context) {
 		ZkConnection zkConnection = new ZkConnection(zkServers);
-		zkClient = new ZkClient(zkConnection, 10000);
+		try {			
+			zkClient = new ZkClient(zkConnection, 10000);
+		} catch (Exception e) {
+			logger.warn("register_ZkConfigChangeListener_error",e);
+			return;
+		}
 		
 		String appParentPath = ROOT_PATH + "/" + context.getEnv() + "/" + context.getApp() + "/nodes";
 		if(!zkClient.exists(appParentPath)){
