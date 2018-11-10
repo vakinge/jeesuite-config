@@ -36,7 +36,7 @@ import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.AddOrEditAppRequest;
 import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
-import com.jeesuite.common.util.BeanCopyUtils;
+import com.jeesuite.common.util.BeanUtils;
 import com.jeesuite.common.util.SimpleCryptUtils;
 
 import tk.mybatis.mapper.entity.Example;
@@ -78,7 +78,7 @@ public class AppAdminController {
 		if(count > 0){
 			throw new JeesuiteBaseException(1002, "应用["+addAppRequest.getName()+"]已存在");
 		}
-		AppEntity appEntity = BeanCopyUtils.copy(addAppRequest, AppEntity.class);
+		AppEntity appEntity = BeanUtils.copy(addAppRequest, AppEntity.class);
 		//
 		UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getMasterUid());
 		appEntity.setMaster(master.getName());
@@ -93,7 +93,7 @@ public class AppAdminController {
 		if(app == null){
 			throw new JeesuiteBaseException(1002, "应用不存在");
 		}
-		AppEntity appEntity = BeanCopyUtils.copy(addAppRequest, AppEntity.class);
+		AppEntity appEntity = BeanUtils.copy(addAppRequest, AppEntity.class);
 		
 		if(addAppRequest.getMasterUid() != null && addAppRequest.getMasterUid() > 0 
 				&& !addAppRequest.getMasterUid().equals(app.getMasterUid())){

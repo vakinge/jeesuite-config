@@ -40,7 +40,7 @@ import com.jeesuite.admin.model.request.EncryptRequest;
 import com.jeesuite.admin.model.request.QueryConfigRequest;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.admin.util.SecurityUtil;
-import com.jeesuite.common.util.BeanCopyUtils;
+import com.jeesuite.common.util.BeanUtils;
 
 import tk.mybatis.mapper.entity.Example;
 
@@ -95,7 +95,7 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
 
-		AppconfigEntity entity = BeanCopyUtils.copy(addRequest, AppconfigEntity.class);
+		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		appconfigMapper.insertSelective(entity);
 		
 		
@@ -150,7 +150,7 @@ public class ConfigAdminController {
         	throw new JeesuiteBaseException(417, "请选择应用");
 		}
 		
-		Map<String, Object> queyParams = BeanCopyUtils.beanToMap(query);
+		Map<String, Object> queyParams = BeanUtils.beanToMap(query);
 		
 		if(StringUtils.isBlank(query.getEnv()) && !SecurityUtil.isSuperAdmin()){
 			List<String> gantProfiles = SecurityUtil.getLoginUserInfo().getGantProfiles();

@@ -48,6 +48,8 @@ public class ConfigcenterContext {
 	
 	private PrivateKey rsaPrivateKey;
 	
+	private static final String OVERRIDE_PLACEHOLER = "[Override]";
+	
 	private static final String DES_PREFIX = "{Cipher}";
 
 	private static final String RSA_PREFIX = "{Cipher:RSA}";
@@ -228,7 +230,9 @@ public class ConfigcenterContext {
 					logger.info("config[{}] exists in location,skip~",entry.getKey());
 					continue;
 				}
-				properties.setProperty(entry.getKey().toString(), entry.getValue().toString());
+				String value = entry.getValue().toString();
+				if(OVERRIDE_PLACEHOLER.equals(value))continue;
+				properties.setProperty(entry.getKey().toString(), value);
 			}
 		}
 		

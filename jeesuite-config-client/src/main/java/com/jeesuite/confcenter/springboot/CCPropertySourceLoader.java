@@ -54,7 +54,7 @@ public class CCPropertySourceLoader implements PropertySourceLoader, DisposableB
 	}
 	
 	public List<PropertySource<?>> load(String name, Resource resource) throws IOException {
-		Properties properties = new Properties();
+		Properties properties =  PropertiesLoaderUtils.loadProperties(resource);
 		if (profiles == null) {
 			profiles = properties.getProperty("spring.profiles.active");
 		} else {
