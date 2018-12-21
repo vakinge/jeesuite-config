@@ -27,7 +27,6 @@ import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
 import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.dao.entity.AppEntity;
-import com.jeesuite.admin.dao.entity.AppSecretEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.entity.OperateLogEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
@@ -36,7 +35,6 @@ import com.jeesuite.admin.dao.mapper.OperateLogEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.AddOrEditConfigRequest;
-import com.jeesuite.admin.model.request.EncryptRequest;
 import com.jeesuite.admin.model.request.QueryConfigRequest;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.admin.util.SecurityUtil;
@@ -96,15 +94,16 @@ public class ConfigAdminController {
 		}
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
+		//
+		encryptPropItemIfRequired(entity);
+		
 		appconfigMapper.insertSelective(entity);
-		
-		
 		
 		operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("id", entity.getId()));
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "update", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> updateConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		if(addRequest.getId() == null || addRequest.getId() == 0){
@@ -129,6 +128,8 @@ public class ConfigAdminController {
 		
 		String orignContents = entity.getContents();
 		entity.setContents(addRequest.getContents());
+		//
+		encryptPropItemIfRequired(entity);
 		appconfigMapper.updateByPrimaryKeySelective(entity);
 		//
 		publishConfigChangeEvent(orignContents,entity);
@@ -213,24 +214,7 @@ public class ConfigAdminController {
 		}
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
-	}
-	
-	
-	@RequestMapping(value = "encrypt", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> encryptConfig(@RequestBody EncryptRequest param){
-		if(StringUtils.isAnyBlank(param.getEnv(),param.getData(),param.getEncryptType()) || param.getAppId() <= 0){
-			throw new JeesuiteBaseException(1001, "请完整填写输入项");
-		}
-		SecurityUtil.requireProfileGanted(param.getEnv());
-		AppEntity entity = appMapper.selectByPrimaryKey(param.getAppId());
-		
-		AppSecretEntity appSecret = cryptComponent.getAppSecret(entity.getId(), param.getEnv(), param.getEncryptType());
-		
-		if(appSecret == null)throw new JeesuiteBaseException(1001, "无["+ param.getEncryptType()+"]密钥配置");
-		String encodeStr = cryptComponent.encode(appSecret, param.getData().trim());
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(encodeStr),HttpStatus.OK);
-	}
-	
+	}	
 	
 	private void publishConfigChangeEvent(String orignContents,AppconfigEntity entity) {
 		try {
@@ -280,6 +264,21 @@ public class ConfigAdminController {
 		} catch (Exception e) {
 			logger.error("publishConfigChangeEvent error",e);
 		}
+	}
+	
+	private void encryptPropItemIfRequired(AppconfigEntity entity) {
+		Map<String, Object> props = ConfigParseUtils.parseConfigToKVMap(entity) ;
+		
+		String content = entity.getContents();
+		String value;String encryptValue;
+		for (String key : props.keySet()) {
+			value = props.get(key).toString();
+			if(!value.startsWith(CryptComponent.cryptPrefix))continue;
+			if(cryptComponent.isEncrpted(entity.getGlobal() ? 0 : entity.getId(), entity.getEnv(), value))continue;
+			encryptValue = cryptComponent.encrypt(entity.getGlobal() ? 0 : entity.getId(), entity.getEnv(), value);
+			content = StringUtils.replace(content, value, encryptValue);
+		}
+		entity.setContents(content);
 	}
 	
 }

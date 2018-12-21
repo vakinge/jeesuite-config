@@ -3,6 +3,7 @@ package com.jeesuite.admin.util;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +20,7 @@ public class ConfigParseUtils {
 
 	
 	public static Map<String, Object> parseConfigToKVMap(AppconfigEntity config) {
-		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> result = new LinkedHashMap<>();
 		parseConfigToKVMap(result, config);
 		return result;
 	}

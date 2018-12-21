@@ -1,6 +1,6 @@
 package com.jeesuite.confcenter;
 
-import java.security.PrivateKey;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,17 +21,16 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
-import com.jeesuite.common.crypt.RSA;
+import com.jeesuite.common.crypt.AES;
+import com.jeesuite.common.crypt.Base64;
 import com.jeesuite.common.http.HttpRequestEntity;
 import com.jeesuite.common.http.HttpResponseEntity;
 import com.jeesuite.common.http.HttpUtils;
 import com.jeesuite.common.json.JsonUtils;
+import com.jeesuite.common.util.DigestUtils;
 import com.jeesuite.common.util.NodeNameHolder;
 import com.jeesuite.common.util.ResourceUtils;
-import com.jeesuite.common.util.SimpleCryptUtils;
 import com.jeesuite.confcenter.listener.HttpConfigChangeListener;
 import com.jeesuite.confcenter.listener.ZkConfigChangeListener;
 import com.jeesuite.spring.InstanceFactory;
@@ -46,14 +45,10 @@ public class ConfigcenterContext {
 	
 	public static final String MANAGER_PROPERTY_SOURCE = "configcenter";
 	
-	private PrivateKey rsaPrivateKey;
-	
 	private static final String OVERRIDE_PLACEHOLER = "[Override]";
 	
-	private static final String DES_PREFIX = "{Cipher}";
+	private static final String CRYPT_PREFIX = "{Cipher}";
 
-	private static final String RSA_PREFIX = "{Cipher:RSA}";
-	
 	private static final String PLACEHOLDER_PREFIX = "${";
 	private static final String PLACEHOLDER_SUFFIX = "}";
 	
@@ -65,10 +60,10 @@ public class ConfigcenterContext {
 	private String env;
 	private String version;
 	private String secret;
+	private String globalSecret;
 	private boolean remoteFirst = false;
 	private boolean isSpringboot;
 	private int syncIntervalSeconds = 90;
-	private String pingUri = "/api/ping";
 	private ConfigChangeListener configChangeListener;
 	
 	private List<ConfigChangeHanlder> configChangeHanlders;
@@ -107,48 +102,7 @@ public class ConfigcenterContext {
 		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 90);
 		
 		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,remoteEnabled,JsonUtils.toJson(apiBaseUrls)));
-		
-		initRSAPrivateKey(null);
-		
 		status = ConfigStatus.INITED; 
-	}
-
-	private void initRSAPrivateKey(Properties properties) {
-		if(rsaPrivateKey != null)return;
-		String location = getValue("jeesuite.configcenter.encrypt-keyStore-location");
-		String storeType = getValue("jeesuite.configcenter.encrypt-keyStore-type", "JCEKS");
-		String storePass = getValue("jeesuite.configcenter.encrypt-keyStore-password");
-		String alias = getValue("jeesuite.configcenter.encrypt-keyStore-alias");
-		String keyPass = getValue("jeesuite.configcenter.encrypt-keyStore-keyPassword", storePass);
-		
-		if(properties != null){
-			location = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-location",location);
-			storeType = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-type",storeType);
-			storePass = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-password",storePass);
-			alias = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-alias",alias);
-			keyPass = properties.getProperty("jeesuite.configcenter.encrypt-keyStore-keyPassword",keyPass);
-		}
-		
-		//pass 支持DES加密
-		if(storePass != null)storePass = decodeEncryptIfRequire(storePass).toString();
-		if(keyPass != null)keyPass = decodeEncryptIfRequire(keyPass).toString();
-				
-		System.out.println(String.format("\n=====RSA config=====\nlocation:%s\ntype:%s\npassword:%s\nalias:%s\nkeyPassword:%s\n=====RSA config=====", 
-				location,storeType,hideSensitive("storePass", storePass),alias,hideSensitive("keyPass", keyPass)));
-		
-		if(StringUtils.isAnyBlank(location,storePass,alias,keyPass))return;
-		
-		try {
-			System.out.println("begin to init RSA private key...");
-			if(location.toLowerCase().startsWith("classpath")){
-				Resource resource = new ClassPathResource(location.substring(location.indexOf(":") + 1));
-				location = resource.getFile().getAbsolutePath();
-			}
-			rsaPrivateKey = RSA.loadPrivateKeyFromKeyStore(location, alias, storeType, storePass, keyPass);
-			System.out.println("init RSA private key OK!");
-		} catch (Exception e) {
-			System.err.println("load RSA private key error,location:"+location + ",error:" + e.getMessage());
-		}
 	}
 
 	public static ConfigcenterContext getInstance() {
@@ -260,13 +214,11 @@ public class ConfigcenterContext {
 			throw new RuntimeException("fetch remote config error!");
 		}
 		
-		//DES解密密匙
+		//解密密匙
 		secret =  Objects.toString(map.remove("jeesuite.configcenter.encrypt-secret"),null);
+		globalSecret = Objects.toString(map.remove("jeesuite.configcenter.global-encrypt-secret"),null);
 		remoteFirst = Boolean.parseBoolean(Objects.toString(map.remove("jeesuite.configcenter.remote-config-first"),"false"));
-		
-		//如果rsa配置在配置中心，先初始化rsa私钥
 		properties.putAll(map);
-		initRSAPrivateKey(properties);
 		properties.clear();
 		
 		Set<String> keys = map.keySet();
@@ -508,16 +460,28 @@ public class ConfigcenterContext {
 	}
 
 	private Object decodeEncryptIfRequire(Object data) {
-		if (data.toString().startsWith(RSA_PREFIX)) {
-			Validate.notNull(rsaPrivateKey,"[rsaPrivateKey] not  initialized!");
-			data = data.toString().replace(RSA_PREFIX, "");
-			return RSA.decrypt(rsaPrivateKey, data.toString());
-		} else if (data.toString().startsWith(DES_PREFIX)) {
+		if (data.toString().startsWith(CRYPT_PREFIX)) {
 			Validate.notBlank(secret,"config[jeesuite.configcenter.encrypt-secret] is required");
-			data = data.toString().replace(DES_PREFIX, "");
-			return SimpleCryptUtils.decrypt(secret, data.toString());
+			data = data.toString().replace(CRYPT_PREFIX, "");
+			String decryptString;
+			try {
+				decryptString = decryptWithAES(secret, data.toString());
+			} catch (Exception e) {
+				decryptString = decryptWithAES(globalSecret, data.toString());
+			}
+			return decryptString;
 		}
 		return data;
+	}
+	
+	private static String decryptWithAES(String key, String data){
+		try {
+			String secretKey = DigestUtils.md5(key).substring(16);
+			byte[] bytes = AES.decrypt(Base64.decode(data.getBytes(StandardCharsets.UTF_8)),  secretKey.getBytes(StandardCharsets.UTF_8));
+			return  new String(bytes, StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));

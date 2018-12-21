@@ -19,8 +19,6 @@ import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
 import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.dao.entity.AppEntity;
-import com.jeesuite.admin.dao.entity.AppSecretEntity;
-import com.jeesuite.admin.dao.entity.AppSecretEntity.SecretType;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
@@ -36,7 +34,6 @@ public class ConfigCenterApiController {
 
 	private @Autowired AppconfigEntityMapper appconfigMapper;
 	private @Autowired AppEntityMapper appMapper;
-	//private @Autowired OperateLogEntityMapper operateLogMapper;
 	private @Autowired CryptComponent cryptComponent;
 	private @Autowired ConfigStateHolder configStateHolder;
 	
@@ -66,19 +63,13 @@ public class ConfigCenterApiController {
 		
         if(globalConfig != null){
         	ConfigParseUtils.parseConfigToKVMap(result, globalConfig);
+        	result.put("jeesuite.configcenter.global-encrypt-secret", cryptComponent.getCryptKey(0, env));
         }
         
         for (AppconfigEntity config : appConfigs) {
         	ConfigParseUtils.parseConfigToKVMap(result, config);
 		}
-        
-        AppSecretEntity secretEntity = cryptComponent.getAppSecret(appEntity.getId(), env, SecretType.DES.name());
-        
-        if(secretEntity != null){
-        	result.put("jeesuite.configcenter.encrypt-secret", secretEntity.getSecretKey());
-        }
-        
-        //operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("env", env).addBizData("appName", appName));
+        result.put("jeesuite.configcenter.encrypt-secret", cryptComponent.getCryptKey(appEntity.getId(), env));
 		return result;
 	}
 	

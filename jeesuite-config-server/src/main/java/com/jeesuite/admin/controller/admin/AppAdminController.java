@@ -1,11 +1,8 @@
 package com.jeesuite.admin.controller.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,15 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.dao.entity.AppEntity;
-import com.jeesuite.admin.dao.entity.AppSecretEntity;
-import com.jeesuite.admin.dao.entity.AppSecretEntity.SecretType;
-import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
-import com.jeesuite.admin.dao.mapper.AppSecretEntityMapper;
-import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.SelectOption;
@@ -37,7 +28,6 @@ import com.jeesuite.admin.model.request.AddOrEditAppRequest;
 import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.util.BeanUtils;
-import com.jeesuite.common.util.SimpleCryptUtils;
 
 import tk.mybatis.mapper.entity.Example;
 
@@ -49,10 +39,7 @@ public class AppAdminController {
 	
 	private @Autowired CacheQueryService cacheQueryService;
 	private @Autowired AppEntityMapper appMapper;
-	private @Autowired AppSecretEntityMapper appSecretMapper;
-	private @Autowired ProfileEntityMapper profileMapper;
 	private @Autowired UserEntityMapper userMapper;
-	private @Autowired CryptComponent cryptComponent;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> findAllApps(){
@@ -134,52 +121,4 @@ public class AppAdminController {
 		return result;
 	}
 	
-	@RequestMapping(value = "secret/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> appSecrets(@PathVariable("id") int id){
-		
-		Map<String, List<AppSecretEntity>> result = new HashMap<>();
-		
-		List<ProfileEntity> profiles = profileMapper.selectAll();
-		for (ProfileEntity profile : profiles) {
-			AppSecretEntity appSecret = cryptComponent.getAppSecret(id, profile.getName(), SecretType.DES.name());
-			appSecret.setSecretKey(appSecret.getSecretKey().substring(0,28) + "****") ;
-			result.put(profile.getName(), new ArrayList<>(Arrays.asList(appSecret)));
-		}
-		
-		List<AppSecretEntity> secrets = appSecretMapper.findByAppid(id,SecretType.RSA.name());
-		
-		for (AppSecretEntity appSecret : secrets) {
-			result.get(appSecret.getEnv()).add(appSecret);
-		}
-			
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(result),HttpStatus.OK);
-	}
-	
-	@RequestMapping(value = "secret/update", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> appSecretupdate(@RequestBody Map<String, String> params){
-		SecurityUtil.requireSuperAdmin();
-		int appId = Integer.parseInt(params.get("appId"));
-		String env = params.get("env");
-		String secretKey = params.get("secretKey");
-		String secretPass = params.get("secretPass");
-		
-		AppSecretEntity secretEntity = appSecretMapper.get(appId, env, SecretType.RSA.name());
-		if(secretEntity == null){
-			secretEntity = new AppSecretEntity();
-			secretEntity.setAppId(appId);
-			secretEntity.setEnv(env);
-			secretEntity.setSecretType( SecretType.RSA.name());
-			secretEntity.setSecretKey(secretKey);
-			secretEntity.setSecretPass(SimpleCryptUtils.encrypt(secretKey, secretPass));
-			appSecretMapper.insertSelective(secretEntity);
-		}else{
-			if(secretKey.equals(secretEntity.getSecretKey()) == false || secretPass.equals(secretEntity.getSecretPass()) == false){				
-				secretEntity.setSecretKey(secretKey);
-				secretEntity.setSecretPass(SimpleCryptUtils.encrypt(secretKey, secretPass));
-				appSecretMapper.updateByPrimaryKey(secretEntity);
-			}
-		}
-		
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
-	}
 }
