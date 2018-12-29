@@ -11,7 +11,6 @@
     <result column="mobile" property="mobile" jdbcType="CHAR" />
     <result column="email" property="email" jdbcType="VARCHAR" />
     <result column="type" property="type" jdbcType="SMALLINT" />
-    <result column="gant_envs" property="gantEnvs" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="SMALLINT" />
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP" />

@@ -28,9 +28,6 @@ public class UserEntity extends BaseEntity {
     @Column(name = "type",updatable=false)
     private Short type;
 
-    @Column(name = "gant_envs")
-    private String gantEnvs;
-
     private Short status;
 
     @Column(name = "created_at",updatable=false)
@@ -122,20 +119,6 @@ public class UserEntity extends BaseEntity {
      */
     public void setType(Short type) {
         this.type = type;
-    }
-
-    /**
-     * @return gant_envs
-     */
-    public String getGantEnvs() {
-        return gantEnvs;
-    }
-
-    /**
-     * @param gantEnvs
-     */
-    public void setGantEnvs(String gantEnvs) {
-        this.gantEnvs = gantEnvs;
     }
 
     /**

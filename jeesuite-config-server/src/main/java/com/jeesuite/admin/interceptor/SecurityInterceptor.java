@@ -42,10 +42,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
 		String ipAddr = IpUtils.getIpAddr(request);
 		
 		boolean isInnerIpaddr = IpUtils.isInnerIp(ipAddr);
-		
-		SecurityUtil.getOperateLog().setIpAddr(ipAddr);
-		SecurityUtil.getOperateLog().setActName(uri);
-		
+
 		//客户端APi鉴权
 		if(uri.startsWith(API_URI_PREFIX)){
 			//只允许内网
@@ -74,10 +71,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
 			}
             return false; 
 		}
-		
-		SecurityUtil.getOperateLog().setUid(loginUserInfo.getId());
-		SecurityUtil.getOperateLog().setUname(loginUserInfo.getName());
-		
+
 		return true;
 	}
 
@@ -87,9 +81,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
 
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-			throws Exception {
-		SecurityUtil.clearOperateLogHolder();
-	}
+			throws Exception {}
 	
 	
 	

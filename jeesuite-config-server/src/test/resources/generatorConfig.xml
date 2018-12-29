@@ -15,7 +15,7 @@
 		</plugin>
 
 		<jdbcConnection driverClass="com.mysql.jdbc.Driver"
-			connectionURL="jdbc:mysql://localhost:3306/demo_db" userId="root"
+			connectionURL="jdbc:mysql://localhost:3306/configcenter" userId="root"
 			password="123456">
 		</jdbcConnection>
 
@@ -46,7 +46,7 @@
 			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
 		-->
-		<table tableName="app_secret" domainObjectName="AppSecretEntity">
+		<table tableName="app_configs_history" domainObjectName="AppConfigsHistoryEntity">
 			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
 		

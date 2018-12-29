@@ -17,10 +17,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
+import com.jeesuite.admin.dao.entity.UserPermissionEntity;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
+import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.SelectOption;
+import com.jeesuite.admin.model.UserPermission;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.GantPermRequest;
 import com.jeesuite.admin.model.request.UpdateUserRequest;
@@ -33,6 +36,7 @@ public class UserAdminController {
 
 	private @Autowired UserEntityMapper userMapper;
 	private @Autowired ProfileEntityMapper profileMapper;
+	private @Autowired  UserPermissionEntityMapper userPermissionMapper;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getUsers(){
@@ -116,13 +120,36 @@ public class UserAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "gant_permission", method = RequestMethod.POST)
+	@RequestMapping(value = "grant_permissions", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> gantPermission(@RequestBody GantPermRequest param){
 		SecurityUtil.requireSuperAdmin();
-		UserEntity user = userMapper.selectByPrimaryKey(param.getUserId());
-		user.setGantEnvs(param.getGantEnvs());
-		user.setUpdatedAt(new Date());
-		userMapper.updateByPrimaryKeySelective(user);
+		
+		List<UserPermissionEntity> oldPermissons = userPermissionMapper.findByUserIdAndEnv(param.getUserId(),param.getEnv());
+		List<UserPermissionEntity> newPermissons = new ArrayList<>(param.getPermissions().size()); 
+		for (UserPermission perm : param.getPermissions()) {
+			newPermissons.add(new UserPermissionEntity(param.getUserId(),param.getEnv(), perm.getAppId(), perm.getGrantPermission()));
+		}
+		List<UserPermissionEntity> addList;
+		List<UserPermissionEntity> removeList = null;
+		if(!oldPermissons.isEmpty()){
+			addList = new ArrayList<>(newPermissons);
+			addList.removeAll(oldPermissons);
+			removeList = new ArrayList<>(oldPermissons);
+			removeList.removeAll(newPermissons);
+		}else{
+			addList = newPermissons;
+		}
+		
+		if(!addList.isEmpty()){
+			userPermissionMapper.insertList(addList);
+		}
+		
+        if(removeList != null && !removeList.isEmpty()){
+            for (UserPermissionEntity entity : removeList) {
+            	userPermissionMapper.deleteByPrimaryKey(entity.getId());
+			}
+		}
+		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 	

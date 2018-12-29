@@ -2,6 +2,7 @@ package com.jeesuite.admin.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.dao.entity.UserEntity;
+import com.jeesuite.admin.dao.entity.UserPermissionEntity;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
+import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.interceptor.SecurityInterceptor;
 import com.jeesuite.admin.model.Constants;
@@ -33,8 +36,8 @@ import com.jeesuite.spring.helper.EnvironmentHelper;
 @RequestMapping("/auth")
 public class AuthController {
 
-	@Autowired
-	private UserEntityMapper userMapper;
+	private @Autowired UserEntityMapper userMapper;
+	private @Autowired  UserPermissionEntityMapper userPermissionMapper;
 
 	
 	@RequestMapping(value = "login", method = RequestMethod.POST)
@@ -54,7 +57,17 @@ public class AuthController {
 			if(userEntity.getStatus() != 1){
 				throw new JeesuiteBaseException(1001, "该账号已停用");
 			}
-			loginUserInfo.setGantProfiles(new ArrayList<>(Arrays.asList(userEntity.getGantEnvs().split(";|,"))));
+			//加载权限
+			List<UserPermissionEntity> userPermissions = userPermissionMapper.findByUserId(userEntity.getId());
+			List<String> envPerms;
+			for (UserPermissionEntity entity : userPermissions) {
+				envPerms = loginUserInfo.getPermissons().get(entity.getEnv());
+				if(envPerms == null){
+					envPerms = new ArrayList<>();
+					loginUserInfo.getPermissons().put(entity.getEnv(), envPerms);
+				}
+				envPerms.add(UserPermissionEntity.buildPermissionCode(entity.getUserId(), entity.getEnv(), entity.getAppId()));
+			}
 		}
 	
 		request.getSession().setAttribute(Constants.LOGIN_SESSION_KEY, loginUserInfo);

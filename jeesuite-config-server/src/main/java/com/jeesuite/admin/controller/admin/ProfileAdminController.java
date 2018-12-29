@@ -43,7 +43,7 @@ public class ProfileAdminController {
 		List<SelectOption> result = new ArrayList<>();
 		List<ProfileEntity> list = profileMapper.findAllEnabledProfiles();
 		for (ProfileEntity entity : list) {
-			if(SecurityUtil.isSuperAdmin() || SecurityUtil.getLoginUserInfo().getGantProfiles().contains(entity.getName())){				
+			if(SecurityUtil.isSuperAdmin() || SecurityUtil.getLoginUserInfo().getGrantedProfiles().contains(entity.getName())){				
 				result.add(new SelectOption(entity.getName(), entity.getAlias() + "("+entity.getName()+")"));
 			}
 		}

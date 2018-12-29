@@ -209,7 +209,7 @@ public class ConfigcenterContext {
 		
 		Properties properties = new Properties();
 
-		Map<String,Object> map = fetchConfigFromServer(2);
+		Map<String,Object> map = fetchConfigFromServer();
 		if(map == null){
 			throw new RuntimeException("fetch remote config error!");
 		}
@@ -233,30 +233,35 @@ public class ConfigcenterContext {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Map<String,Object> fetchConfigFromServer(int retry){
-		if(retry == 0)return null;
+	private Map<String,Object> fetchConfigFromServer(){
 		Map<String,Object> result = null;
 		String errorMsg = null;
         for (String apiBaseUrl : apiBaseUrls) {
         	String url = String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s", apiBaseUrl,app,env,version);
     		System.out.println("fetch configs url:" + url);
     		String jsonString = null;
-    		HttpResponseEntity response = HttpUtils.get(url);
-    		if(response.isSuccessed()){
-    			jsonString = response.getBody();
-    			result = JsonUtils.toObject(jsonString, Map.class);
-    			if(result.containsKey("code")){
-    				errorMsg = result.get("msg").toString();
-    				System.out.println("fetch error:"+errorMsg);
-    				result = null;
-    			}else{
-    				break;
-    			}
-    		}
+    		try {
+    			HttpResponseEntity response = HttpUtils.get(url);
+        		if(response.isSuccessed()){
+        			jsonString = response.getBody();
+        			result = JsonUtils.toObject(jsonString, Map.class);
+        			if(result.containsKey("code")){
+        				errorMsg = result.get("msg").toString();
+        				System.out.println("fetch error:"+errorMsg);
+        				result = null;
+        			}else{
+        				break;
+        			}
+        		}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-        
+        //
         if(result == null){
-        	result = fetchConfigFromServer(--retry);
+        	result = LocalCacheUtils.read();
+        }else{
+        	LocalCacheUtils.write(result);
         }
         return result;
 	}

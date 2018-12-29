@@ -2,6 +2,7 @@ package com.jeesuite.admin.controller.admin;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,12 +28,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
 import com.jeesuite.admin.component.CryptComponent;
+import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
 import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
-import com.jeesuite.admin.dao.entity.OperateLogEntity;
+import com.jeesuite.admin.dao.mapper.AppConfigsHistoryEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
-import com.jeesuite.admin.dao.mapper.OperateLogEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.AddOrEditConfigRequest;
@@ -50,7 +52,7 @@ public class ConfigAdminController {
 	
 	private @Autowired AppEntityMapper appMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
-	private @Autowired OperateLogEntityMapper operateLogMapper;
+	private @Autowired AppConfigsHistoryEntityMapper appconfigHisMapper;
 	private @Autowired CryptComponent cryptComponent;
 	private @Autowired ConfigStateHolder configStateHolder;
 	
@@ -71,7 +73,7 @@ public class ConfigAdminController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
-		SecurityUtil.requireProfileGanted(entity.getEnv());
+		SecurityUtil.requireAnyPermission(entity.getEnv(), entity.getAppIds());
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
@@ -79,8 +81,6 @@ public class ConfigAdminController {
 	@RequestMapping(value = "add", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
-		SecurityUtil.requireProfileGanted(addRequest.getEnv());
-
 		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
@@ -92,14 +92,14 @@ public class ConfigAdminController {
 		if(addRequest.getType().intValue() == 2 && StringUtils.isBlank(addRequest.getName())){
 			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
+		
+		SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getGlobal() ? "0" : addRequest.getAppIds());
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		//
 		encryptPropItemIfRequired(entity);
 		
 		appconfigMapper.insertSelective(entity);
-		
-		operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("id", entity.getId()));
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
@@ -110,20 +110,14 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(1003, "id参数缺失");
 		}
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(addRequest.getId());
-		SecurityUtil.requireProfileGanted(entity.getEnv());
-		
-		OperateLogEntity operateLog = SecurityUtil.getOperateLog();
-		operateLog.setBeforeData(entity.getContents());
-		operateLog.setAfterData(addRequest.getContents());
-		
+		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getGlobal() ? "0" : entity.getAppIds());
 		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
+		//
+		saveAppConfigHistory(entity);
 		
-		operateLog.addBizData("beforeAppIds", entity.getAppIds()).addBizData("afterAppIds", addRequest.getAppIds());
 		entity.setAppIds(addRequest.getAppIds());
-		
-		operateLog.addBizData("beforeVersion", entity.getVersion()).addBizData("afterVersion", addRequest.getVersion());
 		entity.setVersion(addRequest.getVersion());
 		
 		String orignContents = entity.getContents();
@@ -133,8 +127,6 @@ public class ConfigAdminController {
 		appconfigMapper.updateByPrimaryKeySelective(entity);
 		//
 		publishConfigChangeEvent(orignContents,entity);
-		//
-		operateLogMapper.insertSelective(operateLog);
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
@@ -144,7 +136,7 @@ public class ConfigAdminController {
 	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
 		
 		if(StringUtils.isNotBlank(query.getEnv())){
-			SecurityUtil.requireProfileGanted(query.getEnv());
+			SecurityUtil.requireAllPermission(query.getEnv());
 		}
 		
         if(StringUtils.isBlank(query.getAppId()) && !SecurityUtil.isSuperAdmin()){
@@ -154,7 +146,7 @@ public class ConfigAdminController {
 		Map<String, Object> queyParams = BeanUtils.beanToMap(query);
 		
 		if(StringUtils.isBlank(query.getEnv()) && !SecurityUtil.isSuperAdmin()){
-			List<String> gantProfiles = SecurityUtil.getLoginUserInfo().getGantProfiles();
+			List<String> gantProfiles = SecurityUtil.getLoginUserInfo().getGrantedProfiles();
 			if(gantProfiles.isEmpty()){
 				return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(new ArrayList<>()),HttpStatus.OK);
 			}
@@ -183,22 +175,24 @@ public class ConfigAdminController {
 	
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
+	@Transactional
 	public ResponseEntity<WrapperResponseEntity> deleteConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
-		if(entity != null)SecurityUtil.requireProfileGanted(entity.getEnv());
 		//全局配置
 		if(entity.getGlobal())SecurityUtil.requireSuperAdmin();
+		//		
+		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getAppIds());
 		int delete = entity == null ? 0 : appconfigMapper.deleteByPrimaryKey(id);
-		operateLogMapper.insertSelective(SecurityUtil.getOperateLog().addBizData("id", entity.getId()));
+		//
+		saveAppConfigHistory(entity);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
 	}
 	
+
 	@RequestMapping(value = "copy", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> copyConfig(@RequestBody Map<String, String> params){
 		String from = params.get("from");
-		SecurityUtil.requireProfileGanted(from);
 		String to = params.get("to");
-		SecurityUtil.requireProfileGanted(to);
 		
 		Example example = new Example(AppconfigEntity.class);
 		example.createCriteria().andEqualTo("env", from);
@@ -279,6 +273,21 @@ public class ConfigAdminController {
 			content = StringUtils.replace(content, value, encryptValue);
 		}
 		entity.setContents(content);
+	}
+	
+	/**
+	 * @param entity
+	 */
+	private void saveAppConfigHistory(AppconfigEntity entity) {
+		AppConfigsHistoryEntity historyEntity = new AppConfigsHistoryEntity();
+		historyEntity.setEnv(entity.getEnv());
+		historyEntity.setAppIds(entity.getAppIds());
+		historyEntity.setType(entity.getType());
+		historyEntity.setContents(entity.getContents());
+		historyEntity.setVersion(entity.getVersion());
+		historyEntity.setCreatedAt(new Date());
+		historyEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
+		appconfigHisMapper.insertSelective(historyEntity);
 	}
 	
 }

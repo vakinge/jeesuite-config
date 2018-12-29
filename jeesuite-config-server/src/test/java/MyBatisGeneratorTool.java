@@ -29,7 +29,7 @@ public class MyBatisGeneratorTool {
 		
 		List<String> warnings = new ArrayList<String>();
 		boolean overwrite = true;
-		File configFile = new File("/Users/jiangwei/project/jeesuite-admin/src/test/resources/generatorConfig.xml");
+		File configFile = new File("/Users/jiangwei/project/jeesuite-config/jeesuite-config-server/src/test/resources/generatorConfig.xml");
 		ConfigurationParser cp = new ConfigurationParser(warnings);
 		Configuration config = null;
 		try {

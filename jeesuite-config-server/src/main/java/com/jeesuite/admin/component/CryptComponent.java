@@ -35,7 +35,7 @@ public class CryptComponent {
 			decryptWithAES(key, data.replace(cryptPrefix, ""));
 			return true;
 		} catch (Exception e) {
-			return true;
+			return false;
 		}
 	}
 	

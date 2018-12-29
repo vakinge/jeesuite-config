@@ -26,14 +26,14 @@ public class AppMonitorController {
 	
 	@RequestMapping(value="{env}", method = RequestMethod.GET) 
 	public ResponseEntity<WrapperResponseEntity> getActiveAppNodes(@PathVariable("env") String env){
-		SecurityUtil.requireProfileGanted(env);
+		SecurityUtil.requireAllPermission(env);
 		List<ConfigState> list = configStateHolder.get(env);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="config/{env}/{appName}", method = RequestMethod.GET) 
 	public ResponseEntity<WrapperResponseEntity> getNodeConfig(@PathVariable("env") String env,@PathVariable("appName") String appName,@RequestParam("nodeId") String nodeId){
-		SecurityUtil.requireProfileGanted(env);
+		SecurityUtil.requireAllPermission(env);
 		StringBuilder content = new StringBuilder();
 		List<ConfigState> list = configStateHolder.get(appName, env);
 		for (ConfigState configState : list) {

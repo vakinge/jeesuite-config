@@ -1,14 +1,16 @@
 package com.jeesuite.admin.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LoginUserInfo {
 
 	private int id;
 	private String name;
 	private boolean superAdmin;
-	private List<String> gantProfiles;
+	private Map<String, List<String>> permissons;
 	
 	public LoginUserInfo(String name) {
 		super();
@@ -32,13 +34,16 @@ public class LoginUserInfo {
 	public void setSuperAdmin(boolean superAdmin) {
 		this.superAdmin = superAdmin;
 	}
-	public List<String> getGantProfiles() {
-		if(gantProfiles == null)gantProfiles = new ArrayList<String>();
-		return gantProfiles;
-	}
-	public void setGantProfiles(List<String> gantProfiles) {
-		this.gantProfiles = gantProfiles;
-	}
 	
+	
+	public Map<String, List<String>> getPermissons() {
+		return permissons == null ? (permissons = new HashMap<>()) : permissons;
+	}
+	public void setPermissons(Map<String, List<String>> permissons) {
+		this.permissons = permissons;
+	}
+	public List<String> getGrantedProfiles() {
+		return new ArrayList<>(getPermissons().keySet());
+	}
 	
 }
