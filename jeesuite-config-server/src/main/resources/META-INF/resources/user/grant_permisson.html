@@ -2,17 +2,35 @@
 <html>
  <head> 
   <meta charset="UTF-8" /> 
-  <title>编辑权限</title> 
+  <title>分配权限</title> 
   <link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" /> 
   <link rel="stylesheet" href="../webjars/css/global.css" media="all" /> 
   <link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css" /> 
   <link rel="stylesheet" href="../webjars/css/table.css" /> 
+  <style type="text/css">
+     .applist{margin: 10px;}
+     .applist li{
+        float:left;width:24%;
+     }
+  </style>
  </head> 
  <body> 
   <div class="admin-main" templateLoad onFinishCallback="onFinishCallback"> 
    <blockquote class="layui-elem-quote"> 
     <a href="./list.html" class="layui-btn layui-btn-small"> <i class="layui-icon">&#xe608;</i> 用户列表 </a> 
    </blockquote> 
+   
+   <fieldset class="layui-elem-field site-demo-button" style="margin-top: 30px;">
+  <legend>开发环境(dev)</legend>
+   <ul id="applist" class="applist">
+      <li>用户服务<span class="layui-badge layui-bg-blue">只读</span></li>
+      <li>用户服务<span class="layui-badge layui-bg-blue">只读</span></li>
+      <li>用户服务<span class="layui-badge layui-bg-blue">只读</span></li>
+      <li>用户服务<span class="layui-badge layui-bg-blue">只读</span></li>
+      <li>用户服务<span class="layui-badge layui-bg-blue">只读</span></li>
+   </ul>
+</fieldset>
+
    <form class="layui-form" action="../admin/user/gant_permission"> 
    <input type="hidden" bindAttr="id" name="userId"> 
     <div class="layui-form-item">

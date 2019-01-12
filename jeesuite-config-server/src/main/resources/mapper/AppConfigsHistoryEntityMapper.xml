@@ -6,6 +6,7 @@
       WARNING - @mbg.generated
     -->
     <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="origin_id" property="originId" jdbcType="INTEGER" />
     <result column="app_ids" property="appIds" jdbcType="VARCHAR" />
     <result column="env" property="env" jdbcType="VARCHAR" />
     <result column="version" property="version" jdbcType="VARCHAR" />

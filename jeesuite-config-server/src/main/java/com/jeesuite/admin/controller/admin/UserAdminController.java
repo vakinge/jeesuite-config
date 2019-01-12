@@ -162,8 +162,5 @@ public class UserAdminController {
 		}
 		return result;
 	}
-	
-	public static void main(String[] args) {
-		System.out.println(DigestUtils.md5WithSalt("admin123$%^", "ayg"));
-	}
+
 }

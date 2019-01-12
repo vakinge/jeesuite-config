@@ -68,6 +68,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 DROP TABLE IF EXISTS `app_configs_history`;
 CREATE TABLE `app_configs_history` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
+  `origin_id` int(10) NOT NULL,
   `app_ids` varchar(100) DEFAULT NULL,
   `env` varchar(16) DEFAULT NULL,
   `version` varchar(32) DEFAULT NULL,

@@ -10,6 +10,9 @@ public class AppConfigsHistoryEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "origin_id")
+    private Integer originId;
+    
     @Column(name = "app_ids")
     private String appIds;
 
@@ -45,8 +48,16 @@ public class AppConfigsHistoryEntity extends BaseEntity {
     public void setId(Integer id) {
         this.id = id;
     }
+    
+    public Integer getOriginId() {
+		return originId;
+	}
 
-    /**
+	public void setOriginId(Integer originId) {
+		this.originId = originId;
+	}
+
+	/**
      * @return app_ids
      */
     public String getAppIds() {

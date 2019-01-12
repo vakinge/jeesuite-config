@@ -172,7 +172,16 @@ public class ConfigAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
 	}
 	
-	
+	/**
+	 * 配置历史记录
+	 * @param query
+	 * @return
+	 */
+	@RequestMapping(value = "config_histories/{id}", method = RequestMethod.POST)
+	public ResponseEntity<WrapperResponseEntity> queryHistoryConfigs(@PathVariable("id") int id){
+		List<AppConfigsHistoryEntity> list = appconfigHisMapper.findByConfigId(id);
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
+	}
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
 	@Transactional
