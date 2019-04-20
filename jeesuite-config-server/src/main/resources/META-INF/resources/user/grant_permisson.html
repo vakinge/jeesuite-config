@@ -31,54 +31,8 @@
    </ul>
 </fieldset>
 
-   <form class="layui-form" action="../admin/user/gant_permission"> 
-   <input type="hidden" bindAttr="id" name="userId"> 
-    <div class="layui-form-item">
-		<label class="layui-form-label">用户名</label>
-		<div class="layui-input-block">
-		   <input type="text" bindAttr="name" class="layui-input" disabled="disabled">
-		</div>
-	</div> 
-    <div class="layui-form-item"> 
-     <label class="layui-form-label">授权</label> 
-     <div class="layui-input-block"> 
-        <ul id="authlist"></ul>
-        <script type="text/html" id="authlist_tpl">
-	     {{# layui.each(d, function(index, item){ }}
-          <li><input type="checkbox" name="gantEnvs" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}"></li>
-	     {{# }); }}
-       </script>
-     </div> 
-    </div>       
-    <div class="layui-form-item"> 
-     <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./list.html" value="保存"/>
-        <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
-     </div> 
-    </div> 
-   </form> 
   </div> 
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
   <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>  
-  <script type="text/javascript">
-  function onFinishCallback(data){
-	  var $ = layui.jquery;
-	  var $cont = $('#authlist');
-	  $.getJSON('../admin/user/auth_options',function(res){
-		  var tpl = $('#authlist_tpl').html();
-		  layui.laytpl(tpl).render(res.data, function(html){
-			  $cont.html(html);
-		  });
-		  
-		  $cont.find(':checkbox').each(function(){
-			  var $this = $(this);
-			  if(data.gantEnvs.indexOf($this.attr('value')) >= 0){
-				  $this.attr('checked',true);
-			  }
-		  });
-	     layui.form().render();
-	  });
-  } 
-  </script>
  </body>
 </html>

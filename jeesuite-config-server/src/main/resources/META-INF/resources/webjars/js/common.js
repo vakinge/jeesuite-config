@@ -4,7 +4,7 @@ layui.define(['layer','laytpl','form'], function(exports) {
 	var $ = layui.jquery,
 		layer = layui.layer,
 		laytpl = layui.laytpl,
-		form = layui.form();
+		form = layui.form;
 	var common = {
 		throwError: function(msg) {
 			throw new Error(msg);

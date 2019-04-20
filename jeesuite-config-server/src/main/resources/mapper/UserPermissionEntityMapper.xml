@@ -7,8 +7,8 @@
     -->
     <id column="id" property="id" jdbcType="INTEGER" />
     <result column="user_id" property="userId" jdbcType="INTEGER" />
-    <result column="env" property="env" jdbcType="VARCHAR" />
-    <result column="app_id" property="appId" jdbcType="INTEGER" />
-    <result column="grant_permission" property="grantPermission" jdbcType="CHAR" />
+    <result column="grant_type" property="grantType" jdbcType="CHAR" />
+    <result column="grant_target" property="grantTarget" jdbcType="VARCHAR" />
+    <result column="grant_operate" property="grantOperate" jdbcType="CHAR" />
   </resultMap>
 </mapper>

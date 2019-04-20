@@ -46,7 +46,7 @@
 			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
 		-->
-		<table tableName="app_configs_history" domainObjectName="AppConfigsHistoryEntity">
+		<table tableName="user_permissions" domainObjectName="UserPermissionEntity">
 			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
 		

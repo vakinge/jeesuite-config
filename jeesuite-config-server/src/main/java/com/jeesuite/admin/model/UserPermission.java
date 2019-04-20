@@ -22,20 +22,21 @@ package com.jeesuite.admin.model;
  */
 public class UserPermission {
 
-	private Integer appId;
-	private String grantPermission;
-	public Integer getAppId() {
-		return appId;
+	private String type;
+	private String permissionCode;
+	public String getType() {
+		return type;
 	}
-	public void setAppId(Integer appId) {
-		this.appId = appId;
+	public void setType(String type) {
+		this.type = type;
 	}
-	public String getGrantPermission() {
-		return grantPermission;
+	public String getPermissionCode() {
+		return permissionCode;
 	}
-	public void setGrantPermission(String grantPermission) {
-		this.grantPermission = grantPermission;
+	public void setPermissionCode(String permissionCode) {
+		this.permissionCode = permissionCode;
 	}
+	
 	
 	
 }

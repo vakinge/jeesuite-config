@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.entity.UserPermissionEntity;
@@ -124,10 +125,14 @@ public class UserAdminController {
 	public ResponseEntity<WrapperResponseEntity> gantPermission(@RequestBody GantPermRequest param){
 		SecurityUtil.requireSuperAdmin();
 		
-		List<UserPermissionEntity> oldPermissons = userPermissionMapper.findByUserIdAndEnv(param.getUserId(),param.getEnv());
+		List<UserPermissionEntity> oldPermissons = userPermissionMapper.findByUserId(param.getUserId());
 		List<UserPermissionEntity> newPermissons = new ArrayList<>(param.getPermissions().size()); 
+		String grantTarget;String grantOper;
 		for (UserPermission perm : param.getPermissions()) {
-			newPermissons.add(new UserPermissionEntity(param.getUserId(),param.getEnv(), perm.getAppId(), perm.getGrantPermission()));
+			String[] tmpArrays = StringUtils.splitByWholeSeparator(perm.getPermissionCode(), ":");
+			grantTarget = tmpArrays[0];
+			grantOper = tmpArrays.length == 1 ? GrantOperate.RW.name() : tmpArrays[1];
+			newPermissons.add(new UserPermissionEntity(param.getUserId(),perm.getType(), grantTarget,grantOper));
 		}
 		List<UserPermissionEntity> addList;
 		List<UserPermissionEntity> removeList = null;

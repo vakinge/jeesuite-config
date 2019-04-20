@@ -47,7 +47,7 @@ public class ConfigCenterApiController {
 		AppEntity appEntity = appMapper.findByName(appName);
 		if(appEntity == null)throw new JeesuiteBaseException(1001, "app不存在");
 		
-		AppconfigEntity globalConfig = appconfigMapper.findGlobalConfig(env, version);
+		List<AppconfigEntity> globalConfigs = appconfigMapper.findGlobalConfig(env, version);
 		//再查应用的
 		Map<String, Object> queyParams = new HashMap<>();
 		queyParams.put("env", env);
@@ -55,14 +55,16 @@ public class ConfigCenterApiController {
 		queyParams.put("appId", appEntity.getId());
         List<AppconfigEntity> appConfigs = appconfigMapper.findByQueryParams(queyParams);
 		
-		if(globalConfig == null &&  appConfigs.isEmpty()){
+		if(globalConfigs.isEmpty() &&  appConfigs.isEmpty()){
 			throw new JeesuiteBaseException(1001, "配置不存在");
 		}
 		
 		Map<String, Object> result = new HashMap<>();
 		
-        if(globalConfig != null){
-        	ConfigParseUtils.parseConfigToKVMap(result, globalConfig);
+        if(!globalConfigs.isEmpty()){
+        	for (AppconfigEntity config : globalConfigs) {
+            	ConfigParseUtils.parseConfigToKVMap(result, config);
+    		}
         	result.put("jeesuite.configcenter.global-encrypt-secret", cryptComponent.getCryptKey(0, env));
         }
         

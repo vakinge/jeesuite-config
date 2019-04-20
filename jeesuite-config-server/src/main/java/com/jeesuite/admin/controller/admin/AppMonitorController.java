@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
+import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.SecurityUtil;
 
@@ -26,14 +27,14 @@ public class AppMonitorController {
 	
 	@RequestMapping(value="{env}", method = RequestMethod.GET) 
 	public ResponseEntity<WrapperResponseEntity> getActiveAppNodes(@PathVariable("env") String env){
-		SecurityUtil.requireAllPermission(env);
+		SecurityUtil.requireAllPermission(env,GrantOperate.RO);
 		List<ConfigState> list = configStateHolder.get(env);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="config/{env}/{appName}", method = RequestMethod.GET) 
 	public ResponseEntity<WrapperResponseEntity> getNodeConfig(@PathVariable("env") String env,@PathVariable("appName") String appName,@RequestParam("nodeId") String nodeId){
-		SecurityUtil.requireAllPermission(env);
+		SecurityUtil.requireAllPermission(env,GrantOperate.RO);
 		StringBuilder content = new StringBuilder();
 		List<ConfigState> list = configStateHolder.get(appName, env);
 		for (ConfigState configState : list) {

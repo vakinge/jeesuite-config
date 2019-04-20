@@ -1,16 +1,15 @@
 package com.jeesuite.admin.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LoginUserInfo {
 
 	private int id;
 	private String name;
 	private boolean superAdmin;
-	private Map<String, List<String>> permissons;
+	private List<String> grantedProfiles;
+	private List<String> grantedAppIds = new ArrayList<>();
 	
 	public LoginUserInfo(String name) {
 		super();
@@ -34,16 +33,18 @@ public class LoginUserInfo {
 	public void setSuperAdmin(boolean superAdmin) {
 		this.superAdmin = superAdmin;
 	}
-	
-	
-	public Map<String, List<String>> getPermissons() {
-		return permissons == null ? (permissons = new HashMap<>()) : permissons;
-	}
-	public void setPermissons(Map<String, List<String>> permissons) {
-		this.permissons = permissons;
-	}
 	public List<String> getGrantedProfiles() {
-		return new ArrayList<>(getPermissons().keySet());
+		return grantedProfiles == null ? (grantedProfiles = new ArrayList<>()) : grantedProfiles;
 	}
+	public void setGrantedProfiles(List<String> grantedProfiles) {
+		this.grantedProfiles = grantedProfiles;
+	}
+	public List<String> getGrantedAppIds() {
+		return grantedAppIds;
+	}
+	public void setGrantedAppIds(List<String> grantedAppIds) {
+		this.grantedAppIds = grantedAppIds;
+	}
+	
 	
 }

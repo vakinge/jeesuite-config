@@ -1,12 +1,7 @@
 package com.jeesuite.admin.dao.entity;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import com.jeesuite.admin.dao.BaseEntity;
+import javax.persistence.*;
 
 @Table(name = "user_permissions")
 public class UserPermissionEntity extends BaseEntity {
@@ -17,22 +12,23 @@ public class UserPermissionEntity extends BaseEntity {
     @Column(name = "user_id")
     private Integer userId;
 
-    private String env;
+    @Column(name = "grant_type")
+    private String grantType;
 
-    @Column(name = "app_id")
-    private Integer appId;
+    @Column(name = "grant_target")
+    private String grantTarget;
 
-    @Column(name = "grant_permission")
-    private String grantPermission;
+    @Column(name = "grant_operate")
+    private String grantOperate;
     
+
     public UserPermissionEntity() {}
-    
-	public UserPermissionEntity(Integer userId, String env, Integer appId, String grantPermission) {
-		super();
+
+	public UserPermissionEntity(Integer userId, String grantType, String grantTarget, String grantOperate) {
 		this.userId = userId;
-		this.env = env;
-		this.appId = appId;
-		this.grantPermission = grantPermission;
+		this.grantType = grantType;
+		this.grantTarget = grantTarget;
+		this.grantOperate = grantOperate;
 	}
 
 	/**
@@ -64,57 +60,48 @@ public class UserPermissionEntity extends BaseEntity {
     }
 
     /**
-     * @return env
+     * @return grant_type
      */
-    public String getEnv() {
-        return env;
+    public String getGrantType() {
+        return grantType;
     }
 
     /**
-     * @param env
+     * @param grantType
      */
-    public void setEnv(String env) {
-        this.env = env;
+    public void setGrantType(String grantType) {
+        this.grantType = grantType;
+    }
+
+
+    public String getGrantTarget() {
+		return grantTarget;
+	}
+
+	public void setGrantTarget(String grantTarget) {
+		this.grantTarget = grantTarget;
+	}
+
+	/**
+     * @return grant_operate
+     */
+    public String getGrantOperate() {
+        return grantOperate;
     }
 
     /**
-     * @return app_id
+     * @param grantOperate
      */
-    public Integer getAppId() {
-        return appId;
-    }
-
-    /**
-     * @param appId
-     */
-    public void setAppId(Integer appId) {
-        this.appId = appId;
-    }
-
-    /**
-     * @return grant_permission
-     */
-    public String getGrantPermission() {
-        return grantPermission;
-    }
-
-    /**
-     * @param grantPermission
-     */
-    public void setGrantPermission(String grantPermission) {
-        this.grantPermission = grantPermission;
-    }
-    
-    public static String buildPermissionCode(Integer userId,String env,Integer appId){
-    	return new StringBuilder().append(userId).append(env).append(appId).toString();
+    public void setGrantOperate(String grantOperate) {
+        this.grantOperate = grantOperate;
     }
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((appId == null) ? 0 : appId.hashCode());
-		result = prime * result + ((env == null) ? 0 : env.hashCode());
+		result = prime * result + ((grantTarget == null) ? 0 : grantTarget.hashCode());
+		result = prime * result + ((grantType == null) ? 0 : grantType.hashCode());
 		result = prime * result + ((userId == null) ? 0 : userId.hashCode());
 		return result;
 	}
@@ -128,15 +115,15 @@ public class UserPermissionEntity extends BaseEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		UserPermissionEntity other = (UserPermissionEntity) obj;
-		if (appId == null) {
-			if (other.appId != null)
+		if (grantTarget == null) {
+			if (other.grantTarget != null)
 				return false;
-		} else if (!appId.equals(other.appId))
+		} else if (!grantTarget.equals(other.grantTarget))
 			return false;
-		if (env == null) {
-			if (other.env != null)
+		if (grantType == null) {
+			if (other.grantType != null)
 				return false;
-		} else if (!env.equals(other.env))
+		} else if (!grantType.equals(other.grantType))
 			return false;
 		if (userId == null) {
 			if (other.userId != null)

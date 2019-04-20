@@ -11,7 +11,7 @@ import com.jeesuite.admin.dao.entity.AppconfigEntity;
 public interface AppconfigEntityMapper extends CustomBaseMapper<AppconfigEntity> {
 	
 	
-	AppconfigEntity findGlobalConfig(@Param("env") String env,@Param("version") String version);
+	List<AppconfigEntity> findGlobalConfig(@Param("env") String env,@Param("version") String version);
 	
 	List<AppconfigEntity> findByQueryParams(Map<String, Object> params);
 	

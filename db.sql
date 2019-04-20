@@ -84,9 +84,9 @@ DROP TABLE IF EXISTS `user_permissions`;
 CREATE TABLE `user_permissions` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `user_id` int(10) NOT NULL,
-  `env` varchar(16) NOT NULL,
-  `app_id` int(10) NOT NULL,
-  `grant_permission` ENUM('read', 'write') NOT NULL,
+  `grant_type` ENUM('env', 'app') NOT NULL,
+  `grant_target` varchar(32) NOT NULL,
+  `grant_operate` ENUM('RO', 'RW') DEFAULT 'RW',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

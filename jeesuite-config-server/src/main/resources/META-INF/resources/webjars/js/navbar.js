@@ -2,7 +2,7 @@ layui.define(['element', 'common'], function (exports) {
     "use strict";
     var $ = layui.jquery,
         layer = parent.layer === undefined ? layui.layer : parent.layer,
-        element = layui.element(),
+        element = layui.element,
         common = layui.common,
         cacheName = 'tb_navbar';
 

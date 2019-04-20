@@ -4,7 +4,7 @@ layui.define(['element', 'common'], function (exports) {
 
     var mod_name = 'tab',
         $ = layui.jquery,
-        element = layui.element(),
+        element = layui.element,
         commo = layui.common,
         globalTabIdIndex = 0,
         layer = layui.layer,

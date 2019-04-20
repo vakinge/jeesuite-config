@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
+import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
 import com.jeesuite.admin.dao.entity.AppEntity;
@@ -73,7 +74,7 @@ public class ConfigAdminController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
-		SecurityUtil.requireAnyPermission(entity.getEnv(), entity.getAppIds());
+		SecurityUtil.requireAnyPermission(entity.getEnv(), entity.getAppIds(),GrantOperate.RO);
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
@@ -93,7 +94,7 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
 		
-		SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getGlobal() ? "0" : addRequest.getAppIds());
+		SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getGlobal() ? "0" : addRequest.getAppIds(),GrantOperate.RW);
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		//
@@ -110,7 +111,7 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(1003, "id参数缺失");
 		}
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(addRequest.getId());
-		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getGlobal() ? "0" : entity.getAppIds());
+		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getGlobal() ? "0" : entity.getAppIds(),GrantOperate.RW);
 		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
@@ -136,7 +137,7 @@ public class ConfigAdminController {
 	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
 		
 		if(StringUtils.isNotBlank(query.getEnv())){
-			SecurityUtil.requireAllPermission(query.getEnv());
+			SecurityUtil.requireAllPermission(query.getEnv(),GrantOperate.RO);
 		}
 		
         if(StringUtils.isBlank(query.getAppId()) && !SecurityUtil.isSuperAdmin()){
@@ -190,7 +191,7 @@ public class ConfigAdminController {
 		//全局配置
 		if(entity.getGlobal())SecurityUtil.requireSuperAdmin();
 		//		
-		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getAppIds());
+		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getAppIds(),GrantOperate.RW);
 		int delete = entity == null ? 0 : appconfigMapper.deleteByPrimaryKey(id);
 		//
 		saveAppConfigHistory(entity);

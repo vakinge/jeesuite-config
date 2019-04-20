@@ -19,7 +19,7 @@
   </resultMap>
   
   <select id="findGlobalConfig" resultMap="BaseResultMap" parameterType="map">
-      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND (app_ids is null OR app_ids = '') LIMIT 1
+      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND (app_ids is null OR app_ids = '')
   </select>
   
   <select id="findByQueryParams" resultMap="BaseResultMap" parameterType="map">
