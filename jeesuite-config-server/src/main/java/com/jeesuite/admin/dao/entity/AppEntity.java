@@ -14,10 +14,6 @@ public class AppEntity extends BaseEntity {
     private String name;
     
     private String alias;
- 
-
-    @Column(name = "notify_emails")
-    private String notifyEmails;
 
     private String master;
 
@@ -62,20 +58,6 @@ public class AppEntity extends BaseEntity {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * @return notify_emails
-     */
-    public String getNotifyEmails() {
-        return notifyEmails;
-    }
-
-    /**
-     * @param notifyEmails
-     */
-    public void setNotifyEmails(String notifyEmails) {
-        this.notifyEmails = notifyEmails;
     }
 
     /**

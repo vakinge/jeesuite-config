@@ -98,9 +98,12 @@ public class ConfigAdminController {
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		//
-		encryptPropItemIfRequired(entity);
-		
 		appconfigMapper.insertSelective(entity);
+		
+		if(encryptPropItemIfRequired(entity)){
+			appconfigMapper.updateByPrimaryKey(entity);
+		}
+		
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
@@ -157,31 +160,29 @@ public class ConfigAdminController {
 		List<AppconfigEntity> list = appconfigMapper.findByQueryParams(queyParams);
 		//set appName
 		for (AppconfigEntity appconfigEntity : list) {
-			String appName = "";
-			if(StringUtils.isBlank(appconfigEntity.getAppIds())){
-				appName = "全局配置";
-			}else{
-				String[] appIds = appconfigEntity.getAppIds().split(",");
-				for (int i = 0; i < appIds.length; i++) {
-					AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
-					appName = appName + appEntity.getAlias() + (i < appIds.length - 1 ? "," : "" );
-				}
-			}
+			String appName = buildConfigRalateAppNames(appconfigEntity);
 			appconfigEntity.setAppNames(appName);
 		}
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
 	}
+
 	
 	/**
 	 * 配置历史记录
 	 * @param query
 	 * @return
 	 */
-	@RequestMapping(value = "config_histories/{id}", method = RequestMethod.POST)
+	@RequestMapping(value = "config_histories/{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> queryHistoryConfigs(@PathVariable("id") int id){
-		List<AppConfigsHistoryEntity> list = appconfigHisMapper.findByConfigId(id);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
+		List<AppConfigsHistoryEntity> historyList = appconfigHisMapper.findByConfigId(id);
+		if(!historyList.isEmpty()){
+			AppconfigEntity appconfigEntity = appconfigMapper.selectByPrimaryKey(historyList.get(0).getOriginId());
+			for (AppConfigsHistoryEntity entity : historyList) {
+				entity.setActiveContents(appconfigEntity.getContents());
+			}
+		}
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(historyList),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
@@ -196,6 +197,18 @@ public class ConfigAdminController {
 		//
 		saveAppConfigHistory(entity);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "rollback/{id}", method = RequestMethod.GET)
+	public ResponseEntity<WrapperResponseEntity> rollbackConfig(@PathVariable("id") int id){
+		AppConfigsHistoryEntity historyEntity = appconfigHisMapper.selectByPrimaryKey(id);
+		if(historyEntity != null){
+			AppconfigEntity appconfigEntity = appconfigMapper.selectByPrimaryKey(historyEntity.getOriginId());
+			appconfigEntity.setAppIds(historyEntity.getAppIds());
+			appconfigEntity.setContents(historyEntity.getContents());
+			appconfigMapper.updateByPrimaryKeySelective(appconfigEntity);
+		}
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
 	}
 	
 
@@ -270,19 +283,24 @@ public class ConfigAdminController {
 		}
 	}
 	
-	private void encryptPropItemIfRequired(AppconfigEntity entity) {
+	private boolean encryptPropItemIfRequired(AppconfigEntity entity) {
 		Map<String, Object> props = ConfigParseUtils.parseConfigToKVMap(entity) ;
 		
 		String content = entity.getContents();
 		String value;String encryptValue;
+		
+		boolean needCrypt = false;
 		for (String key : props.keySet()) {
 			value = props.get(key).toString();
 			if(!value.startsWith(CryptComponent.cryptPrefix))continue;
 			if(cryptComponent.isEncrpted(entity.getGlobal() ? 0 : entity.getId(), entity.getEnv(), value))continue;
 			encryptValue = cryptComponent.encrypt(entity.getGlobal() ? 0 : entity.getId(), entity.getEnv(), value);
 			content = StringUtils.replace(content, value, encryptValue);
+			needCrypt = true;
 		}
 		entity.setContents(content);
+		
+		return needCrypt;
 	}
 	
 	/**
@@ -290,14 +308,31 @@ public class ConfigAdminController {
 	 */
 	private void saveAppConfigHistory(AppconfigEntity entity) {
 		AppConfigsHistoryEntity historyEntity = new AppConfigsHistoryEntity();
+		historyEntity.setOriginId(entity.getId());
+		historyEntity.setName(historyEntity.getName());
 		historyEntity.setEnv(entity.getEnv());
 		historyEntity.setAppIds(entity.getAppIds());
+		historyEntity.setAppNames(buildConfigRalateAppNames(entity));
 		historyEntity.setType(entity.getType());
 		historyEntity.setContents(entity.getContents());
 		historyEntity.setVersion(entity.getVersion());
 		historyEntity.setCreatedAt(new Date());
 		historyEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
 		appconfigHisMapper.insertSelective(historyEntity);
+	}
+	
+	private String buildConfigRalateAppNames(AppconfigEntity appconfigEntity) {
+		String appName = "";
+		if(StringUtils.isBlank(appconfigEntity.getAppIds())){
+			appName = "全局配置";
+		}else{
+			String[] appIds = appconfigEntity.getAppIds().split(",");
+			for (int i = 0; i < appIds.length; i++) {
+				AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
+				appName = appName + appEntity.getAlias() + (i < appIds.length - 1 ? "," : "" );
+			}
+		}
+		return appName;
 	}
 	
 }

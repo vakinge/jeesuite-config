@@ -243,7 +243,7 @@ layui.define(['layer','laytpl','form'], function(exports) {
 				},
 				success: function(layero, index) {
 					//弹出窗口成功后渲染表单
-					var form = layui.form();
+					var form = layui.form;
 					form.render();
 					if(onLoadFinished){
 						eval(onLoadFinished+"(form)");

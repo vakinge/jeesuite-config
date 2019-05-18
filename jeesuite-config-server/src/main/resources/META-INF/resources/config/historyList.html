@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Table</title>
+		<link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="../webjars/css/global.css" media="all">
+		<link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="../webjars/css/table.css" />
+		<style type="text/css">
+ .text-left {
+	float: left;width: 550px; background-color: green;overflow: scroll; white-space: nowrap;
+ }
+ .text-right {
+	background-color: orange; margin-left: 550px;overflow: scroll;white-space: nowrap;
+ }
+</style>
+	</head>
+
+	<body>
+		<div class="admin-main">
+			<fieldset class="layui-elem-field">
+				<legend>配置列表</legend>
+				<div class="layui-field-box layui-form">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th>应用</th>
+								<th>环境</th>
+								<th>历史版本</th>
+								<th>配置名称</th>
+								<th>配置类型</th>
+								<th width="200px">备份时间</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody id="content" templateLoad="" template-id="list_tpl"></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板-->
+		<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+				<td>{{ item.appNames.replace(/,/g, "<br>") }}</td>
+				<td>{{ item.env }}</td>
+				<td>{{ item.version }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.typeAlias }}</td>
+                <td>{{item.createdAt}}</td>
+				<td>
+                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-mini J_show_content" act-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
+                    <div id="content{{ item.id }}" style="display:none;">
+                     <div>
+	                  <div style="float: left;width: 640px; overflow: scroll;white-space: nowrap;"><div class="layui-bg-gray">修改前</div><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:630px;">{{ item.contents }}</textarea></div>
+	                  <div style="margin-left: 640px;overflow: scroll;white-space: nowrap;"><div class="layui-bg-gray">修改后</div><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:630px;">{{ item.activeContents }}</textarea></div>
+                     </div>
+                    </div>
+					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/config/rollback/{{ item.id }}">回滚</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
+        <script type="text/javascript" src="../webjars/js/common.js?v20190305"></script>
+        <script type="text/javascript">
+          layui.use(['layer','laytpl', 'form'], function(){
+        	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form;
+        	  
+        	  $("#content").on('click',".J_show_content",function() {
+        		  var contentId = "content"+$(this).attr('data-id');
+        		  parent.parent.layer.open({
+        		        type: 1
+        		        ,title: false 
+        		        ,closeBtn: false
+        		        ,area: ['1280px', '600px']
+        		        ,shade: 0.8
+        		        ,id: 'layer_'+contentId 
+        		        ,btn: ['关闭']
+        		        ,moveType: 1 
+        		        ,content:$('#'+contentId).html()
+        		        ,success: function(layero){
+        		          var btn = layero.find('.layui-layer-btn');
+        		          btn.css('text-align', 'center');
+        		        }
+        		      });
+        	  });
+          });
+        </script>
+	</body>
+
+</html>

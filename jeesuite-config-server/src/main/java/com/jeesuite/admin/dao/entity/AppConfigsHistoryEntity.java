@@ -1,8 +1,15 @@
 package com.jeesuite.admin.dao.entity;
 
-import com.jeesuite.admin.dao.BaseEntity;
 import java.util.Date;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.jeesuite.admin.dao.BaseEntity;
 
 @Table(name = "app_configs_history")
 public class AppConfigsHistoryEntity extends BaseEntity {
@@ -15,6 +22,9 @@ public class AppConfigsHistoryEntity extends BaseEntity {
     
     @Column(name = "app_ids")
     private String appIds;
+    
+    @Column(name = "app_names")
+    private String appNames;
 
     private String env;
 
@@ -34,6 +44,9 @@ public class AppConfigsHistoryEntity extends BaseEntity {
     private String createdBy;
 
     private String contents;
+    
+    @Transient
+    private String activeContents;
 
     /**
      * @return id
@@ -56,22 +69,25 @@ public class AppConfigsHistoryEntity extends BaseEntity {
 	public void setOriginId(Integer originId) {
 		this.originId = originId;
 	}
+	
+
+    public String getAppIds() {
+		return appIds;
+	}
+
+	public void setAppIds(String appIds) {
+		this.appIds = appIds;
+	}
+
+	public String getAppNames() {
+		return appNames;
+	}
+
+	public void setAppNames(String appNames) {
+		this.appNames = appNames;
+	}
 
 	/**
-     * @return app_ids
-     */
-    public String getAppIds() {
-        return appIds;
-    }
-
-    /**
-     * @param appIds
-     */
-    public void setAppIds(String appIds) {
-        this.appIds = appIds;
-    }
-
-    /**
      * @return env
      */
     public String getEnv() {
@@ -171,5 +187,23 @@ public class AppConfigsHistoryEntity extends BaseEntity {
      */
     public void setContents(String contents) {
         this.contents = contents;
+    }
+    
+    
+    
+    public String getActiveContents() {
+		return activeContents;
+	}
+
+	public void setActiveContents(String activeContents) {
+		this.activeContents = activeContents;
+	}
+
+	//类型(1:文件，2:配置项,3:JSON)
+    public String getTypeAlias(){
+    	if(type.intValue() == 1)return "配置文件";
+    	if(type.intValue() == 2)return "配置项";
+    	if(type.intValue() == 3)return "JSON";
+    	return null;
     }
 }

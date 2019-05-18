@@ -8,7 +8,6 @@
     <id column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
     <result column="alias" property="alias" jdbcType="VARCHAR" />
-    <result column="notify_emails" property="notifyEmails" jdbcType="VARCHAR" />
     <result column="master" property="master" jdbcType="VARCHAR" />
     <result column="master_uid" property="masterUid" jdbcType="INTEGER" />
     <result column="remarks" property="remarks" jdbcType="LONGVARCHAR" />

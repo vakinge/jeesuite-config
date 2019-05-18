@@ -63,7 +63,7 @@
         <input type="text" bindAttr="name" name="name" id="fileName" lay-verify="required" placeholder="请输入配置名或者直接上传" autocomplete="off" class="layui-input" style="width:200px;" /> 
       </div>
       <div class="layui-input-inline" style="width: 200px;">
-        <input type="file" name="file" lay-title="上传配置文件" class="layui-upload-file">
+        <button type="button" class="layui-btn" id="upload_file"><i class="layui-icon">&#xe67c;</i>上传配置文件</button>
       </div>
     </div>
     </div>     
@@ -85,26 +85,26 @@
    </form> 
   </div> 
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
-  <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>  
+  <script type="text/javascript" src="../webjars/js/common.js"></script>  
   <script type="text/javascript">
   layui.use(['layer','upload'], function(){
-  	var $ = layui.jquery ,  layer = layui.layer;
-  	layui.upload({
-  	  url: '/admin/config/upload',
-  	  method: 'POST',
-  	  ext: 'properties|xml|yml',
-  	  before: function(input){
-  		console.log('文件上传中');
-  	  },
-  	  success: function(res){
-  		if(res.code == 200){
-  			$('#fileContent').val(res.data.content);
-  			$('#fileName').val(res.data.fileName);
-  		}else{
-  			layui.layer.msg(res.msg, {icon: 5});
-  		}
-  	  }
-  	});
+  	var $ = layui.jquery , layer = layui.layer ,upload = layui.upload;
+	var uploadInst = upload.render({
+	    elem: '#upload_file' //绑定元素
+	    ,url: '/admin/config/upload' //上传接口
+	    ,accept: 'file'
+	    ,done: function(res){
+	    	if(res.code == 200){
+    			$('#fileContent').val(res.data.content);
+    			$('#fileName').val(res.data.fileName);
+    		}else{
+    			layui.layer.msg(res.msg, {icon: 5});
+    		}
+	    }
+	    ,error: function(){
+	      //请求异常回调
+	    }
+	  });
   	
   	//
   	$('#content_pop_btn').on('click',function(){
@@ -148,7 +148,7 @@
 					  }
 				  }
 			  });
-		     layui.form().render();
+		     layui.form.render();
 		  });
 	  }
   }

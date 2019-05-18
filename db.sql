@@ -38,9 +38,9 @@ CREATE TABLE `apps` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) DEFAULT NULL,
   `alias` varchar(32) DEFAULT NULL,
-  `notify_emails` varchar(255) DEFAULT NULL,
   `master` varchar(16) DEFAULT NULL,
   `master_uid` int(10) DEFAULT NULL,
+  `scm_link` varchar(100) DEFAULT NULL,
   `remarks` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -70,6 +70,7 @@ CREATE TABLE `app_configs_history` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `origin_id` int(10) NOT NULL,
   `app_ids` varchar(100) DEFAULT NULL,
+  `app_names` varchar(200) DEFAULT NULL,
   `env` varchar(16) DEFAULT NULL,
   `version` varchar(32) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,

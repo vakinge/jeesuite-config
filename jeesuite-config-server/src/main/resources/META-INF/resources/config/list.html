@@ -71,7 +71,8 @@
 				<td>
                     <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-mini J_show_content" act-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
                     <div id="content{{ item.id }}" style="display:none;"><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:1000px;">{{item.contents}}</textarea></div>
-					<a class="layui-btn layui-btn-mini J_iframe_dialog" href="javascript:;" data-title="编辑配置" data-url="./edit.html?dataloadurl=/admin/config/{{ item.id }}">编辑</a>
+					<a class="layui-btn layui-btn-mini layui-btn-warm J_iframe_dialog" href="javascript:;" data-title="历史版本" data-url="./historyList.html?dataloadurl=/admin/config/config_histories/{{ item.id }}">历史版本</a>
+                    <a class="layui-btn layui-btn-mini J_iframe_dialog" href="javascript:;" data-title="编辑配置" data-url="./edit.html?dataloadurl=/admin/config/{{ item.id }}">编辑</a>
 					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/config/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>
@@ -81,7 +82,7 @@
         <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>
         <script type="text/javascript">
           layui.use(['layer','laytpl', 'form'], function(){
-        	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form();
+        	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form;
         	  
         	  $("#content").on('click',".J_show_content",function() {
         		  var contentId = "content"+$(this).attr('data-id');
