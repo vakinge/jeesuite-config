@@ -24,6 +24,15 @@
 			</div>
 		</div>
 		<div class="layui-form-item">
+			<label class="layui-form-label">应用类型</label>
+			<div class="layui-input-block">
+			   <input type="radio" name="appType" value="1" title="SpringCloud微服务">
+			   <input type="radio" name="appType" value="2" title="传统web服务">
+               <input type="radio" name="appType" value="3" title="dubbo服务">
+               <input type="radio" name="appType" value="4" title="其他">
+			</div>
+		</div>
+		<div class="layui-form-item">
 			<label class="layui-form-label">负责人</label>
 			<div class="layui-input-block"> 
              <select id="masterUid" name="masterUid" lay-verify="required" asnycSelect="../admin/user/options" lay-filter="masterUid_select"> 

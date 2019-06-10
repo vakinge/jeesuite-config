@@ -5,7 +5,7 @@ public class AddOrEditAppRequest {
 	private Integer id;
 	private String name;
 	private String alias;
-	private String notifyEmails;
+	private Integer appType;
     private Integer masterUid;
     private String remarks;
     
@@ -29,11 +29,12 @@ public class AddOrEditAppRequest {
 	public void setAlias(String alias) {
 		this.alias = alias;
 	}
-	public String getNotifyEmails() {
-		return notifyEmails;
+	
+	public Integer getAppType() {
+		return appType;
 	}
-	public void setNotifyEmails(String notifyEmails) {
-		this.notifyEmails = notifyEmails;
+	public void setAppType(Integer appType) {
+		this.appType = appType;
 	}
 	public Integer getMasterUid() {
 		return masterUid;

@@ -1,5 +1,4 @@
 SET NAMES utf8;
-SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `profiles`;
 CREATE TABLE `profiles` (
@@ -41,8 +40,17 @@ CREATE TABLE `apps` (
   `master` varchar(16) DEFAULT NULL,
   `master_uid` int(10) DEFAULT NULL,
   `scm_link` varchar(100) DEFAULT NULL,
+  `app_type` int(1) DEFAULT 1 COMMENT '类型(1:微服务，2:传统web服务，3：dubbo，4：其他)',
   `remarks` text,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `app_extr_attrs`;
+CREATE TABLE `app_extr_attrs` (
+  `app_id` int(10) NOT NULL,
+  `attr_name` varchar(32) NOT NULL,
+  `attr_value` varchar(32) NOT NULL,
+  PRIMARY KEY (`app_id`,`attr_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
@@ -61,8 +69,6 @@ CREATE TABLE `users` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
-
-SET FOREIGN_KEY_CHECKS = 1;
 
 
 DROP TABLE IF EXISTS `app_configs_history`;

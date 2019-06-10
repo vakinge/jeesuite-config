@@ -19,6 +19,9 @@ public class AppEntity extends BaseEntity {
 
     @Column(name = "master_uid")
     private Integer masterUid;
+    
+    @Column(name = "app_type")
+    private Integer appType;
 
     private String remarks;
 
@@ -87,8 +90,17 @@ public class AppEntity extends BaseEntity {
     public void setMasterUid(Integer masterUid) {
         this.masterUid = masterUid;
     }
+    
 
-    /**
+    public Integer getAppType() {
+		return appType;
+	}
+
+	public void setAppType(Integer appType) {
+		this.appType = appType;
+	}
+
+	/**
      * @return remarks
      */
     public String getRemarks() {

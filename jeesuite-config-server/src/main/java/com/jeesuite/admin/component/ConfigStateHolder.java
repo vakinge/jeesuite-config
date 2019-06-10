@@ -46,7 +46,7 @@ public class ConfigStateHolder implements InitializingBean{
 			String zkServers = environment.getProperty("cc.sync.zkServers");
 			if(StringUtils.isNotBlank(zkServers)){				
 				ZkConnection zkConnection = new ZkConnection(zkServers);
-				zkClient = new ZkClient(zkConnection, 10000);
+				zkClient = new ZkClient(zkConnection, 3000);
 				logger.info("config_sync_zookeeper {} init finish",zkServers);
 				
 				syncConfigIfMiss();
