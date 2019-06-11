@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.jeesuite.admin.dao.BaseEntity;
 
 @Table(name = "app_configs")
@@ -35,16 +36,18 @@ public class AppconfigEntity extends BaseEntity {
     private Short type;
 
     @Column(name = "created_at",updatable = false)
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date createdAt;
 
     @Column(name = "created_by",updatable = false)
-    private Integer createdBy;
+    private String createdBy;
 
     @Column(name = "updated_at")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date updatedAt;
 
     @Column(name = "updated_by")
-    private Integer updatedBy;
+    private String updatedBy;
 
     private String contents;
     
@@ -67,7 +70,7 @@ public class AppconfigEntity extends BaseEntity {
 
     
     public String getAppIds() {
-		return appIds;
+		return StringUtils.trimToNull(appIds);
 	}
 
 	public void setAppIds(String appIds) {
@@ -151,14 +154,14 @@ public class AppconfigEntity extends BaseEntity {
     /**
      * @return created_by
      */
-    public Integer getCreatedBy() {
+    public String getCreatedBy() {
         return createdBy;
     }
 
     /**
      * @param createdBy
      */
-    public void setCreatedBy(Integer createdBy) {
+    public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
 
@@ -179,14 +182,14 @@ public class AppconfigEntity extends BaseEntity {
     /**
      * @return updated_by
      */
-    public Integer getUpdatedBy() {
+    public String getUpdatedBy() {
         return updatedBy;
     }
 
     /**
      * @param updatedBy
      */
-    public void setUpdatedBy(Integer updatedBy) {
+    public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
     }
 

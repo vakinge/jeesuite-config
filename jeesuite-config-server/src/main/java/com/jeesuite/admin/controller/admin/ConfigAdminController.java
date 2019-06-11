@@ -75,8 +75,6 @@ public class ConfigAdminController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
-		SecurityUtil.requireAnyPermission(entity.getEnv(), Arrays.asList(entity.getAppIds()),GrantOperate.RO);
-		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
 	
@@ -102,6 +100,9 @@ public class ConfigAdminController {
 		}
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
+		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));
+		entity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
+		entity.setCreatedAt(new Date());
 		//
 		appconfigMapper.insertSelective(entity);
 		
@@ -138,6 +139,8 @@ public class ConfigAdminController {
 		entity.setContents(addRequest.getContents());
 		//
 		encryptPropItemIfRequired(entity);
+		entity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getName());
+		entity.setUpdatedAt(new Date());
 		appconfigMapper.updateByPrimaryKeySelective(entity);
 		//
 		publishConfigChangeEvent(orignContents,entity);
@@ -148,11 +151,7 @@ public class ConfigAdminController {
 	
 	@RequestMapping(value = "list", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
-		
-        if(StringUtils.isBlank(query.getAppId()) && !SecurityUtil.isSuperAdmin()){
-        	throw new JeesuiteBaseException(417, "请选择应用");
-		}
-		
+
 		Map<String, Object> queyParams = BeanUtils.beanToMap(query);
 		
 		if(StringUtils.isBlank(query.getEnv()) && !SecurityUtil.isSuperAdmin()){

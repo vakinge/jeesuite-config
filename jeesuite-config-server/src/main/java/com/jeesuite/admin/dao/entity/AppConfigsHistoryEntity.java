@@ -9,6 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.jeesuite.admin.dao.BaseEntity;
 
 @Table(name = "app_configs_history")
@@ -38,6 +39,7 @@ public class AppConfigsHistoryEntity extends BaseEntity {
     private Short type;
 
     @Column(name = "created_at")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date createdAt;
 
     @Column(name = "created_by")

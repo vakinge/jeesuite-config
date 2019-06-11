@@ -1,5 +1,6 @@
 package com.jeesuite.admin.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.IpUtils;
 import com.jeesuite.admin.util.SecurityUtil;
-import com.jeesuite.common.util.DigestUtils;
+import com.jeesuite.common.util.FormatValidateUtils;
 import com.jeesuite.spring.helper.EnvironmentHelper;
 
 @Controller
@@ -43,12 +44,12 @@ public class AuthController {
 		String userName = StringUtils.trimToEmpty(params.get("userName"));
 		String password = StringUtils.trimToEmpty(params.get("password"));
 		
-		UserEntity userEntity = userMapper.findByName(userName);
-		if(userEntity == null || !userEntity.getPassword().equals(DigestUtils.md5WithSalt(password, userName))){
+		UserEntity userEntity = FormatValidateUtils.isMobile(userName) ? userMapper.findByMobile(userName) : userMapper.findByName(userName);
+		if(userEntity == null || !userEntity.getPassword().equals(UserEntity.encryptPassword(password))){
 			return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(4001, "账号或密码错误"),HttpStatus.OK);
 		}
 		
-		LoginUserInfo loginUserInfo = new LoginUserInfo(userName);
+		LoginUserInfo loginUserInfo = new LoginUserInfo(userEntity.getName());
 		loginUserInfo.setSuperAdmin(userEntity.getType().intValue() == 1);
 		loginUserInfo.setId(userEntity.getId());
 		if(!loginUserInfo.isSuperAdmin()){	
@@ -57,11 +58,13 @@ public class AuthController {
 			}
 			//加载权限
 			List<UserPermissionEntity> userPermissions = userPermissionMapper.findByUserId(userEntity.getId());
+			List<String> permCodes;
 			for (UserPermissionEntity entity : userPermissions) {
-				loginUserInfo.getGrantedPermissions().add(entity.toPermissionCode());
-				if(!loginUserInfo.getGrantedProfiles().contains(entity.getEnv())){
-					loginUserInfo.getGrantedProfiles().add(entity.getEnv());
+				permCodes = loginUserInfo.getPermissonData().get(entity.getEnv());
+				if(permCodes == null){
+					loginUserInfo.getPermissonData().put(entity.getEnv(), permCodes = new ArrayList<>());
 				}
+				permCodes.add(entity.toPermissionCode());
 			}
 		}
 	

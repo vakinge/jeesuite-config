@@ -20,15 +20,16 @@
     <div class="layui-form-item">
 		<label class="layui-form-label">手机</label>
 		<div class="layui-input-block">
-		   <input type="text" name="mobile" placeholder="手机号码(告警通知等.)" lay-verify="mobile" autocomplete="off" class="layui-input">
+		   <input type="text" name="mobile" placeholder="手机号码" lay-verify="mobile" autocomplete="off" class="layui-input">
 		</div>
 	</div>
     <div class="layui-form-item">
 		<label class="layui-form-label">邮箱</label>
 		<div class="layui-input-block">
-		   <input type="text" name="email" placeholder="邮箱(告警通知等.)" lay-verify="email" autocomplete="off" class="layui-input">
+		   <input type="text" name="email" placeholder="邮箱(告警通知等.)" autocomplete="off" class="layui-input">
 		</div>
-	</div>      
+	</div>  
+	<div class="layui-form-item" style="padding-left: 100px;color: red;">* 密码默认为手机后八位</div>  
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
         <input type="button"  class="layui-btn J_ajaxSubmit"   onSuccessJumpurl="./list.html" value="保存"/>

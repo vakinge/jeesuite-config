@@ -71,8 +71,11 @@ layui.config({
 	  }
 	  jeesuitelayui.post('/admin/user/grant_permissions',param,function(data){
 		  jeesuitelayui.success('保存成功');
-		  var index = parent.layer.getFrameIndex(window.name); 
-		   parent.layer.close(index);
+		  parent.location.reload();
+		  setTimeout(function(){
+			  var index = parent.layer.getFrameIndex(window.name); 
+			  parent.layer.close(index);
+		  }, 500);
 	  });
   });
   

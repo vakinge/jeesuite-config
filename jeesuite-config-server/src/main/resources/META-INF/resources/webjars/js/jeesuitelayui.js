@@ -471,6 +471,7 @@ exports('jeesuitelayui', jeesuitelayui);
 				complete: function(){layer.close(loading);},
 				success: function(result){
 					if(result.code && result.code==401){top.location.href = "/login";return;}
+					if(result.code && result.code==403){jeesuitelayui.error(result.msg);return;}
 					if(!result.code || result.code == 200){
 						var renderData = result.data ? result.data : result;
 						if(renderData == null || renderData.length == 0){
@@ -760,14 +761,12 @@ exports('jeesuitelayui', jeesuitelayui);
 		    filterName = $this.attr('lay-filter'),
 		    $target = $(eventOpts.target);
 		
-		console.log(eventOpts)
 		var defaultOptionHtml;
 		form.on('select('+filterName+')',function(data) {
-			var url = eventOpts.dataUrl + data.value;;
+			if(data.value === '')return;
+			var url = eventOpts.dataUrl + data.value;
 			$.getJSON(url,function(result){
-				console.log(result)
-				if(result.code != 200){jeesuitelayui.error(result.msg);return;}
-				var data = result.data;
+				var data = result;
 				if(!data || data.length == 0){jeesuitelayui.error(eventOpts.noneMessage || '无关联数据');return;}
 				//
 				if(eventOpts.renderType === 'select'){

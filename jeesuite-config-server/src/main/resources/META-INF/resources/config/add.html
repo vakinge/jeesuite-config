@@ -17,16 +17,16 @@
  <body> 
   <div class="admin-main"> 
    <form class="layui-form" action="../admin/config/add">  
-     <div class="layui-form-item"> 
+     <div class="layui-form-item" id="div_global"> 
      <label class="layui-form-label">全局配置</label> 
      <div class="layui-input-block"> 
       <input type="checkbox" name="global" value="true" lay-skin="switch" lay-text="是|否" /> 
      </div> 
     </div>  
     <div class="layui-form-item"> 
-     <label class="layui-form-label">Profile</label> 
+     <label class="layui-form-label">环境</label> 
      <div class="layui-input-block"> 
-       <select id="env" name="env" lay-verify="required" asnycSelect="../admin/profile/options" lay-filter="env_select">
+       <select id="env" name="env" lay-verify="required" asnycSelect="../admin/profile/options" lay-filter="env_select" changeJoinEvent='{"renderType":"checkbox","target":"#applist","dataUrl":"../admin/app/options?grantType=RW&env=","attrName":"appIds","noneMessage":"当前环境无授权应用"}'>
           <option value="">请选择环境</option> 
        </select> 
      </div> 
@@ -34,12 +34,7 @@
     <div class="layui-form-item" id="div_app_list"> 
      <label class="layui-form-label">绑定应用</label> 
      <div class="layui-input-block"> 
-      <ul id="applist" class="applist" dataLoad="../admin/app/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
-        <script type="text/html" id="checklist_tpl">
-	     {{# layui.each(d, function(index, item){ }}
-          <li><input type="checkbox" name="appIds" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}"></li>
-	     {{# }); }}
-       </script>
+      <ul id="applist" class="applist"></ul>
      </div> 
     </div>  
     <div class="layui-form-item"> 
@@ -64,15 +59,16 @@
     <div class="layui-form-item layui-form-text"> 
      <label class="layui-form-label">配置内容</label> 
      <div class="layui-input-inline" style="width: 750px;">
-        <textarea id="fileContent" name="contents" placeholder="请输入内容" class="layui-textarea"></textarea> 
+        <textarea id="fileContent" name="contents" placeholder="如:db.passport={Cipher}123456" class="layui-textarea"></textarea> 
       </div>
       <div class="layui-input-inline" style="width: 100px;">
         <input type="button" id="content_pop_btn" class="layui-btn layui-btn-warm layui-btn-min" value="全屏显示"/>
       </div>
     </div>
+    <div class="layui-form-item" style="padding-left: 100px;color:#FFB800;">* 如果需要加密配置请手动加上前缀:<b style="color:#FF5722;">{Cipher}</b>,如:<b style="color:#FF5722;">db.passport={Cipher}123456</b></div>
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit" value="保存"/>
+        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessCallback="onFinishCallback" value="保存"/>
         <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
      </div> 
     </div> 
@@ -100,16 +96,18 @@
     	    }
     	  });
       //
-    	$("body").on('click',".layui-form-switch",function() {
-    		var $selected = $(this).hasClass('layui-form-onswitch');
-    		if ($selected) {
-    			$("#div_app_list").hide();
-    		} else {
-    			$("#div_app_list").show();
-    		}
-    		//form.render('select');
-    	 });
-      
+        if(top.currentUser.superAdmin){
+        	$("body").on('click',".layui-form-switch",function() {
+        		var $selected = $(this).hasClass('layui-form-onswitch');
+        		if ($selected) {
+        			$("#div_app_list").hide();
+        		} else {
+        			$("#div_app_list").show();
+        		}
+        	 });
+        }else{
+        	$('#div_global').hide();
+        }
       //
       $('#content_pop_btn').on('click',function(){
     	  parent.parent.layer.open({
@@ -131,7 +129,7 @@
 	});
     
     function onFinishCallback(){
-  	  layui.form.render();
+    	setTimeout(function(){window.location.href = './list.html';},500);
     }
   </script>
  </body>

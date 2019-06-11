@@ -14,6 +14,10 @@ public interface UserEntityMapper extends CustomBaseMapper<UserEntity> {
 	@ResultMap("BaseResultMap")
 	UserEntity findByName(String name);
 	
+	@Select("SELECT * FROM users  where mobile=#{mobile}")
+	@ResultMap("BaseResultMap")
+	UserEntity findByMobile(String mobile);
+	
 	
 	@Select("SELECT * FROM users  where type <> 1")
 	@ResultMap("BaseResultMap")

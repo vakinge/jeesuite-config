@@ -9,9 +9,13 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.jeesuite.admin.dao.BaseEntity;
+import com.jeesuite.common.util.DigestUtils;
 
 @Table(name = "users")
 public class UserEntity extends BaseEntity {
+	
+	private static final String salts = DigestUtils.md5(UserEntity.class.getName());
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -162,5 +166,18 @@ public class UserEntity extends BaseEntity {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+    
+    public static String encryptPassword(String password) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < password.length(); i++) {
+			sb.append(password.charAt(i)).append(salts.substring(i*2, (i+1)*2));
+		}
+		return DigestUtils.md5(sb.toString());
+
+	}
+    
+    public static void main(String[] args) {
+		System.out.println(encryptPassword("admin123"));
+	}
     
 }

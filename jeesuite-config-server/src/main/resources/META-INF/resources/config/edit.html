@@ -26,7 +26,7 @@
      </div> 
     </div>  
     <div class="layui-form-item"> 
-     <label class="layui-form-label">Profile</label> 
+     <label class="layui-form-label">环境</label> 
      <div class="layui-input-block"> 
       <input type="text" bindAttr="env" class="layui-input" style="width:200px;" disabled/> 
      </div> 
@@ -134,7 +134,7 @@
 	  }else{
 		  var $cont = $('#applist');
 		  var appIds = data.appIds.split(',');
-		  $.getJSON('../admin/app/options',function(res){
+		  $.getJSON('../admin/app/options?grantType=RW&env='+data.env,function(res){
 			  var tpl = $('#applist_tpl').html();
 			  layui.laytpl(tpl).render(res, function(html){
 				  $cont.html(html);
@@ -143,6 +143,7 @@
 			  $cont.find(':checkbox').each(function(){
 				  var $this = $(this);
 				  for(var i in appIds){
+					  console.log(appIds[i] + '---- ' + $this.attr('value'));
 					  if(appIds[i] === $this.attr('value')){
 						  $this.attr('checked',true);
 					  }

@@ -33,10 +33,11 @@ public class SecurityUtil {
 		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "profile字段缺失");
 		LoginUserInfo userInfo = getLoginUserInfo();
 		if(userInfo.isSuperAdmin())return;
-
+        List<String> permCodes = userInfo.getPermissonData().get(env);
+        if(permCodes == null)throw new JeesuiteBaseException(403, "你没有该项目权限");
 		if (appIds != null) {
 			for (String appId : appIds) {
-				if(userInfo.getGrantedPermissions().contains(buildPermissionCode(env, appId, operate))){
+				if(permCodes.contains(buildPermissionCode(env, appId, operate))){
 					return;
 				}
 			}
@@ -45,18 +46,14 @@ public class SecurityUtil {
 	}
 	
 	public static void requireAllPermission(String env,List<String> appIds,GrantOperate operate){
-		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "profile字段缺失");
+		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "字段[env]必填");
 		LoginUserInfo userInfo = getLoginUserInfo();
 		if(userInfo.isSuperAdmin())return;
-		if(!userInfo.getGrantedProfiles().contains(env + ":" + operate.name())){
-			throw new JeesuiteBaseException(403, "你没有profile["+env+"]权限");
-		}
-		
-		if (appIds != null) {
-			for (String appId : appIds) {
-				if(userInfo.getGrantedPermissions().contains(buildPermissionCode(env, appId, operate))){
-					throw new JeesuiteBaseException(403, "你没有appId["+appId+"]权限");
-				}
+		 List<String> permCodes = userInfo.getPermissonData().get(env);
+	        if(permCodes == null)throw new JeesuiteBaseException(403, "你没有该项目权限");
+		for (String appId : appIds) {
+			if(!permCodes.contains(buildPermissionCode(env, appId, operate))){
+				throw new JeesuiteBaseException(403, "你没有appId["+appId+"]在环境["+env+"]权限");
 			}
 		}
 	}

@@ -23,9 +23,9 @@ CREATE TABLE `app_configs` (
   `type` smallint(1) DEFAULT NULL COMMENT '类型(1:文件，2:配置项，3：JSON)',
   `contents` text,
   `created_at` datetime DEFAULT NULL,
-  `created_by` int(10) DEFAULT NULL,
+  `created_by` varchar(32) DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
-  `updated_by` int(10) DEFAULT NULL,
+  `updated_by` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -99,7 +99,7 @@ CREATE TABLE `user_permissions` (
 
 
 INSERT INTO `profiles` VALUES (1,'test','测试环境',1,1),(2,'dev','开发环境',1,1),(3,'prep',' 预发布环境',1,1),(4,'prod','线上环境',1,1);
-INSERT INTO `users` (`name`, `password`, `type`, `status`) VALUES ('admin', 'f5866c4a4d6014ecced47960c2e3d07f', '1', '1');
+INSERT INTO `users` (`name`, `password`, `type`, `status`) VALUES ('admin', 'be6895cdcfdc99ab54fb8b93590439eb', '1', '1');
 
 -- ----------------------------
 --  以下是测试数据可以选择性导入

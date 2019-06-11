@@ -1,16 +1,20 @@
 package com.jeesuite.admin.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class LoginUserInfo {
 
 	private int id;
 	private String name;
 	private boolean superAdmin;
-	private List<String> grantedProfiles  = new ArrayList<>(4);
-	private List<String> grantedPermissions  = new ArrayList<>();
-	
+	@JsonIgnore
+	private Map<String,List<String>> permissonData  = new HashMap<>();
+
 	public LoginUserInfo(String name) {
 		super();
 		this.name = name;
@@ -34,19 +38,15 @@ public class LoginUserInfo {
 		this.superAdmin = superAdmin;
 	}
 	
+	public Map<String, List<String>> getPermissonData() {
+		return permissonData;
+	}
+	public void setPermissonData(Map<String, List<String>> permissonData) {
+		this.permissonData = permissonData;
+	}
 	public List<String> getGrantedProfiles() {
-		return grantedProfiles;
+		return new ArrayList<>(permissonData.keySet());
 	}
-	public void setGrantedProfiles(List<String> grantedProfiles) {
-		this.grantedProfiles = grantedProfiles;
-	}
-	public List<String> getGrantedPermissions() {
-		return grantedPermissions;
-	}
-	public void setGrantedPermissions(List<String> grantedPermissions) {
-		this.grantedPermissions = grantedPermissions;
-	}
-	
 	
 	
 }

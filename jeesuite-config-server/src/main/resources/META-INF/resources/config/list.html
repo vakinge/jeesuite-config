@@ -20,19 +20,13 @@
 			
 			<form action="" class="layui-form" method="post">
               <div class="layui-inline">
-                <select name="env" asnycSelect="../admin/profile/options" lay-filter="env_select" lay-verify="required" onDataLoadCallback="onEnvSelectLoadFinish">
+                <select name="env" asnycSelect="../admin/profile/options" lay-filter="env_select" changeJoinEvent='{"renderType":"select","target":"#appList","dataUrl":"/admin/app/options?env=","noneMessage":"该环境无授权应用"}'>
                   <option value="">请选择环境</option>
                 </select>     
               </div>
               <div class="layui-inline">
-                <select name="appId" asnycSelect="../admin/app/options" lay-filter="app_select" onDataLoadCallback="onAppSelectLoadFinish">
+                <select name="appId" id="appList" lay-filter="app_select">
                   <option value="">请选择应用</option>
-                </select>     
-              </div>
-              <div class="layui-inline">
-                <select name="version" lay-verify="">
-                  <option value="">请选择版本</option>
-                  <option value="release">release</option>
                 </select>     
               </div>
               <div class="layui-inline">
@@ -105,8 +99,6 @@
         	  
         	  form.on('submit(search)',function(data){
 					var loading = layer.load();
-					var cookieValue = data.field.env + ":" + data.field.appName;
-					layui.jeesuitelayui.setCookies('congfig_search',cookieValue);
 					$.ajax({
 						dataType:"json",
 					    type: "POST",
@@ -135,25 +127,6 @@
 					return false;
 				});
           });
-          
-          function onEnvSelectLoadFinish(data){
-        	  var lastInput = layui.jeesuitelayui.getCookies('congfig_search');
-        	  if(!lastInput)return;
-        	  var def = lastInput.split(':')[0];
-        	  for(var index in data){
-        		  data[index].selected = data[index].value == def;
-        	  }
-          }
-          
-          function onAppSelectLoadFinish(data){
-        	  var lastInput = layui.jeesuitelayui.getCookies('congfig_search');
-        	  if(!lastInput || lastInput.split(':').length < 2)return;
-        	  var def = lastInput.split(':')[1];
-        	  
-        	  for(var index in data){
-        		  data[index].selected = data[index].value == def;
-        	  }
-          }
         </script>
 	</body>
 

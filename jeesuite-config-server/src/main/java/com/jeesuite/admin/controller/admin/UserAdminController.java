@@ -37,7 +37,6 @@ import com.jeesuite.admin.model.request.GantPermRequest;
 import com.jeesuite.admin.model.request.UpdateUserRequest;
 import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
-import com.jeesuite.common.util.DigestUtils;
 
 @Controller
 @RequestMapping("/admin/user")
@@ -80,13 +79,16 @@ public class UserAdminController {
 	@RequestMapping(value = "add", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> addUser(@RequestBody UserEntity param){
 		SecurityUtil.requireSuperAdmin();
-		if(StringUtils.isBlank(param.getName())){
-			throw new JeesuiteBaseException(1001, "用户名不能为空");
+		if(StringUtils.isAnyBlank(param.getName(),param.getMobile())){
+			throw new JeesuiteBaseException(1001, "用户名/手机号不能为空");
 		}
 		if(userMapper.findByName(param.getName()) != null){
 			throw new JeesuiteBaseException(1001, "用户名已存在");
 		}
-		param.setPassword(DigestUtils.md5WithSalt("12345678", param.getName()));
+		if(userMapper.findByMobile(param.getMobile()) != null){
+			throw new JeesuiteBaseException(1001, "手机号已存在");
+		}
+		param.setPassword(UserEntity.encryptPassword(param.getMobile().substring(3)));
 		param.setStatus((short)1);
 		param.setType((short)2);
 		param.setCreatedAt(new Date());
@@ -104,11 +106,11 @@ public class UserAdminController {
 		if(StringUtils.isNotBlank(param.getMobile()))entity.setMobile(param.getMobile());
 		if(StringUtils.isNotBlank(param.getPassword())){
 			
-			String oldPassword = DigestUtils.md5WithSalt(param.getOldPassword(), entity.getName());
+			String oldPassword = UserEntity.encryptPassword(param.getOldPassword());
 			if(!StringUtils.equals(entity.getPassword(), oldPassword)){
 				throw new JeesuiteBaseException(1001, "原密码不正确");
 			}
-			entity.setPassword(DigestUtils.md5WithSalt(param.getPassword(), entity.getName()));
+			entity.setPassword(UserEntity.encryptPassword(param.getPassword()));
 		}
 		entity.setUpdatedAt(new Date());
 		userMapper.updateByPrimaryKeySelective(entity);

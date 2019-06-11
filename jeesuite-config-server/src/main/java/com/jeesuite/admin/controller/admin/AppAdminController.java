@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.dao.entity.AppEntity;
@@ -100,21 +101,21 @@ public class AppAdminController {
 	}
 	
 	@RequestMapping(value = "options", method = RequestMethod.GET)
-	public @ResponseBody List<SelectOption> getAppOptions(){
+	public @ResponseBody List<SelectOption> getAppOptions(@RequestParam String env,@RequestParam(value="grantType",required=false) String grantType){
 		List<SelectOption> result = new ArrayList<>();
 		List<AppEntity> list = null;
 		if(SecurityUtil.isSuperAdmin()){
 			list = appMapper.selectAll();
 		}else{
-			list = appMapper.findByMaster(SecurityUtil.getLoginUserInfo().getId());
+			if(StringUtils.isBlank(grantType)){
+				list = appMapper.findByUserPermission(SecurityUtil.getLoginUserInfo().getId(),env);
+			}else{
+				list = appMapper.findByUserPermissionWithOperate(SecurityUtil.getLoginUserInfo().getId(),env,grantType);
+			}
+			
 		}
 		
-		list.stream().sorted(new Comparator<AppEntity>() {
-			@Override
-			public int compare(AppEntity o1, AppEntity o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		}).forEach( entity -> {
+		list.forEach( entity -> {
 			String text = StringUtils.equals(entity.getName(), entity.getAlias()) ? entity.getName() : entity.getName() + "(" + entity.getAlias() + ")";
 			result.add(new SelectOption(String.valueOf(entity.getId()), text));
 		});

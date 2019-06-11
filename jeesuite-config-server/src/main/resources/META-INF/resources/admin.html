@@ -103,12 +103,14 @@
 			<script type="text/javascript" src="webjars/plugins/layui/lay/modules/jquery.js"></script>
 			<script src="webjars/js/index.js"></script>
 			<script>
+			var currentUser;
 			layui.use('layer', function() {
 				var $ = layui.jquery,
 					layer = layui.layer;
 				$(function(){
 					 $.getJSON('./auth/login_user_info',function(data){
                    	　if(data.code == 200 && data.data ){
+                   		currentUser = data.data;
                    		$("#userName").html(data.data.name);
                    	　}else{
                    		location.href='login.html';
