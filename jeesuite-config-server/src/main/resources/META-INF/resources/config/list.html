@@ -36,7 +36,7 @@
                 </select>     
               </div>
               <div class="layui-inline">
-                <input type="button" class="layui-btn J_search" lay-submit lay-filter="search" value="筛选"/>    
+                <button class="layui-btn J_search" lay-submit lay-filter="search">筛选</button>   
               </div>                           
            </form>
     
@@ -69,17 +69,17 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.typeAlias }}</td>
 				<td>
-                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-mini J_show_content" act-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
+                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-sm J_show_content" data-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
                     <div id="content{{ item.id }}" style="display:none;"><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:1000px;">{{item.contents}}</textarea></div>
-					<a class="layui-btn layui-btn-mini layui-btn-warm J_iframe_dialog" href="javascript:;" data-title="历史版本" data-url="./historyList.html?dataloadurl=/admin/config/config_histories/{{ item.id }}">历史版本</a>
-                    <a class="layui-btn layui-btn-mini J_iframe_dialog" href="javascript:;" data-title="编辑配置" data-url="./edit.html?dataloadurl=/admin/config/{{ item.id }}">编辑</a>
-					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/config/delete/{{ item.id }}">删除</a>
+					<a class="layui-btn layui-btn-sm layui-btn-warm J_iframe_dialog" href="javascript:;" data-title="历史版本" data-url="./historyList.html?id={{ item.id }}">历史版本</a>
+                    <a class="layui-btn layui-btn-sm J_iframe_dialog" href="javascript:;" data-title="编辑配置" data-url="./edit.html?id={{ item.id }}">编辑</a>
+					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/config/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>
 			{{# }); }}
 		</script>
 		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
-        <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>
+        <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20180420"></script>
         <script type="text/javascript">
           layui.use(['layer','laytpl', 'form'], function(){
         	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form;
@@ -106,7 +106,7 @@
         	  form.on('submit(search)',function(data){
 					var loading = layer.load();
 					var cookieValue = data.field.env + ":" + data.field.appName;
-					setCookie('congfig_search',cookieValue);
+					layui.jeesuitelayui.setCookies('congfig_search',cookieValue);
 					$.ajax({
 						dataType:"json",
 					    type: "POST",
@@ -137,7 +137,7 @@
           });
           
           function onEnvSelectLoadFinish(data){
-        	  var lastInput = getCookie('congfig_search');
+        	  var lastInput = layui.jeesuitelayui.getCookies('congfig_search');
         	  if(!lastInput)return;
         	  var def = lastInput.split(':')[0];
         	  for(var index in data){
@@ -146,7 +146,7 @@
           }
           
           function onAppSelectLoadFinish(data){
-        	  var lastInput = getCookie('congfig_search');
+        	  var lastInput = layui.jeesuitelayui.getCookies('congfig_search');
         	  if(!lastInput || lastInput.split(':').length < 2)return;
         	  var def = lastInput.split(':')[1];
         	  

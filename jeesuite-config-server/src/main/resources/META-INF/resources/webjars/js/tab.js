@@ -1,11 +1,10 @@
-/** tab.js By Beginner Emain:zheng_jinfan@126.com HomePage:http://www.zhengjinfan.cn */
-layui.define(['element', 'common'], function (exports) {
+layui.define(['element', 'jeesuitelayui'], function (exports) {
     "use strict";
 
     var mod_name = 'tab',
         $ = layui.jquery,
         element = layui.element,
-        commo = layui.common,
+        jeesuitelayui = layui.jeesuitelayui,
         globalTabIdIndex = 0,
         layer = layui.layer,
         Tab = function () {
@@ -37,7 +36,7 @@ layui.define(['element', 'common'], function (exports) {
         var that = this;
         var _config = that.config;
         if (typeof (_config.elem) !== 'string' && typeof (_config.elem) !== 'object') {
-            common.throwError('Tab error: elem参数未定义或设置出错，具体设置格式请参考文档API.');
+            jeesuitelayui.error('Tab error: elem参数未定义或设置出错，具体设置格式请参考文档API.');
         }
         var $container;
         if (typeof (_config.elem) === 'string') {
@@ -47,11 +46,11 @@ layui.define(['element', 'common'], function (exports) {
             $container = _config.elem;
         }
         if ($container.length === 0) {
-            common.throwError('Tab error:找不到elem参数配置的容器，请检查.');
+            jeesuitelayui.error('Tab error:找不到elem参数配置的容器，请检查.');
         }
         var filter = $container.attr('lay-filter');
         if (filter === undefined || filter === '') {
-            common.throwError('Tab error:请为elem容器设置一个lay-filter过滤器');
+            jeesuitelayui.error('Tab error:请为elem容器设置一个lay-filter过滤器');
         }
         _config.elem = $container;
         ELEM.titleBox = $container.children('ul.layui-tab-title');

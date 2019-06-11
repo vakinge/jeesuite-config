@@ -13,7 +13,7 @@
 	<body>
 		<div class="admin-main">
 			<blockquote class="layui-elem-quote">
-				<a href="javascript:;" class="layui-btn layui-btn-small J_form_dialog" templdate-url="add.html" act-url="../admin/profile/add">
+				<a href="javascript:;" class="layui-btn layui-btn-small J_form_dialog" templdate-url="add.html" data-url="../admin/profile/add">
 					<i class="layui-icon">&#xe608;</i> 添加Profile
 				</a>
 			</blockquote>
@@ -30,7 +30,7 @@
 								<th>操作</th>
 							</tr>
 						</thead>
-						<tbody id="content" templateLoad="../admin/profile/list" template-id="list_tpl"></tbody>
+						<tbody id="content" dataLoad="../admin/profile/list" template-id="list_tpl"></tbody>
 					</table>
 				</div>
 			</fieldset>
@@ -44,15 +44,15 @@
 				<td>{{ item.isDefault ? '默认' : ''}}</td>
                 <td>{{ item.enabled ? '启用' : '禁用'}}</td>
 				<td>
-                    <a href="javascript:;" class="layui-btn layui-btn-mini J_confirmurl" act-url="../admin/profile/switch/{{ item.id }}">{{ item.enabled ? '禁用' : '启用'}}</a>
-					<a href="javascript:;" class="layui-btn layui-btn-mini J_form_dialog" templdate-url="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
-					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/profile/delete/{{ item.id }}">删除</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-sm J_confirm" data-url="../admin/profile/switch/{{ item.id }}">{{ item.enabled ? '禁用' : '启用'}}</a>
+					<a href="javascript:;" class="layui-btn layui-btn-sm J_form_dialog" data-templdate="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
+					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/profile/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>
 			{{# }); }}
 		</script>
 		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
-        <script type="text/javascript" src="../webjars/js/common.js?v20180420?a=91"></script>
+        <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20180420?a=91"></script>
 	</body>
 
 </html>

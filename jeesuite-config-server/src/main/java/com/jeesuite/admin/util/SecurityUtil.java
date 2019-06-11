@@ -1,5 +1,7 @@
 package com.jeesuite.admin.util;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,18 +29,14 @@ public class SecurityUtil {
 		if(!isSuperAdmin())throw new JeesuiteBaseException(403, "超级管理员才有权限操作");
 	}
 	
-	public static void requireAnyPermission(String env,String appIds,GrantOperate operate){
+	public static void requireAnyPermission(String env,List<String> appIds,GrantOperate operate){
 		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "profile字段缺失");
 		LoginUserInfo userInfo = getLoginUserInfo();
 		if(userInfo.isSuperAdmin())return;
-		if(!userInfo.getGrantedProfiles().contains(env + ":" + operate.name())){
-			throw new JeesuiteBaseException(403, "你没有profile["+env+"]权限");
-		}
-		
+
 		if (appIds != null) {
-			String[] appIdArrays = StringUtils.split(appIds, ",");
-			for (String appId : appIdArrays) {
-				if(userInfo.getGrantedAppIds().contains(appId)){
+			for (String appId : appIds) {
+				if(userInfo.getGrantedPermissions().contains(buildPermissionCode(env, appId, operate))){
 					return;
 				}
 			}
@@ -46,16 +44,7 @@ public class SecurityUtil {
 		}
 	}
 	
-	public static void requireAllPermission(String env,GrantOperate operate){
-		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "profile字段缺失");
-		LoginUserInfo userInfo = getLoginUserInfo();
-		if(userInfo.isSuperAdmin())return;
-		if(!userInfo.getGrantedProfiles().contains(env + ":" + operate.name())){
-			throw new JeesuiteBaseException(403, "你没有profile["+env+"]权限");
-		}
-	}
-	
-	public static void requireAllPermission(String env,String appIds,GrantOperate operate){
+	public static void requireAllPermission(String env,List<String> appIds,GrantOperate operate){
 		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "profile字段缺失");
 		LoginUserInfo userInfo = getLoginUserInfo();
 		if(userInfo.isSuperAdmin())return;
@@ -64,13 +53,15 @@ public class SecurityUtil {
 		}
 		
 		if (appIds != null) {
-			String[] appIdArrays = StringUtils.split(appIds, ",");
-			for (String appId : appIdArrays) {
-				if(!userInfo.getGrantedAppIds().contains(appId)){
+			for (String appId : appIds) {
+				if(userInfo.getGrantedPermissions().contains(buildPermissionCode(env, appId, operate))){
 					throw new JeesuiteBaseException(403, "你没有appId["+appId+"]权限");
 				}
 			}
 		}
 	}
 
+	 private static String buildPermissionCode(String env,String appId,GrantOperate operate){
+	     return String.format("%s-%s:%s", env,appId,operate.name());
+	 }
 }

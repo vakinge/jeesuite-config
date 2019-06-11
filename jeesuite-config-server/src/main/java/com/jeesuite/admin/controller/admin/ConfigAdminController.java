@@ -2,6 +2,7 @@ package com.jeesuite.admin.controller.admin;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,7 +75,7 @@ public class ConfigAdminController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
-		SecurityUtil.requireAnyPermission(entity.getEnv(), entity.getAppIds(),GrantOperate.RO);
+		SecurityUtil.requireAnyPermission(entity.getEnv(), Arrays.asList(entity.getAppIds()),GrantOperate.RO);
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
@@ -82,7 +83,7 @@ public class ConfigAdminController {
 	@RequestMapping(value = "add", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
-		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
+		if(!addRequest.getGlobal() && addRequest.getAppIds() == null){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
 		
@@ -94,7 +95,11 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
 		
-		SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getGlobal() ? "0" : addRequest.getAppIds(),GrantOperate.RW);
+		if(addRequest.getGlobal()){
+			SecurityUtil.requireSuperAdmin();
+		}else{			
+			SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
+		}
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		//
@@ -114,14 +119,19 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(1003, "id参数缺失");
 		}
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(addRequest.getId());
-		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getGlobal() ? "0" : entity.getAppIds(),GrantOperate.RW);
-		if(!addRequest.getGlobal() && StringUtils.isBlank(addRequest.getAppIds())){
+		if(!addRequest.getGlobal() && addRequest.getAppIds() == null){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
+		}
+		
+		if(addRequest.getGlobal()){
+			SecurityUtil.requireSuperAdmin();
+		}else{			
+			SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
 		}
 		//
 		saveAppConfigHistory(entity);
 		
-		entity.setAppIds(addRequest.getAppIds());
+		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));
 		entity.setVersion(addRequest.getVersion());
 		
 		String orignContents = entity.getContents();
@@ -138,10 +148,6 @@ public class ConfigAdminController {
 	
 	@RequestMapping(value = "list", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
-		
-		if(StringUtils.isNotBlank(query.getEnv())){
-			SecurityUtil.requireAllPermission(query.getEnv(),GrantOperate.RO);
-		}
 		
         if(StringUtils.isBlank(query.getAppId()) && !SecurityUtil.isSuperAdmin()){
         	throw new JeesuiteBaseException(417, "请选择应用");
@@ -190,9 +196,12 @@ public class ConfigAdminController {
 	public ResponseEntity<WrapperResponseEntity> deleteConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
 		//全局配置
-		if(entity.getGlobal())SecurityUtil.requireSuperAdmin();
+		if(entity.getGlobal()){
+			SecurityUtil.requireSuperAdmin();
+		}else{			
+			SecurityUtil.requireAllPermission(entity.getEnv(),Arrays.asList(entity.getAppIds()),GrantOperate.RW);
+		}
 		//		
-		SecurityUtil.requireAllPermission(entity.getEnv(),entity.getAppIds(),GrantOperate.RW);
 		int delete = entity == null ? 0 : appconfigMapper.deleteByPrimaryKey(id);
 		//
 		saveAppConfigHistory(entity);

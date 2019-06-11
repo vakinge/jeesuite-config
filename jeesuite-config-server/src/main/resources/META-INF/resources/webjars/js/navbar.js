@@ -1,9 +1,9 @@
-layui.define(['element', 'common'], function (exports) {
+layui.define(['element', 'jeesuitelayui'], function (exports) {
     "use strict";
     var $ = layui.jquery,
         layer = parent.layer === undefined ? layui.layer : parent.layer,
         element = layui.element,
-        common = layui.common,
+        jeesuitelayui = layui.jeesuitelayui,
         cacheName = 'tb_navbar';
 
     var Navbar = function () {
@@ -25,7 +25,7 @@ layui.define(['element', 'common'], function (exports) {
         var _that = this;
         var _config = _that.config;
         if (typeof (_config.elem) !== 'string' && typeof (_config.elem) !== 'object') {
-            common.throwError('Navbar error: elem参数未定义或设置出错，具体设置格式请参考文档API.');
+            jeesuitelayui.error('Navbar error: elem参数未定义或设置出错，具体设置格式请参考文档API.');
         }
         var $container;
         if (typeof (_config.elem) === 'string') {
@@ -35,10 +35,10 @@ layui.define(['element', 'common'], function (exports) {
             $container = _config.elem;
         }
         if ($container.length === 0) {
-            common.throwError('Navbar error:找不到elem参数配置的容器，请检查.');
+            jeesuitelayui.error('Navbar error:找不到elem参数配置的容器，请检查.');
         }
         if (_config.data === undefined && _config.url === undefined) {
-            common.throwError('Navbar error:请为Navbar配置数据源.')
+            jeesuitelayui.error('Navbar error:请为Navbar配置数据源.')
         }
         if (_config.data !== undefined && typeof (_config.data) === 'object') {
             var html = getHtml(_config.data);
@@ -66,7 +66,7 @@ layui.define(['element', 'common'], function (exports) {
                             element.init();
                         },
                         error: function (xhr, status, error) {
-                            common.msgError('Navbar error:' + error);
+                            jeesuitelayui.error('Navbar error:' + error);
                         },
                         complete: function (xhr, status) {
                             _that.config.elem = $container;
@@ -93,7 +93,7 @@ layui.define(['element', 'common'], function (exports) {
                         element.init();
                     },
                     error: function (xhr, status, error) {
-                        common.msgError('Navbar error:' + error);
+                        jeesuitelayui.error('Navbar error:' + error);
                     },
                     complete: function (xhr, status) {
                         _that.config.elem = $container;
@@ -132,7 +132,7 @@ layui.define(['element', 'common'], function (exports) {
         var that = this;
         var _con = that.config.elem;
         if (typeof (events) !== 'string') {
-            common.throwError('Navbar error:事件名配置出错，请参考API文档.');
+            jeesuitelayui.error('Navbar error:事件名配置出错，请参考API文档.');
         }
         var lIndex = events.indexOf('(');
         var eventName = events.substr(0, lIndex);

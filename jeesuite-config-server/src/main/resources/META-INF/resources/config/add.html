@@ -34,7 +34,7 @@
     <div class="layui-form-item" id="div_app_list"> 
      <label class="layui-form-label">绑定应用</label> 
      <div class="layui-input-block"> 
-      <ul id="applist" class="applist" templateLoad="../admin/app/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
+      <ul id="applist" class="applist" dataLoad="../admin/app/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
         <script type="text/html" id="checklist_tpl">
 	     {{# layui.each(d, function(index, item){ }}
           <li><input type="checkbox" name="appIds" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}"></li>
@@ -79,7 +79,7 @@
    </form> 
   </div> 
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
-  <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>  
+  <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20180420"></script>  
   <script type="text/javascript">
     layui.use(['layer','upload'], function(){
     	var $ = layui.jquery ,  layer = layui.layer ,upload = layui.upload;

@@ -12,23 +12,21 @@ public class UserPermissionEntity extends BaseEntity {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "grant_type")
-    private String grantType;
+    private String env;
 
-    @Column(name = "grant_target")
-    private String grantTarget;
+    @Column(name = "app_id")
+    private Integer appId;
 
-    @Column(name = "grant_operate")
-    private String grantOperate;
-    
+    private String operate;
 
     public UserPermissionEntity() {}
 
-	public UserPermissionEntity(Integer userId, String grantType, String grantTarget, String grantOperate) {
+	public UserPermissionEntity(Integer userId, String env, Integer appId, String operate) {
+		super();
 		this.userId = userId;
-		this.grantType = grantType;
-		this.grantTarget = grantTarget;
-		this.grantOperate = grantOperate;
+		this.env = env;
+		this.appId = appId;
+		this.operate = operate;
 	}
 
 	/**
@@ -60,78 +58,48 @@ public class UserPermissionEntity extends BaseEntity {
     }
 
     /**
-     * @return grant_type
+     * @return env
      */
-    public String getGrantType() {
-        return grantType;
+    public String getEnv() {
+        return env;
     }
 
     /**
-     * @param grantType
+     * @param env
      */
-    public void setGrantType(String grantType) {
-        this.grantType = grantType;
-    }
-
-
-    public String getGrantTarget() {
-		return grantTarget;
-	}
-
-	public void setGrantTarget(String grantTarget) {
-		this.grantTarget = grantTarget;
-	}
-
-	/**
-     * @return grant_operate
-     */
-    public String getGrantOperate() {
-        return grantOperate;
+    public void setEnv(String env) {
+        this.env = env;
     }
 
     /**
-     * @param grantOperate
+     * @return app_id
      */
-    public void setGrantOperate(String grantOperate) {
-        this.grantOperate = grantOperate;
+    public Integer getAppId() {
+        return appId;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((grantTarget == null) ? 0 : grantTarget.hashCode());
-		result = prime * result + ((grantType == null) ? 0 : grantType.hashCode());
-		result = prime * result + ((userId == null) ? 0 : userId.hashCode());
-		return result;
-	}
+    /**
+     * @param appId
+     */
+    public void setAppId(Integer appId) {
+        this.appId = appId;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		UserPermissionEntity other = (UserPermissionEntity) obj;
-		if (grantTarget == null) {
-			if (other.grantTarget != null)
-				return false;
-		} else if (!grantTarget.equals(other.grantTarget))
-			return false;
-		if (grantType == null) {
-			if (other.grantType != null)
-				return false;
-		} else if (!grantType.equals(other.grantType))
-			return false;
-		if (userId == null) {
-			if (other.userId != null)
-				return false;
-		} else if (!userId.equals(other.userId))
-			return false;
-		return true;
-	}
+    /**
+     * @return operate
+     */
+    public String getOperate() {
+        return operate;
+    }
+
+    /**
+     * @param operate
+     */
+    public void setOperate(String operate) {
+        this.operate = operate;
+    }
     
-    
+    public String toPermissionCode(){
+    	return String.format("%s-%s:%s", env,appId,operate);
+    }
 }

@@ -56,13 +56,13 @@
                 <td>{{ item.springboot ? '是' : '否' }}</td>
                 <td>{{ item.syncTime }}</td>
 				<td data-appName="{{ item.appName }}" data-env="{{ item.env }}" data-nodeId="{{ item.nodeId }}">
-					<button class="layui-btn layui-btn-danger layui-btn-mini J_view_config">查看配置</button>
+					<button class="layui-btn layui-btn-danger layui-btn-sm J_view_config">查看配置</button>
 				</td>
 			</tr>
 			{{# }); }}
 		</script>
 		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
-        <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>
+        <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20180420"></script>
         <script type="text/javascript">
           layui.use(['layer','laytpl', 'form'], function(){
         	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form();  

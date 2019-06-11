@@ -35,7 +35,7 @@
 								<th>操作</th>
 							</tr>
 						</thead>
-						<tbody id="content" templateLoad="" template-id="list_tpl"></tbody>
+						<tbody id="content" dataLoad="/admin/config/config_histories/{id}" template-id="list_tpl"></tbody>
 					</table>
 				</div>
 			</fieldset>
@@ -51,20 +51,20 @@
                 <td>{{ item.typeAlias }}</td>
                 <td>{{item.createdAt}}</td>
 				<td>
-                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-mini J_show_content" act-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
+                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-sm J_show_content" data-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
                     <div id="content{{ item.id }}" style="display:none;">
                      <div>
 	                  <div style="float: left;width: 640px; overflow: scroll;white-space: nowrap;"><div class="layui-bg-gray">修改前</div><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:630px;">{{ item.contents }}</textarea></div>
 	                  <div style="margin-left: 640px;overflow: scroll;white-space: nowrap;"><div class="layui-bg-gray">修改后</div><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:630px;">{{ item.activeContents }}</textarea></div>
                      </div>
                     </div>
-					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/config/rollback/{{ item.id }}">回滚</a>
+					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/config/rollback/{{ item.id }}">回滚</a>
 				</td>
 			</tr>
 			{{# }); }}
 		</script>
 		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
-        <script type="text/javascript" src="../webjars/js/common.js?v20190305"></script>
+        <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20190305"></script>
         <script type="text/javascript">
           layui.use(['layer','laytpl', 'form'], function(){
         	  var $ = layui.jquery,laytpl = layui.laytpl,form = layui.form;

@@ -8,8 +8,8 @@ public class LoginUserInfo {
 	private int id;
 	private String name;
 	private boolean superAdmin;
-	private List<String> grantedProfiles;
-	private List<String> grantedAppIds = new ArrayList<>();
+	private List<String> grantedProfiles  = new ArrayList<>(4);
+	private List<String> grantedPermissions  = new ArrayList<>();
 	
 	public LoginUserInfo(String name) {
 		super();
@@ -33,18 +33,20 @@ public class LoginUserInfo {
 	public void setSuperAdmin(boolean superAdmin) {
 		this.superAdmin = superAdmin;
 	}
+	
 	public List<String> getGrantedProfiles() {
-		return grantedProfiles == null ? (grantedProfiles = new ArrayList<>()) : grantedProfiles;
+		return grantedProfiles;
 	}
 	public void setGrantedProfiles(List<String> grantedProfiles) {
 		this.grantedProfiles = grantedProfiles;
 	}
-	public List<String> getGrantedAppIds() {
-		return grantedAppIds;
+	public List<String> getGrantedPermissions() {
+		return grantedPermissions;
 	}
-	public void setGrantedAppIds(List<String> grantedAppIds) {
-		this.grantedAppIds = grantedAppIds;
+	public void setGrantedPermissions(List<String> grantedPermissions) {
+		this.grantedPermissions = grantedPermissions;
 	}
+	
 	
 	
 }

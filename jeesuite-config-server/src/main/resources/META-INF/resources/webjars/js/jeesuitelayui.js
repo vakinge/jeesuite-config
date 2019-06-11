@@ -49,9 +49,9 @@ layui.define(['layer', 'laytpl', 'form', 'element', 'util'], function(exports){
   var jeesuitelayui = {
 		    //Ajax
 		  get: function(url,success) {
-			  $.getJSON(function(res){
-				    if(xhr.status == 401){top.location.href = "/login";return;}
-					if(xhr.status == 403){jeesuitelayui.error('无接口权限');return;}
+			  $.getJSON(url,function(res){
+				    if(res.code == 401){top.location.href = "/login";return;}
+					if(res.code == 403){jeesuitelayui.error('无接口权限');return;}
 	                if (res.code == 200) {
 	                	if(success === 'alert'){
 	                		jeesuitelayui.success(res.msg || '操作成功');
@@ -185,7 +185,6 @@ layui.define(['layer', 'laytpl', 'form', 'element', 'util'], function(exports){
 						}else if(self.is('a')){
 							self.attr('href',value);
 						}else if(self.is('select')){
-							//self.find("option[value='"+value+"']").attr("selected",true);  
 							self.val(value);
 							rendForm = true;
 						}else{
@@ -220,7 +219,7 @@ layui.define(['layer', 'laytpl', 'form', 'element', 'util'], function(exports){
 			validatorRules: {
 				    required : {expr:/.+/,tip:"必填",errorTip:"该字段不能为空"},
 				    email : {expr:/^\w+([-+.]\w+)*@\w+([-.]\\w+)*\.\w+([-.]\w+)*$/,tip:"电子邮箱",errorTip:"Email格式不正确"},
-				    mobile:{expr:/^(1[3|5|8]{1}\d{9})$/,tip:"手机号码",errorTip:"手机格式不正确"},
+				    mobile:{expr:/^(1[3|4|5|7|8]{1}\d{9})$/,tip:"手机号码",errorTip:"手机格式不正确"},
 				    telePhone:{expr:/^(((0\d{2,3}-)?\d{7,8}(-\d{4})?))$/,tip:"电话号码",errorTip:"电话号码格式不正确"},
 				    idCard:{expr:/^\d{15}(\d{2}[A-Za-z0-9])?$/,tip:"身份证号码",errorTip:"身份证号码格式不正确"},
 				    integer:{expr:/^\d+$/,tip:"正数",errorTip:"仅支持整数"},
@@ -418,6 +417,14 @@ layui.define(['layer', 'laytpl', 'form', 'element', 'util'], function(exports){
 		    		if(!obj[key] && obj[key].trim() !== '') return true;
 		    	}
 		    	return false;
+		    },
+		    blockUtil: function(millisecond,func){
+		    	var count = millisecond / 100, result;
+		    	while(count > 0){
+		    		setTimeout(function(){ result = func}, 100);
+		    		if(result)break;
+		    		count--;
+		    	}
 		    }
 };
 
@@ -586,11 +593,11 @@ exports('jeesuitelayui', jeesuitelayui);
 		     dialogTitle = self.attr('data-title') || '表单',
 		     onLoadFinished = self.attr('onLoadFinishedCallback');
 		var addBoxIndex = -1;
-		$.get(templdateurl, null, function(form) {
+		$.get(templdateurl, null, function(f) {
 			addBoxIndex = layer.open({
 				type: 1,
 				title: dialogTitle,
-				content: form,
+				content: f,
 				btn: ['提交', '取消'],
 				shade: false,
 				offset: ['100px', '30%'],
@@ -614,8 +621,7 @@ exports('jeesuitelayui', jeesuitelayui);
 				},
 				success: function(layero, index) {
 					//弹出窗口成功后渲染表单
-					var form = layui.form();
-					form.render();
+					//form.render();
 					if(onLoadFinished){
 						eval(onLoadFinished+"(form)");
 					}
@@ -710,12 +716,21 @@ exports('jeesuitelayui', jeesuitelayui);
 	});
 	
 	$('select[asnycSelect]').each(function(){
-		var $this = $(this),url=jeesuitelayui.buildPath($this.attr("asnycSelect")),onLoadFinished = $this.attr('onDataLoadCallback'); 
-		$.getJSON(url,function(result){
-			if(result.code != 200){jeesuitelayui.error(result.msg);return;}
-			var data = result.data;
+		var $this = $(this),url=jeesuitelayui.buildPath($this.attr("asnycSelect"))
+		   ,lazySelectRef = $this.attr('lazy-select-ref')
+		   ,onLoadFinished = $this.attr('onDataLoadCallback'); 
+		
+		$.getJSON(url,function(data){
 			if(onLoadFinished){
 				eval(onLoadFinished+"(data)");
+			}
+			
+			var defValue;
+			if(lazySelectRef){
+				defValue = eval(lazySelectRef);
+				jeesuitelayui.blockUtil(3000,function(){
+					return defValue;
+				});
 			}
 			var opthtml;
 			for(var index in data){
@@ -727,7 +742,10 @@ exports('jeesuitelayui', jeesuitelayui);
 						$this.append(opthtml);
 					}
 				}else{
-					var selected = data[index].selected ? 'selected="selected"' : '';
+					var selected = '';
+					if(data[index].selected || defValue + '' === data[index].value){
+						selected = 'selected="selected"';
+					}
 					opthtml = '<option value="'+data[index].value+'" '+selected+'>'+data[index].text+'</option>';
 					$this.append(opthtml);
 				}

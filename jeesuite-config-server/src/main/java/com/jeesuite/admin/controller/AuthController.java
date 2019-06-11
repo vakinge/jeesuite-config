@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.jeesuite.admin.constants.GrantType;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.entity.UserPermissionEntity;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
@@ -59,10 +58,9 @@ public class AuthController {
 			//加载权限
 			List<UserPermissionEntity> userPermissions = userPermissionMapper.findByUserId(userEntity.getId());
 			for (UserPermissionEntity entity : userPermissions) {
-				if(GrantType.env.name().equals(entity.getGrantType())){
-					loginUserInfo.getGrantedProfiles().add(entity.getGrantTarget() + ":" + entity.getGrantOperate());
-				}else{
-					loginUserInfo.getGrantedAppIds().add(entity.getGrantTarget());
+				loginUserInfo.getGrantedPermissions().add(entity.toPermissionCode());
+				if(!loginUserInfo.getGrantedProfiles().contains(entity.getEnv())){
+					loginUserInfo.getGrantedProfiles().add(entity.getEnv());
 				}
 			}
 		}

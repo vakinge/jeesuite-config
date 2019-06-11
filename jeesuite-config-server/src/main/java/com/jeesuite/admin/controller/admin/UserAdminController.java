@@ -1,8 +1,12 @@
 package com.jeesuite.admin.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,21 +17,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.jeesuite.admin.constants.GrantOperate;
+import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.entity.UserPermissionEntity;
+import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.SelectOption;
-import com.jeesuite.admin.model.UserPermission;
+import com.jeesuite.admin.model.UserGrantPermGroup;
+import com.jeesuite.admin.model.UserGrantPermItem;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.GantPermRequest;
 import com.jeesuite.admin.model.request.UpdateUserRequest;
+import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.util.DigestUtils;
 
@@ -36,8 +44,10 @@ import com.jeesuite.common.util.DigestUtils;
 public class UserAdminController {
 
 	private @Autowired UserEntityMapper userMapper;
+	private @Autowired AppEntityMapper appMapper;
 	private @Autowired ProfileEntityMapper profileMapper;
 	private @Autowired  UserPermissionEntityMapper userPermissionMapper;
+	private @Autowired CacheQueryService cacheQueryService;
 	
 	@RequestMapping(value = "list", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getUsers(){
@@ -124,15 +134,20 @@ public class UserAdminController {
 	@RequestMapping(value = "grant_permissions", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> gantPermission(@RequestBody GantPermRequest param){
 		SecurityUtil.requireSuperAdmin();
-		
-		List<UserPermissionEntity> oldPermissons = userPermissionMapper.findByUserId(param.getUserId());
+		if(param.getPermissions() == null || param.getPermissions().isEmpty()){
+			throw new JeesuiteBaseException(1001, "至少选择一个应用权限");
+		}
+		if(param.getUserId() == 0 || StringUtils.isBlank(param.getEnv())){
+			throw new JeesuiteBaseException(1001, "参数[userId,env]必填");
+		}
+		List<UserPermissionEntity> oldPermissons = userPermissionMapper.findByUserIdAndEnv(param.getUserId(),param.getEnv());
 		List<UserPermissionEntity> newPermissons = new ArrayList<>(param.getPermissions().size()); 
-		String grantTarget;String grantOper;
-		for (UserPermission perm : param.getPermissions()) {
-			String[] tmpArrays = StringUtils.splitByWholeSeparator(perm.getPermissionCode(), ":");
-			grantTarget = tmpArrays[0];
-			grantOper = tmpArrays.length == 1 ? GrantOperate.RW.name() : tmpArrays[1];
-			newPermissons.add(new UserPermissionEntity(param.getUserId(),perm.getType(), grantTarget,grantOper));
+		Integer appId;String grantOper;
+		for (String  perm : param.getPermissions()) {
+			String[] tmpArrays = StringUtils.splitByWholeSeparator(perm, ":");
+			appId = Integer.parseInt(tmpArrays[0]);
+			grantOper = tmpArrays[1];
+			newPermissons.add(new UserPermissionEntity(param.getUserId(),param.getEnv(), appId,grantOper));
 		}
 		List<UserPermissionEntity> addList;
 		List<UserPermissionEntity> removeList = null;
@@ -156,6 +171,51 @@ public class UserAdminController {
 		}
 		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "get_user_permissions", method = RequestMethod.GET)
+	public ResponseEntity<WrapperResponseEntity> getUserPermission(@RequestParam Integer userId){
+		Map<String, UserGrantPermGroup> permGroups = profileMapper.findAllEnabledProfiles().stream().collect(Collectors.toMap(ProfileEntity::getName, e -> {
+			return new UserGrantPermGroup(e.getName(),e.getAlias());
+		}));
+		
+		List<UserPermissionEntity> userPermssions = userPermissionMapper.findByUserId(userId);
+		UserGrantPermItem item;
+		AppEntity appEntity;
+		for (UserPermissionEntity entity : userPermssions) {
+			if(!permGroups.containsKey(entity.getEnv()))continue;
+			appEntity = cacheQueryService.findAppEntity(entity.getAppId());
+			if(appEntity == null)continue;
+			item = new UserGrantPermItem();
+			item.setAppId(entity.getAppId());
+			item.setAppName(appEntity.getName());
+			item.setOperate(entity.getOperate());
+			permGroups.get(entity.getEnv()).getPerms().add(item);
+		}
+		
+		List<UserGrantPermGroup> groupList = new ArrayList<>(permGroups.values());
+		Collections.sort(groupList,new Comparator<UserGrantPermGroup>() {
+			@Override
+			public int compare(UserGrantPermGroup o1, UserGrantPermGroup o2) {
+				return o1.getEnv().compareTo(o2.getEnv());
+			}
+		});
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(groupList),HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "user_permission_options", method = RequestMethod.GET)
+	public ResponseEntity<WrapperResponseEntity> getUserPermissionOptions(@RequestParam Integer userId,@RequestParam String env){
+		List<UserGrantPermItem> datas = appMapper.selectAll().stream().map(e -> {
+			return new UserGrantPermItem(e.getId(), e.getAlias(), null);
+		}).collect(Collectors.toList());
+		
+		Map<Integer, UserPermissionEntity> userPermissons = userPermissionMapper.findByUserIdAndEnv(userId,env).stream().collect(Collectors.toMap(UserPermissionEntity::getAppId, e -> e));
+		for (UserGrantPermItem app : datas) {
+			if(userPermissons.containsKey(app.getAppId())){
+				app.setOperate(userPermissons.get(app.getAppId()).getOperate());
+			}
+		}
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(datas),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "options", method = RequestMethod.GET)

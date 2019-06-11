@@ -31,7 +31,6 @@ public class AdminIndexController {
 		menu = new Menu("配置管理", "fa-cubes", !SecurityUtil.isSuperAdmin());
 		menu.getChildren().add(new SubMenu("配置列表", "&#xe609;", "config/list.html"));
 		menu.getChildren().add(new SubMenu("新建配置", "&#xe609;", "config/add.html"));
-		menu.getChildren().add(new SubMenu("配置加密工具", "&#xe64e;", "config/encrypt.html"));
 		baseMenus.add(menu);
 		
 		menu = new Menu("监控管理", "fa-cubes", true);

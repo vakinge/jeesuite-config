@@ -2,13 +2,11 @@ package com.jeesuite.admin.model.request;
 
 import java.util.List;
 
-import com.jeesuite.admin.model.UserPermission;
-
 public class GantPermRequest {
 
 	private int userId;
 	private String env;
-	private List<UserPermission> permissions;
+	private List<String> permissions;
 	
 	public int getUserId() {
 		return userId;
@@ -22,13 +20,12 @@ public class GantPermRequest {
 	public void setEnv(String env) {
 		this.env = env;
 	}
-	public List<UserPermission> getPermissions() {
+	public List<String> getPermissions() {
 		return permissions;
 	}
-	public void setPermissions(List<UserPermission> permissions) {
+	public void setPermissions(List<String> permissions) {
 		this.permissions = permissions;
 	}
-	
 	
 
 }

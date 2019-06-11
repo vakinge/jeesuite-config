@@ -15,7 +15,7 @@
   </style>
  </head> 
  <body> 
-  <div class="admin-main" templateLoad="" onFinishCallback="onFinishCallback"> 
+  <div class="admin-main" dataLoad="../admin/config/{id}" onFinishCallback="onFinishCallback"> 
    <form class="layui-form" action="../admin/config/update">  
      <input type="hidden" bindAttr="id" name="id">
      <div class="layui-form-item"> 
@@ -85,7 +85,7 @@
    </form> 
   </div> 
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
-  <script type="text/javascript" src="../webjars/js/common.js"></script>  
+  <script type="text/javascript" src="../webjars/js/jeesuitelayui.js"></script>  
   <script type="text/javascript">
   layui.use(['layer','upload'], function(){
   	var $ = layui.jquery , layer = layui.layer ,upload = layui.upload;

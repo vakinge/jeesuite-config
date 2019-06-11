@@ -31,7 +31,7 @@
 								<th>操作</th>
 							</tr>
 						</thead>
-						<tbody id="content" templateLoad="../admin/app/list" template-id="list_tpl"></tbody>
+						<tbody id="content" dataLoad="../admin/app/list" template-id="list_tpl"></tbody>
 					</table>
 				</div>
 			</fieldset>
@@ -46,14 +46,14 @@
 				<td>{{ item.master }}</td>
                 <td>{{ item.remarks }}</td>
 				<td>
-					<a class="layui-btn layui-btn-mini J_iframe_dialog" href="javascript:;" data-title="编辑应用" data-url="./edit.html?dataloadurl=/admin/app/{{ item.id }}">编辑</a>
-					<a href="javascript:;" class="J_confirmurl layui-btn layui-btn-danger layui-btn-mini" act-url="../admin/app/delete/{{ item.id }}">删除</a>
+					<a class="layui-btn layui-btn-sm J_iframe_dialog" href="javascript:;" data-title="编辑应用" data-url="./edit.html?id={{ item.id }}">编辑</a>
+					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/app/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>
 			{{# }); }}
 		</script>
 		<script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script>
-        <script type="text/javascript" src="../webjars/js/common.js?v20180420"></script>
+        <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20180420"></script>
 	</body>
 
 </html>
