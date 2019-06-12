@@ -107,6 +107,8 @@ public class ConfigAdminController {
 		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));
 		entity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
 		entity.setCreatedAt(new Date());
+		entity.setUpdatedAt(entity.getCreatedAt());
+		entity.setUpdatedBy(entity.getCreatedBy());
 		//
 		appconfigMapper.insertSelective(entity);
 		
@@ -175,7 +177,7 @@ public class ConfigAdminController {
 			}
 			if(grantedProfiles.size() == 1){
 				queyParams.put("env", grantedProfiles.get(0));
-			}else{				
+			}else if(grantedProfiles.size() > 1){				
 				queyParams.put("envs", grantedProfiles);
 			}
 		}
