@@ -208,7 +208,7 @@ public class UserAdminController {
 	@RequestMapping(value = "user_permission_options", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getUserPermissionOptions(@RequestParam Integer userId,@RequestParam String env){
 		List<UserGrantPermItem> datas = appMapper.selectAll().stream().map(e -> {
-			return new UserGrantPermItem(e.getId(), e.getFullName(), null);
+			return new UserGrantPermItem(e.getId(), e.getAlias(), null);
 		}).collect(Collectors.toList());
 		
 		Map<Integer, UserPermissionEntity> userPermissons = userPermissionMapper.findByUserIdAndEnv(userId,env).stream().collect(Collectors.toMap(UserPermissionEntity::getAppId, e -> e));
