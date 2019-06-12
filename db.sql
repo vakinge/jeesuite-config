@@ -22,6 +22,7 @@ CREATE TABLE `app_configs` (
   `name` varchar(32) DEFAULT NULL,
   `type` smallint(1) DEFAULT NULL COMMENT '类型(1:文件，2:配置项，3：JSON)',
   `contents` text,
+  `enabled` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT NULL,
   `created_by` varchar(32) DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,

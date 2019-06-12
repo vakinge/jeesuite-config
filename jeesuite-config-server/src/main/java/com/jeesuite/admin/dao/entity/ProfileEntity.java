@@ -1,7 +1,12 @@
 package com.jeesuite.admin.dao.entity;
 
-import com.jeesuite.admin.dao.BaseEntity;
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "profiles")
 public class ProfileEntity extends BaseEntity {

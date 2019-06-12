@@ -44,7 +44,7 @@
                 <td>{{ item.status == 1 ? '启用' : '禁用' }}</td>
 				<td>
                     <a class="layui-btn layui-btn-sm J_iframe_dialog" href="javascript:;" data-title="查看权限" data-url="./userPermissions.html?id={{ item.id }}">查看权限</a>
-                    <a href="javascript:;" class="layui-btn layui-btn-sm J_confirm" data-url="../admin/user/switch/{{ item.id }}">{{ item.status == 1 ? '禁用' : '启用'}}</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-sm {{  item.status == 1 ? 'layui-btn-danger' : ''}} J_confirm" data-url="../admin/user/switch/{{ item.id }}" onSuccessCallback="reload">{{ item.status == 1 ? '禁用' : '启用'}}</a>
 					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/user/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>

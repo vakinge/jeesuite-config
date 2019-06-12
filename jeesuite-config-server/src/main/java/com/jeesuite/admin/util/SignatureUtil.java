@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.jeesuite.common.util.DigestUtils;
-
 public class SignatureUtil {
 
 	public static String buildSign(Map<String, String> sPara) {

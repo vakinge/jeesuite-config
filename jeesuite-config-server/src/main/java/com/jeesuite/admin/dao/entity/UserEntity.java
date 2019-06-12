@@ -8,8 +8,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.jeesuite.admin.dao.BaseEntity;
 import com.jeesuite.common.util.DigestUtils;
+import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "users")
 public class UserEntity extends BaseEntity {

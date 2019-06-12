@@ -15,7 +15,7 @@ public class CryptComponent {
 
 	public static String cryptPrefix = "{Cipher}";
 	
-	@Value("${config.secretKey:jeesuite}")
+	@Value("${config.crypto.secretKey:jeesuite}")
 	private String secretKey = "jeesuite";
 
 	public String getCryptKey(int appId,String env){

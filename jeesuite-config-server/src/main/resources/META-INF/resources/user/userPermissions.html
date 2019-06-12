@@ -8,11 +8,11 @@
   <link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css" /> 
   <link rel="stylesheet" href="../webjars/css/table.css" /> 
   <style type="text/css">
-     .applist{background-color:#FFFFE0;border-right: 1px solid #ddd;}
+     .applist{background-color:#FFFFE0;border-right: 1px solid #ddd;margin-left:20px;}
      .applist .appitem{
         float:left;width:30%;margin: 10px;
      }
-     .applist .appitem span {padding-left: 5px;}
+     .applist .appitem .name {font-size: 16px;}
      .listright {
         margin-top:5px;
        text-align: center;
@@ -30,10 +30,10 @@
    <div class="layui-row"> 
     <div class="layui-col-md10 applist"> 
      {{# layui.each(item.perms, function(index, item2){ }}
-     <div class="appitem">{{item2.appName}}&nbsp;<span class="layui-badge  layui-bg-{{item2.operate === 'RO' ? 'orange' : 'blue'}}">{{item2.operate === 'RO' ? '可查看' : '可编辑'}}</span></div> 
+     <div class="appitem"><span class="name">{{item2.appName}}</span>&nbsp;<span class="layui-badge  layui-bg-{{item2.operate === 'RO' ? 'orange' : 'blue'}}">{{item2.operate === 'RO' ? '可查看' : '可编辑'}}</span></div> 
      {{# }); }}
     </div> 
-    <div class="layui-col-md2 listright"> 
+    <div class="layui-col-md1 listright"> 
      <button type="button" class="layui-btn J_edit" data-env="{{item.env}}">编辑</button> 
     </div> 
    </div>

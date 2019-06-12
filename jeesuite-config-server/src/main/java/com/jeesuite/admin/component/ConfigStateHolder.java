@@ -43,7 +43,7 @@ public class ConfigStateHolder implements InitializingBean{
 
 	public void afterPropertiesSet() throws Exception {
 		try {
-			String zkServers = environment.getProperty("cc.sync.zkServers");
+			String zkServers = environment.getProperty("config.sync.zkServers");
 			if(StringUtils.isNotBlank(zkServers)){				
 				ZkConnection zkConnection = new ZkConnection(zkServers);
 				zkClient = new ZkClient(zkConnection, 3000);

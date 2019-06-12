@@ -85,12 +85,6 @@
 			<scope>compile</scope>
 			<optional>true</optional>
 		</dependency>
-		<!--通用Mapper -->
-		<dependency>
-			<groupId>tk.mybatis</groupId>
-			<artifactId>mapper</artifactId>
-			<version>${mapper.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.jeesuite</groupId>

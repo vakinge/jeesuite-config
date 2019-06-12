@@ -68,7 +68,7 @@
     <div class="layui-form-item" style="padding-left: 100px;color:#FFB800;">* 如果需要加密配置请手动加上前缀:<b style="color:#FF5722;">{Cipher}</b>,如:<b style="color:#FF5722;">db.passport={Cipher}123456</b></div>
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessCallback="onFinishCallback" value="保存"/>
+        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessCallback="onSubmitSuccess" value="保存"/>
         <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
      </div> 
     </div> 
@@ -128,9 +128,11 @@
       });
 	});
     
-    function onFinishCallback(){
-    	setTimeout(function(){window.location.href = './list.html';},500);
-    }
+    function onSubmitSuccess(data){
+      parent.reloadData();
+      var index = parent.layer.getFrameIndex(window.name);
+      parent.layer.close(index);
+    } 
   </script>
  </body>
 </html>

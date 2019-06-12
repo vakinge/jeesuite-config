@@ -73,12 +73,12 @@ public class ProfileAdminController {
 	}
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> deleteProfile(@PathVariable("id") int id){
+	public ResponseEntity<WrapperResponseEntity> deleteProfile(@PathVariable("id") Integer id){
 		SecurityUtil.requireSuperAdmin();
 		ProfileEntity entity = profileMapper.selectByPrimaryKey(id);
 		if(entity.getIsDefault())throw new JeesuiteBaseException(1003, "默认profile不能删除");
-		int delete = profileMapper.deleteByPrimaryKey(id);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
+		profileMapper.deleteByPrimaryKey(id);
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "switch/{id}", method = RequestMethod.GET)

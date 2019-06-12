@@ -44,7 +44,7 @@
 				<td>{{ item.isDefault ? '默认' : ''}}</td>
                 <td>{{ item.enabled ? '启用' : '禁用'}}</td>
 				<td>
-                    <a href="javascript:;" class="layui-btn layui-btn-sm J_confirm" data-url="../admin/profile/switch/{{ item.id }}">{{ item.enabled ? '禁用' : '启用'}}</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-sm {{ item.enabled ? 'layui-btn-danger' : ''}} J_confirm" data-url="../admin/profile/switch/{{ item.id }}" onSuccessCallback="reload">{{ item.enabled ? '禁用' : '启用'}}</a>
 					<a href="javascript:;" class="layui-btn layui-btn-sm J_form_dialog" data-templdate="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
 					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/profile/delete/{{ item.id }}">删除</a>
 				</td>

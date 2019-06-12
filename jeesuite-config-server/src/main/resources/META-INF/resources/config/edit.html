@@ -78,7 +78,7 @@
     </div> 
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit" value="保存"/>
+        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessCallback="onSubmitSuccess" value="保存" />
         <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
      </div> 
     </div> 
@@ -143,7 +143,6 @@
 			  $cont.find(':checkbox').each(function(){
 				  var $this = $(this);
 				  for(var i in appIds){
-					  console.log(appIds[i] + '---- ' + $this.attr('value'));
 					  if(appIds[i] === $this.attr('value')){
 						  $this.attr('checked',true);
 					  }
@@ -153,6 +152,10 @@
 		  });
 	  }
   }
+  
+  function onSubmitSuccess(data){
+	  parent.layui.layer.closeAll('iframe');
+  } 
   </script>
  </body>
 </html>

@@ -48,10 +48,9 @@
 		<spring.version>5.0.5.RELEASE</spring.version>
 		<jedis.version>2.9.0</jedis.version>
 		<mybatis.version>3.4.2</mybatis.version>
-		<mapper.version>3.3.9</mapper.version>
 		<druid.version>1.0.16</druid.version>
 		<junit.version>4.12</junit.version>
-		<jeesuite.libs.version>1.3.0</jeesuite.libs.version>
+		<jeesuite.libs.version>1.3.2</jeesuite.libs.version>
 		<zkclient.version>0.10</zkclient.version>
 		<zookeeper.version>3.4.9</zookeeper.version>
 		<springboot.version>2.0.1.RELEASE</springboot.version>

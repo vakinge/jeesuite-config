@@ -510,7 +510,7 @@ exports('jeesuitelayui', jeesuitelayui);
 	
   //submit
 	$('body').on('click','.J_ajaxSubmit',function(){
-		var $this = $(this),$form = $this.parent(),callback = $this.attr('onSuccessCallback'),jumpUrl = $this.attr('onSuccessJumpurl');
+		var $this = $(this),$form = $this.parent(),callback = $this.attr('onSuccessCallback');
 		while(!$form.is('form')){
 			$form = $form.parent();
 		}
@@ -531,20 +531,24 @@ exports('jeesuitelayui', jeesuitelayui);
 			complete: function(){layer.close(loading);},
 			success: function(data){
 				if(data.code==401){top.location.href = "/login";return;}
+				if(data.code==403){jeesuitelayui.error(data.msg || '无权限');return;}
 		        if(data.code==200){
 		        	 jeesuitelayui.success(data.msg || '操作成功');
 		             data = data.data;
 		             if(callback != undefined){
-		            	 if(callback !== 'None'){
-		            		 eval(callback+"(data)");
+		            	 if(callback === 'reload'){
+		            		 setTimeout(function(){parent.window.location.reload();},1000);
+		            	 }else if(callback.indexOf('jumpTo:') == 0){
+		            		 setTimeout(function(){window.location.href = callback.substr(7);},1000);
 		            	 }else{
-		            		 $this.removeAttr('disabled');
+		            		 eval(callback+"(data)");
 		            	 }
-		             } else if(jumpUrl){
-		            	 setTimeout(function(){window.location.href = jumpUrl;},500);
-					 }else{		
-						 setTimeout(function(){parent.window.location.reload();},500);
-					 }
+		             }else{
+		            	 try {
+		            		 var index = parent.layer.getFrameIndex(window.name);
+		            		 setTimeout(function(){ parent.layer.close(index);},1000);
+						} catch (e) {}
+		             }
 		          }else{
 		        	 $this.removeAttr('disabled');
 		        	 jeesuitelayui.error(data.msg);
@@ -699,10 +703,12 @@ exports('jeesuitelayui', jeesuitelayui);
 					if(result.code == 200){
 						jeesuitelayui.success(result.msg);
 						setTimeout(function(){
-							if(callback != undefined){
-								eval(callback);
-							}else{
-								window.location.reload();
+							if(callback){
+								if(callback === 'reload'){
+									window.location.reload();
+								}else{
+									eval(callback);
+								}
 							}
 						},500);
 					}else{

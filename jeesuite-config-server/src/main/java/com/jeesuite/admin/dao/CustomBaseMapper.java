@@ -1,8 +1,8 @@
 package com.jeesuite.admin.dao;
 
-import tk.mybatis.mapper.common.ExampleMapper;
-import tk.mybatis.mapper.common.MySqlMapper;
+import com.jeesuite.mybatis.core.BaseEntity;
+import com.jeesuite.mybatis.core.BaseMapper;
 
-public interface CustomBaseMapper<T> extends tk.mybatis.mapper.common.BaseMapper<T>,ExampleMapper<T>,MySqlMapper<T> {
+public interface CustomBaseMapper<T extends BaseEntity> extends BaseMapper<T,Integer> {
 
 }

@@ -24,12 +24,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
-import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.component.CryptComponent;
+import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
 import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
@@ -37,14 +38,16 @@ import com.jeesuite.admin.dao.mapper.AppConfigsHistoryEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
 import com.jeesuite.admin.exception.JeesuiteBaseException;
+import com.jeesuite.admin.model.PageResult;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.AddOrEditConfigRequest;
-import com.jeesuite.admin.model.request.QueryConfigRequest;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.util.BeanUtils;
-
-import tk.mybatis.mapper.entity.Example;
+import com.jeesuite.mybatis.plugin.pagination.Page;
+import com.jeesuite.mybatis.plugin.pagination.PageExecutor;
+import com.jeesuite.mybatis.plugin.pagination.PageExecutor.PageDataLoader;
+import com.jeesuite.mybatis.plugin.pagination.PageParams;
 
 @Controller
 @RequestMapping("/admin/config")
@@ -127,7 +130,7 @@ public class ConfigAdminController {
 		if(addRequest.getGlobal()){
 			SecurityUtil.requireSuperAdmin();
 		}else{			
-			SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
+			SecurityUtil.requireAllPermission(entity.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
 		}
 		//
 		saveAppConfigHistory(entity);
@@ -150,26 +153,34 @@ public class ConfigAdminController {
 	
 	
 	@RequestMapping(value = "list", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> queryConfigs(@RequestBody QueryConfigRequest query){
+	public @ResponseBody PageResult<AppconfigEntity> queryConfigs(
+			@RequestParam("pageNo") int pageNo,
+    		@RequestParam("pageSize") int pageSize,
+			@RequestParam(value="env",required=false)String env,
+			@RequestParam(value="appId",required=false)Integer appId
+			){
 
-		Map<String, Object> queyParams = BeanUtils.beanToMap(query);
-		
-		if(StringUtils.isBlank(query.getEnv()) && !SecurityUtil.isSuperAdmin()){
-			List<String> gantProfiles = SecurityUtil.getLoginUserInfo().getGrantedProfiles();
-			if(gantProfiles.isEmpty()){
-				return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(new ArrayList<>()),HttpStatus.OK);
+		Map<String, Object> queyParams = new HashMap<>();
+		if(appId != null){
+			queyParams.put("appId", appId);
+		}
+		if(StringUtils.isNotBlank(env)){
+			queyParams.put("env", env);
+		}
+
+		Page<AppconfigEntity> page = PageExecutor.pagination(new PageParams(pageNo, pageSize), new PageDataLoader<AppconfigEntity>() {
+			@Override
+			public List<AppconfigEntity> load() {
+				return appconfigMapper.findByQueryParams(queyParams);
 			}
-			queyParams.put("envs", gantProfiles);
+		});
+		
+		for (AppconfigEntity entity : page.getData()) {
+			String appName = buildConfigRalateAppNames(entity);
+			entity.setAppNames(appName);
 		}
 		
-		List<AppconfigEntity> list = appconfigMapper.findByQueryParams(queyParams);
-		//set appName
-		for (AppconfigEntity appconfigEntity : list) {
-			String appName = buildConfigRalateAppNames(appconfigEntity);
-			appconfigEntity.setAppNames(appName);
-		}
-		
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
+		return new PageResult<>(pageNo, pageSize, page.getTotal(), page.getData());
 	}
 
 	
@@ -200,11 +211,11 @@ public class ConfigAdminController {
 		}else{			
 			SecurityUtil.requireAllPermission(entity.getEnv(),Arrays.asList(entity.getAppIds()),GrantOperate.RW);
 		}
-		//		
-		int delete = entity == null ? 0 : appconfigMapper.deleteByPrimaryKey(id);
-		//
-		saveAppConfigHistory(entity);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
+		
+		entity.setEnabled(false);
+		appconfigMapper.updateByPrimaryKeySelective(entity);
+		
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "rollback/{id}", method = RequestMethod.GET)
@@ -217,28 +228,6 @@ public class ConfigAdminController {
 			appconfigMapper.updateByPrimaryKeySelective(appconfigEntity);
 		}
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
-	}
-	
-
-	@RequestMapping(value = "copy", method = RequestMethod.POST)
-	public ResponseEntity<WrapperResponseEntity> copyConfig(@RequestBody Map<String, String> params){
-		String from = params.get("from");
-		String to = params.get("to");
-		
-		Example example = new Example(AppconfigEntity.class);
-		example.createCriteria().andEqualTo("env", from);
-		List<AppconfigEntity> configList = appconfigMapper.selectByExample(example);
-		if(configList == null || configList.isEmpty()){
-			throw new JeesuiteBaseException(1001, "Profile["+from+"]无任何配置");
-		}
-		
-		for (AppconfigEntity entity : configList) {
-			entity.setId(null);
-			entity.setEnv(to);
-			appconfigMapper.insertSelective(entity);
-		}
-		
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}	
 	
 	private void publishConfigChangeEvent(String orignContents,AppconfigEntity entity) {

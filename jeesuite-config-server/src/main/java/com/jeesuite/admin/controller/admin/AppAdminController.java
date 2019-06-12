@@ -1,8 +1,7 @@
 package com.jeesuite.admin.controller.admin;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,8 +28,6 @@ import com.jeesuite.admin.model.request.AddOrEditAppRequest;
 import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.util.BeanUtils;
-
-import tk.mybatis.mapper.entity.Example;
 
 @Controller
 @RequestMapping("/admin/app")
@@ -60,10 +57,7 @@ public class AppAdminController {
 		if(addAppRequest.getMasterUid() == null || addAppRequest.getMasterUid() == 0){
 			throw new JeesuiteBaseException(1002, "请选择项目负责人");
 		}
-		Example example = new Example(AppEntity.class);
-		example.createCriteria().andEqualTo("name", addAppRequest.getName());
-		int count = appMapper.selectCountByExample(example);
-		if(count > 0){
+		if(appMapper.findByName(addAppRequest.getName()) != null){
 			throw new JeesuiteBaseException(1002, "应用["+addAppRequest.getName()+"]已存在");
 		}
 		AppEntity appEntity = BeanUtils.copy(addAppRequest, AppEntity.class);
@@ -94,15 +88,14 @@ public class AppAdminController {
 	}
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> deleteApp(@PathVariable("id") int id){
+	public ResponseEntity<WrapperResponseEntity> deleteApp(@PathVariable("id") Integer id){
 		SecurityUtil.requireSuperAdmin();
-		int delete = appMapper.deleteByPrimaryKey(id);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
+		appMapper.deleteByPrimaryKey(id);
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "options", method = RequestMethod.GET)
 	public @ResponseBody List<SelectOption> getAppOptions(@RequestParam String env,@RequestParam(value="grantType",required=false) String grantType){
-		List<SelectOption> result = new ArrayList<>();
 		List<AppEntity> list = null;
 		if(SecurityUtil.isSuperAdmin()){
 			list = appMapper.selectAll();
@@ -114,12 +107,9 @@ public class AppAdminController {
 			}
 			
 		}
-		
-		list.forEach( entity -> {
-			String text = StringUtils.equals(entity.getName(), entity.getAlias()) ? entity.getName() : entity.getName() + "(" + entity.getAlias() + ")";
-			result.add(new SelectOption(String.valueOf(entity.getId()), text));
-		});
-		return result;
+		return list.stream().map(e -> {
+			return new SelectOption(String.valueOf(e.getId()), e.getFullName());
+		}).collect(Collectors.toList());
 	}
 	
 }

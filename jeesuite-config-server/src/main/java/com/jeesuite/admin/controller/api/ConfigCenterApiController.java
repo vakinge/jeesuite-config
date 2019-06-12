@@ -38,7 +38,7 @@ public class ConfigCenterApiController {
 	private @Autowired ConfigStateHolder configStateHolder;
 	
 	@RequestMapping(value = "fetch_all_configs", method = RequestMethod.GET)
-	public @ResponseBody Map<String, Object> downConfigFile(  @RequestParam(value = "appName") String appName,
+	public @ResponseBody Map<String, Object> fetchConfigs(  @RequestParam(value = "appName") String appName,
 			                     @RequestParam(value = "env") String env,
 			                     @RequestParam(value = "version",required = false) String version){
 		

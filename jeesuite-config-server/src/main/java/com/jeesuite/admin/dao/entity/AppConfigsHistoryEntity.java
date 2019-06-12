@@ -10,7 +10,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.jeesuite.admin.dao.BaseEntity;
+import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "app_configs_history")
 public class AppConfigsHistoryEntity extends BaseEntity {

@@ -118,10 +118,10 @@ public class UserAdminController {
 	}
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
-	public ResponseEntity<WrapperResponseEntity> deleteProfile(@PathVariable("id") int id){
+	public ResponseEntity<WrapperResponseEntity> deleteProfile(@PathVariable("id") Integer id){
 		SecurityUtil.requireSuperAdmin();
-		int delete = userMapper.deleteByPrimaryKey(id);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(delete > 0),HttpStatus.OK);
+		userMapper.deleteByPrimaryKey(id);
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "switch/{id}", method = RequestMethod.GET)
@@ -190,7 +190,7 @@ public class UserAdminController {
 			if(appEntity == null)continue;
 			item = new UserGrantPermItem();
 			item.setAppId(entity.getAppId());
-			item.setAppName(appEntity.getName());
+			item.setAppName(appEntity.getFullName());
 			item.setOperate(entity.getOperate());
 			permGroups.get(entity.getEnv()).getPerms().add(item);
 		}
@@ -208,7 +208,7 @@ public class UserAdminController {
 	@RequestMapping(value = "user_permission_options", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getUserPermissionOptions(@RequestParam Integer userId,@RequestParam String env){
 		List<UserGrantPermItem> datas = appMapper.selectAll().stream().map(e -> {
-			return new UserGrantPermItem(e.getId(), e.getAlias(), null);
+			return new UserGrantPermItem(e.getId(), e.getFullName(), null);
 		}).collect(Collectors.toList());
 		
 		Map<Integer, UserPermissionEntity> userPermissons = userPermissionMapper.findByUserIdAndEnv(userId,env).stream().collect(Collectors.toMap(UserPermissionEntity::getAppId, e -> e));

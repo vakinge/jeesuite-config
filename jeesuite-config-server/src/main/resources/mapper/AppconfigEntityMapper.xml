@@ -11,6 +11,7 @@
     <result column="version" property="version" jdbcType="VARCHAR" />
     <result column="name" property="name" jdbcType="VARCHAR" />
     <result column="type" property="type" jdbcType="SMALLINT" />
+    <result column="enabled" property="enabled" jdbcType="BIT" />
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />
     <result column="created_by" property="createdBy" jdbcType="INTEGER" />
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP" />
@@ -19,11 +20,11 @@
   </resultMap>
   
   <select id="findGlobalConfig" resultMap="BaseResultMap" parameterType="map">
-      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND (app_ids is null OR app_ids = '')
+      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND enabled=1 AND (app_ids is null OR app_ids = '')
   </select>
   
   <select id="findByQueryParams" resultMap="BaseResultMap" parameterType="map">
-      SELECT * FROM app_configs where 1=1
+      SELECT * FROM app_configs where enabled=1
       <if test="env != null">  AND env = #{env}</if> 
       <if test="name != null">  AND name = #{name}</if> 
       <if test="version != null and version !=''">  AND version = #{version}</if> 
@@ -34,20 +35,7 @@
 		 #{item}
 	  </foreach>
       </if> 
-  </select>
-  
-  <select id="countByQueryParams" resultType="int" parameterType="map">
-      SELECT count(*) FROM app_configs where 1=1
-      <if test="env != null">  AND env = #{env}</if> 
-      <if test="name != null">  AND name = #{name}</if> 
-      <if test="version != null and version !='' ">  AND version = #{version}</if> 
-      <if test="appId != null and appId !=''">  AND (find_in_set(#{appId},app_ids) OR app_ids is null)</if> 
-      <if test="envs != null">
-        AND env in
-      <foreach item="item" index="index" collection="envs" open="(" separator="," close=")">
-		 #{item}
-	  </foreach>
-      </if>  
+      ORDER BY id
   </select>
   
 </mapper>

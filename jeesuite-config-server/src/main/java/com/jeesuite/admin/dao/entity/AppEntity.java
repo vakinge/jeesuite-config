@@ -1,9 +1,14 @@
 package com.jeesuite.admin.dao.entity;
 
-import com.jeesuite.admin.dao.BaseEntity;
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "apps")
 public class AppEntity extends BaseEntity {
@@ -112,6 +117,11 @@ public class AppEntity extends BaseEntity {
      */
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+    
+    public String getFullName(){
+    	if(StringUtils.equals(alias, name))return name;
+    	return String.format("%s(%s)", alias,name);
     }
 
 }

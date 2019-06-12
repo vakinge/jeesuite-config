@@ -12,7 +12,7 @@ import javax.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.jeesuite.admin.dao.BaseEntity;
+import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "app_configs")
 public class AppconfigEntity extends BaseEntity {
@@ -33,7 +33,10 @@ public class AppconfigEntity extends BaseEntity {
     /**
      * 类型(1:文件，2:配置项,3:JSON)
      */
+    @Column(name = "type",updatable = false)
     private Short type;
+    
+    private Boolean enabled = Boolean.TRUE;
 
     @Column(name = "created_at",updatable = false)
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
@@ -136,12 +139,20 @@ public class AppconfigEntity extends BaseEntity {
     public void setType(Short type) {
         this.type = type;
     }
+    
+    public Boolean getEnabled() {
+		return enabled;
+	}
 
-    /**
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	/**
      * @return created_at
      */
     public Date getCreatedAt() {
-        return createdAt;
+        return createdAt == null ? updatedAt : createdAt;
     }
 
     /**
@@ -155,7 +166,7 @@ public class AppconfigEntity extends BaseEntity {
      * @return created_by
      */
     public String getCreatedBy() {
-        return createdBy;
+        return createdBy == null ? updatedBy : createdBy;
     }
 
     /**

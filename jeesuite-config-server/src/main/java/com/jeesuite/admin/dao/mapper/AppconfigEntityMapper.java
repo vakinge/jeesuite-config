@@ -14,6 +14,4 @@ public interface AppconfigEntityMapper extends CustomBaseMapper<AppconfigEntity>
 	List<AppconfigEntity> findGlobalConfig(@Param("env") String env,@Param("version") String version);
 	
 	List<AppconfigEntity> findByQueryParams(Map<String, Object> params);
-	
-	int countByQueryParams(Map<String, Object> params);
 }
