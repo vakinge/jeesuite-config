@@ -1,11 +1,3 @@
-/**
-
- layui官网
- By 贤心
-
-*/
-
-
 /* 布局 */
 .site-inline{font-size: 0;}
 .site-tree, .site-content{display: inline-block;  *display:inline; *zoom:1; vertical-align: top; font-size: 14px;}
@@ -29,7 +21,7 @@
 
 .header-index{background-color: #080018; border: none;}
 
-.layui-layout-admin .header-demo{border-bottom-color: #1AA094; background-color: #fff;}
+.layui-layout-admin .header-demo{border-bottom-color: #f2f2f2; background-color: #fff;}
 .header-demo .logo{left: 40px;}
 .header-demo .layui-nav{top: 0;}
 .header-demo .layui-nav .layui-nav-item{margin: 0 10px; line-height: 65px;}
@@ -38,7 +30,7 @@
 .header-demo .layui-nav .layui-nav-item a:hover, 
 .header-demo .layui-nav .layui-this a{color: #000;}
 .header-demo .layui-nav .layui-this:after, 
-.header-demo .layui-nav-bar{background-color: #393D49;}
+.header-demo .layui-nav-bar{background-color: #f2f2f2;}
 .header-demo .layui-nav .layui-this a{padding: 0 20px;}
 
 /* 底部 */
@@ -278,7 +270,7 @@ body .site-demo-nav .layui-nav-item{line-height: 40px}
 	height: 100%;
 }
 .admin-nav-card>.layui-tab-title{
-	border-bottom: 1px solid #1AA094;
+	border-bottom: 1px solid #f2f2f2;
 }
 .admin-nav-card .layui-tab-title cite{
 	font-style: normal;
@@ -286,7 +278,7 @@ body .site-demo-nav .layui-nav-item{line-height: 40px}
 }
 .admin-nav-card>.layui-tab-title .layui-this{
 	color: white;
-    background-color: #1AA094;
+    background-color: #dddddd;
 }
 .admin-nav-card>.layui-tab-title .layui-this:after{
 	border-bottom: 0;
@@ -337,7 +329,7 @@ body .site-demo-nav .layui-nav-item{line-height: 40px}
     text-align: center;
     width: 30px;
     height: 30px;
-    background-color: #1AA094;
+    background-color: #1E9FFF;
     line-height: 30px;
     top: 25%;
 }

@@ -10,8 +10,8 @@
 
 	<body>
 		<div class="admin-main">
-			<blockquote class="layui-elem-quote">
-				<a href="javascript:;" class="layui-btn layui-btn-small J_form_dialog" data-templdate="add.html" data-url="../admin/profile/add">
+			<blockquote class="layui-elem-quote layui-quote-nm">
+				<a href="javascript:;" class="layui-btn layui-btn-normal layui-btn-sm J_form_dialog" data-templdate="add.html" data-url="../admin/profile/add">
 					<i class="layui-icon">&#xe608;</i> 添加Profile
 				</a>
 			</blockquote>
@@ -42,8 +42,8 @@
 				<td>{{ item.isDefault ? '默认' : ''}}</td>
                 <td>{{ item.enabled ? '启用' : '禁用'}}</td>
 				<td>
-                    <a href="javascript:;" class="layui-btn layui-btn-sm {{ item.enabled ? 'layui-btn-danger' : ''}} J_confirm" data-url="../admin/profile/switch/{{ item.id }}" onSuccessCallback="reload">{{ item.enabled ? '禁用' : '启用'}}</a>
-					<a href="javascript:;" class="layui-btn layui-btn-sm J_form_dialog" data-templdate="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-sm {{ item.enabled ? 'layui-btn-danger' : 'layui-btn-normal'}} J_confirm" data-url="../admin/profile/switch/{{ item.id }}" onSuccessCallback="reload">{{ item.enabled ? '禁用' : '启用'}}</a>
+					<a href="javascript:;" class="layui-btn layui-btn-normal layui-btn-sm J_form_dialog" data-templdate="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
 					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/profile/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>

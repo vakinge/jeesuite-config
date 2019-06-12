@@ -10,7 +10,7 @@
 	position: fixed;
 	width: 100%;
 	min-width: 800px;
-	border-bottom: 5px solid #1AA094;
+	border-bottom: 5px solid #1E9FFF;
 }
 .beg-layout-container .beg-layout-header .beg-layout-logo{
 	width: 200px;
@@ -27,7 +27,7 @@
     text-align: center;
     width: 30px;
     height: 30px;
-    background-color: #1AA094;
+    background-color: #1E9FFF;
     line-height: 30px;
     top: 25%;
 }

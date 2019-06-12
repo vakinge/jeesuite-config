@@ -51,7 +51,7 @@
                 <td>{{ item.typeAlias }}</td>
                 <td>{{item.createdAt}}</td>
 				<td>
-                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-sm J_show_content" data-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
+                    <a href="javascript:;" data-id="{{ item.id }}" class="layui-btn layui-btn-normal layui-btn-sm J_show_content" data-url="../admin/cc/app/delete/{{ item.id }}">查看内容</a>
                     <div id="content{{ item.id }}" style="display:none;">
                      <div>
 	                  <div style="float: left;width: 640px; overflow: scroll;white-space: nowrap;"><div class="layui-bg-gray">修改前</div><textarea readonly="readonly" class="layui-textarea" style="margin:5px;height:520px;width:630px;">{{ item.contents }}</textarea></div>

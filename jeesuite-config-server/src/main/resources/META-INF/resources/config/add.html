@@ -52,7 +52,7 @@
         <input type="text" id="fileName" name="name" required="" lay-verify="required" placeholder="请输入配置名或者直接上传" autocomplete="off" class="layui-input" style="width:200px;" /> 
       </div>
       <div class="layui-input-inline" style="width: 200px;">
-        <button type="button" class="layui-btn" id="upload_file"><i class="layui-icon">&#xe67c;</i>上传配置文件</button>
+        <button type="button" class="layui-btn layui-btn-normal" id="upload_file"><i class="layui-icon">&#xe67c;</i>上传配置文件</button>
       </div>
     </div>
     </div>     
@@ -68,7 +68,7 @@
     <div class="layui-form-item" style="padding-left: 100px;color:#FFB800;">* 如果需要加密配置请手动加上前缀:<b style="color:#FF5722;">{Cipher}</b>,如:<b style="color:#FF5722;">db.passport={Cipher}123456</b></div>
     <div class="layui-form-item"> 
      <div class="layui-input-block"> 
-        <input type="button"  class="layui-btn J_ajaxSubmit" onSuccessCallback="onSubmitSuccess" value="保存"/>
+        <input type="button"  class="layui-btn layui-btn-normal J_ajaxSubmit" onSuccessCallback="onSubmitSuccess" value="保存"/>
         <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
      </div> 
     </div> 
@@ -129,9 +129,9 @@
 	});
     
     function onSubmitSuccess(data){
-      parent.reloadData();
       var index = parent.layer.getFrameIndex(window.name);
-      if(index){    	  
+      if(index){   
+    	parent.reloadData();
         parent.layer.close(index);
       }else{
     	  window.location.href = './list.html';

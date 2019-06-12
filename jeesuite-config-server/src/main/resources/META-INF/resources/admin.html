@@ -15,14 +15,20 @@
 		<link rel="stylesheet" href="webjars/css/global.css" media="all">
 		<link rel="stylesheet" href="webjars/plugins/font-awesome/css/font-awesome.min.css">
 
+       <style type="text/css">
+         .layui-this>a:hover {
+           background-color: #f2f2f2;
+           color: #fff;
+        }
+       </style>
 	</head>
 
 	<body>
-		<div class="layui-layout layui-layout-admin" style="border-bottom: solid 5px #1aa094;">
+		<div class="layui-layout layui-layout-admin" style="border-bottom: solid 5px #f2f2f2;">
 			<div class="layui-header header header-demo">
 				<div class="layui-main">
 					<div class="admin-login-box">
-						<a class="logo" style="left: 0;" href="http://beginner.zhengjinfan.cn/demo/beginner_admin/">
+						<a class="logo" style="left: 0;" href="https://www.jeesuite.com">
 							<span style="font-size: 22px;">JeesuiteConfig</span>
 						</a>
 						<div class="admin-side-toggle">
@@ -59,7 +65,7 @@
 			<div class="layui-side layui-bg-black" id="admin-side">
 				<div class="layui-side-scroll" id="admin-navbar-side" lay-filter="side"></div>
 			</div>
-			<div class="layui-body" style="bottom: 0;border-left: solid 2px #1AA094;" id="admin-body">
+			<div class="layui-body" style="bottom: 0;border-left: solid 2px #f2f2f2;" id="admin-body">
 				<div class="layui-tab admin-nav-card layui-tab-brief" lay-filter="admin-tab">
 					<ul class="layui-tab-title">
 						<li class="layui-this">
@@ -84,21 +90,7 @@
 			<div class="site-tree-mobile layui-hide">
 				<i class="layui-icon">&#xe602;</i>
 			</div>
-			<div class="site-mobile-shade"></div>
-			
-			<!--锁屏模板 start-->
-			<script type="text/template" id="lock-temp">
-				<div class="admin-header-lock" id="lock-box">
-					<div class="admin-header-lock-img">
-						<img src="images/0.jpg"/>
-					</div>
-					<div class="admin-header-lock-name" id="lockUserName">beginner</div>
-					<input type="text" class="admin-header-lock-input" value="输入密码解锁.." name="lockPwd" id="lockPwd" />
-					<button class="layui-btn layui-btn-small" id="unlock">解锁</button>
-				</div>
-			</script>
-			<!--锁屏模板 end -->
-			
+			<div class="site-mobile-shade"></div>			
 			<script type="text/javascript" src="webjars/plugins/layui/layui.js"></script>
 			<script type="text/javascript" src="webjars/plugins/layui/lay/modules/jquery.js"></script>
 			<script src="webjars/js/index.js"></script>
