@@ -28,7 +28,6 @@ import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.SelectOption;
 import com.jeesuite.admin.model.UserGrantPermGroup;
 import com.jeesuite.admin.model.UserGrantPermItem;
@@ -37,6 +36,7 @@ import com.jeesuite.admin.model.request.GantPermRequest;
 import com.jeesuite.admin.model.request.UpdateUserRequest;
 import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
+import com.jeesuite.common.JeesuiteBaseException;
 
 @Controller
 @RequestMapping("/admin/user")

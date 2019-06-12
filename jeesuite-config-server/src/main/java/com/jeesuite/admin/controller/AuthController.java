@@ -21,13 +21,13 @@ import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.entity.UserPermissionEntity;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.interceptor.SecurityInterceptor;
 import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.IpUtils;
 import com.jeesuite.admin.util.SecurityUtil;
+import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.util.FormatValidateUtils;
 import com.jeesuite.spring.helper.EnvironmentHelper;
 

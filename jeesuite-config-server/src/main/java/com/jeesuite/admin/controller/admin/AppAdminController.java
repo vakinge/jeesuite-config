@@ -21,12 +21,12 @@ import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.SelectOption;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.AddOrEditAppRequest;
 import com.jeesuite.admin.service.CacheQueryService;
 import com.jeesuite.admin.util.SecurityUtil;
+import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.util.BeanUtils;
 
 @Controller

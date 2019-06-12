@@ -31,8 +31,8 @@
       <if test="appId != null and appId !=''">  AND (find_in_set(#{appId},app_ids) OR app_ids is null)</if> 
       <if test="envs != null">
         AND env in
-      <foreach item="item" index="index" collection="envs" open="(" separator="," close=")">
-		 #{item}
+      <foreach index="index" collection="envs" open="(" separator="," close=")">
+		 #{envs[${index}]}
 	  </foreach>
       </if> 
       ORDER BY id

@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.jeesuite.admin.exception.JeesuiteBaseException;
+import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.crypt.AES;
 import com.jeesuite.common.crypt.Base64;
 import com.jeesuite.common.util.DigestUtils;

@@ -37,12 +37,13 @@ import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppConfigsHistoryEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
+import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.PageResult;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.model.request.AddOrEditConfigRequest;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.admin.util.SecurityUtil;
+import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.util.BeanUtils;
 import com.jeesuite.mybatis.plugin.pagination.Page;
 import com.jeesuite.mybatis.plugin.pagination.PageExecutor;
@@ -166,6 +167,17 @@ public class ConfigAdminController {
 		}
 		if(StringUtils.isNotBlank(env)){
 			queyParams.put("env", env);
+		}else{
+			LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
+			List<String> grantedProfiles = loginUserInfo.getGrantedProfiles();
+			if(!loginUserInfo.isSuperAdmin() && grantedProfiles.isEmpty()){
+				return new PageResult<>(pageNo, pageSize, 0L, new ArrayList<>(0));
+			}
+			if(grantedProfiles.size() == 1){
+				queyParams.put("env", grantedProfiles.get(0));
+			}else{				
+				queyParams.put("envs", grantedProfiles);
+			}
 		}
 
 		Page<AppconfigEntity> page = PageExecutor.pagination(new PageParams(pageNo, pageSize), new PageDataLoader<AppconfigEntity>() {
@@ -201,7 +213,7 @@ public class ConfigAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(historyList),HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "delete/{id}", method = RequestMethod.POST)
 	@Transactional
 	public ResponseEntity<WrapperResponseEntity> deleteConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.model.WrapperResponseEntity;
+import com.jeesuite.common.JeesuiteBaseException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -21,6 +22,9 @@ public class GlobalExceptionHandler {
 	@ResponseBody
 	public ResponseEntity<WrapperResponseEntity> exceptionHandler(Exception e, HttpServletResponse response) {
 		WrapperResponseEntity resp = new WrapperResponseEntity();
+		while(e.getCause() != null){
+			e = (Exception) e.getCause();
+		}
 		if (e instanceof JeesuiteBaseException) {
 			JeesuiteBaseException e1 = (JeesuiteBaseException) e;
 			resp.setCode(e1.getCode());

@@ -177,7 +177,7 @@ public class UserEntity extends BaseEntity {
 	}
     
     public static void main(String[] args) {
-		System.out.println(encryptPassword("admin123"));
+		System.out.println(encryptPassword("123456"));
 	}
     
 }

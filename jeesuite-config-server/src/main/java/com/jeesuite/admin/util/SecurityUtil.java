@@ -9,9 +9,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.jeesuite.admin.constants.GrantOperate;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.LoginUserInfo;
+import com.jeesuite.common.JeesuiteBaseException;
 
 public class SecurityUtil {
 	

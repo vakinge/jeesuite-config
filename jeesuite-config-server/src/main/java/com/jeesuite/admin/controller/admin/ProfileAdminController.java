@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.SelectOption;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.SecurityUtil;
+import com.jeesuite.common.JeesuiteBaseException;
 
 @Controller
 @RequestMapping("/admin/profile")

@@ -22,10 +22,10 @@ import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
 import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.ConfigParseUtils;
+import com.jeesuite.common.JeesuiteBaseException;
 
 
 @Controller

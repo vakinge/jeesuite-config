@@ -59,8 +59,8 @@ layui.define(['jeesuitelayui', 'table','form'], function(exports){
 			    	parent.parent.layer.open({
 			    	    type: 1 
 			    	    ,area: ['1024px', '660px']
-			    	    ,title: '编辑配置内容'
-			    	    ,shade: 0.6 //遮罩透明度
+			    	    ,title: '配置内容'
+			    	    ,shade: 0.3 //遮罩透明度
 			    	    ,maxmin: true //允许全屏最小化
 			    	    ,anim: 1 //0-6的动画形式，-1不开启
 			    	    ,content: '<div style="padding:5px;"><textarea id="pop_fileContent" style="width:1000px;height:550px;border:1px dashed #000;">'+data.contents+'</textarea> </div>'

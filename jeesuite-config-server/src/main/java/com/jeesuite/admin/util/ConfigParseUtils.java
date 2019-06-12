@@ -13,7 +13,7 @@ import org.dom4j.io.SAXReader;
 import org.xml.sax.InputSource;
 
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
-import com.jeesuite.admin.exception.JeesuiteBaseException;
+import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.json.JsonUtils;
 
 public class ConfigParseUtils {
