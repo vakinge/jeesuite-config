@@ -6,8 +6,6 @@
 		<title>Table</title>
 		<link rel="stylesheet" href="../webjars/plugins/layui/css/layui.css" media="all" />
 		<link rel="stylesheet" href="../webjars/css/global.css" media="all">
-		<link rel="stylesheet" href="../webjars/plugins/font-awesome/css/font-awesome.min.css">
-		<link rel="stylesheet" href="../webjars/css/table.css" />
 	</head>
 
 	<body>
@@ -47,7 +45,7 @@
                 <td>{{ item.remarks }}</td>
 				<td>
 					<a class="layui-btn layui-btn-sm J_iframe_dialog" href="javascript:;" data-title="编辑应用" data-url="./edit.html?id={{ item.id }}">编辑</a>
-					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/app/delete/{{ item.id }}">删除</a>
+					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/app/delete/{{ item.id }}" onSuccessCallback="reload">删除</a>
 				</td>
 			</tr>
 			{{# }); }}

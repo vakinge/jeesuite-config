@@ -48,7 +48,7 @@ layui.define(['jeesuitelayui', 'table','form'], function(exports){
 			  var data = obj.data,layEvent = obj.event; 
 			  if(layEvent === 'del'){
 			      layer.confirm('确认删除么?', function(index){
-			    	jeesuitelayui.post('/perm/usergroup/delete',{id:data.id},function(data){
+			    	jeesuitelayui.post('/admin/config/delete',{id:data.id},function(data){
 			    		obj.del(); 
 				        layer.close(index);
 				        jeesuitelayui.success('删除成功');

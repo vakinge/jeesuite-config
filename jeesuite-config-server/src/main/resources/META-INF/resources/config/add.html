@@ -131,7 +131,11 @@
     function onSubmitSuccess(data){
       parent.reloadData();
       var index = parent.layer.getFrameIndex(window.name);
-      parent.layer.close(index);
+      if(index){    	  
+        parent.layer.close(index);
+      }else{
+    	  window.location.href = './list.html';
+      }
     } 
   </script>
  </body>

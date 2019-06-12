@@ -326,6 +326,7 @@ public class ConfigAdminController {
 			String[] appIds = appconfigEntity.getAppIds().split(",");
 			for (int i = 0; i < appIds.length; i++) {
 				AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
+				if(appEntity == null)continue;
 				appName = appName + appEntity.getAlias() + (i < appIds.length - 1 ? "," : "" );
 			}
 		}
