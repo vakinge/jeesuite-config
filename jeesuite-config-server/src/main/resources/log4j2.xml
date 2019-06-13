@@ -24,7 +24,8 @@
 	</appenders>
 
 	<loggers>
-	    <logger name="com.jeesuite" level="debug" />
+	    <logger name="com.jeesuite.admin" level="debug" />
+	    <logger name="com.jeesuite.admin.dao" level="INFO" />
 		<root level="info">
 		    <appender-ref ref="Console" />
 			<!-- <appender-ref ref="LogFileAppender" />
