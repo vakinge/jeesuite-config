@@ -65,6 +65,10 @@ public class AuthController {
 					loginUserInfo.getPermissonData().put(entity.getEnv(), permCodes = new ArrayList<>());
 				}
 				permCodes.add(entity.toPermissionCode());
+				//
+				if(!loginUserInfo.getGrantAppIds().contains(entity.getAppId())){
+					loginUserInfo.getGrantAppIds().add(entity.getAppId());
+				}
 			}
 		}
 	

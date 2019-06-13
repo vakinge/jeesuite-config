@@ -2,8 +2,9 @@
 
 ### 分布式配置中心(Distributed configuration center)
 #### 为什么要造轮子？
-之前试用过几个开源的配置中心，各有弊端(或者是不满足我们的需求)、譬如部署复杂、不支持全局配置、不支持敏感配置加密，对springboot支持不友好等等。所以从2015年开始就有了这个项目。
-目前已经在生产环境多个公司生产环境稳定运行，欢迎点赞。
+之前试用过几个开源的配置中心(disconf、Apollo、diamond以及Spring Cloud Config)，各有弊端或者是不满足我们的需求(譬如部署复杂、功能太复杂、不支持全局配置、不支持敏感配置加密，对springboot支持不友好,界面不友好或者无界面等等)。所以从2016年开始有了一个初级版本，经过三年生产环境实际需求不断完善于是就有了这个开源项目。
+
+
 
 #### 实现功能
    1. 支持多环境、多版本配置管理
@@ -28,7 +29,7 @@ http://config.jeesuite.com/admin.html
 
 #### 关联项目
  - 基础库
-  - [http://git.oschina.net/vakinge/jeesuite-libs](http://git.oschina.net/vakinge/jeesuite-libs)
+  - [https://gitee.com/vakinge/jeesuite-libs](http://git.oschina.net/vakinge/jeesuite-libs)
   - [https://github.com/vakinge/jeesuite-libs](https://github.com/vakinge/jeesuite-libs)
   - 用户统一认证平台
   - [https://gitee.com/vakinge/jeesuite-passport](https://gitee.com/vakinge/jeesuite-passport)

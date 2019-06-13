@@ -34,6 +34,12 @@
       <foreach index="index" collection="envs" open="(" separator="," close=")">
 		 #{envs[${index}]}
 	  </foreach>
+      </if>
+      <if test="appIds != null">
+        AND 
+      <foreach index="index" collection="appIds" open="(" separator=" OR " close=")">
+		 find_in_set(#{appIds[${index}]},app_ids)
+	  </foreach>
       </if> 
       ORDER BY id
   </select>

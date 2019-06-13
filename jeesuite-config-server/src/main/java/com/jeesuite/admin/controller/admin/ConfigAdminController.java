@@ -102,6 +102,10 @@ public class ConfigAdminController {
 		}else{			
 			SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
 		}
+		
+       if(StringUtils.isNotBlank(addRequest.getName()) && appconfigMapper.findByName(addRequest.getName()) != null){
+    	   throw new JeesuiteBaseException(4001,"配置名称已经存在");
+       }
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));
@@ -163,29 +167,28 @@ public class ConfigAdminController {
 			@RequestParam(value="appId",required=false)Integer appId
 			){
 
-		Map<String, Object> queyParams = new HashMap<>();
-		if(appId != null){
-			queyParams.put("appId", appId);
-		}
-		if(StringUtils.isNotBlank(env)){
-			queyParams.put("env", env);
-		}else{
-			LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
-			List<String> grantedProfiles = loginUserInfo.getGrantedProfiles();
-			if(!loginUserInfo.isSuperAdmin() && grantedProfiles.isEmpty()){
+		Map<String, Object> queryParams = new HashMap<>();
+		
+		LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
+		if(!loginUserInfo.isSuperAdmin()){
+			if(loginUserInfo.getGrantedProfiles().isEmpty()){
 				return new PageResult<>(pageNo, pageSize, 0L, new ArrayList<>(0));
 			}
-			if(grantedProfiles.size() == 1){
-				queyParams.put("env", grantedProfiles.get(0));
-			}else if(grantedProfiles.size() > 1){				
-				queyParams.put("envs", grantedProfiles);
-			}
+			if(appId == null)queryParams.put("appIds", loginUserInfo.getGrantAppIds());
+			if(StringUtils.isBlank(env))queryParams.put("envs", loginUserInfo.getGrantedProfiles());
 		}
-
+		
+		if(appId != null){
+			queryParams.put("appId", appId);
+		}
+		if(StringUtils.isNotBlank(env)){
+			queryParams.put("env", env);
+		}
+		
 		Page<AppconfigEntity> page = PageExecutor.pagination(new PageParams(pageNo, pageSize), new PageDataLoader<AppconfigEntity>() {
 			@Override
 			public List<AppconfigEntity> load() {
-				return appconfigMapper.findByQueryParams(queyParams);
+				return appconfigMapper.findByQueryParams(queryParams);
 			}
 		});
 		

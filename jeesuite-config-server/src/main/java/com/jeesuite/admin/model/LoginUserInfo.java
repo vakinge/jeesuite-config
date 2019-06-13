@@ -14,6 +14,7 @@ public class LoginUserInfo {
 	private boolean superAdmin;
 	@JsonIgnore
 	private Map<String,List<String>> permissonData  = new HashMap<>();
+	private List<Integer> grantAppIds = new ArrayList<>();
 
 	public LoginUserInfo(String name) {
 		super();
@@ -46,6 +47,12 @@ public class LoginUserInfo {
 	}
 	public List<String> getGrantedProfiles() {
 		return new ArrayList<>(permissonData.keySet());
+	}
+	public List<Integer> getGrantAppIds() {
+		return grantAppIds;
+	}
+	public void setGrantAppIds(List<Integer> grantAppIds) {
+		this.grantAppIds = grantAppIds;
 	}
 	
 	

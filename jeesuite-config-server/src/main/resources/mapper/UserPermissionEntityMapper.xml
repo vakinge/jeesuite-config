@@ -11,4 +11,12 @@
     <result column="app_id" property="appId" jdbcType="INTEGER" />
     <result column="operate" property="operate" jdbcType="CHAR" />
   </resultMap>
+  
+  <select id="findByQueryParams" resultMap="BaseResultMap" parameterType="map">
+      SELECT * FROM user_permissions where user_id=#{userId}
+      <if test="env != null">  AND env = #{env}</if> 
+      <if test="appId != null">  AND app_id = #{appId}</if> 
+      <if test="operate != null">  AND operate = #{operate}</if> 
+  </select>
+  
 </mapper>
