@@ -45,7 +45,7 @@ public class ConfigcenterContext {
 	
 	public static final String MANAGER_PROPERTY_SOURCE = "configcenter";
 	
-	private static final String OVERRIDE_PLACEHOLER = "[Override]";
+	private static final String IGNORE_PLACEHOLER = "[Ignore]";
 	
 	private static final String CRYPT_PREFIX = "{Cipher}";
 
@@ -181,11 +181,12 @@ public class ConfigcenterContext {
 			for (Entry<Object, Object> entry : entrySet) {
 				//本地配置优先
 				if(isRemoteFirst() == false && properties.containsKey(entry.getKey())){
+					
 					logger.info("config[{}] exists in location,skip~",entry.getKey());
 					continue;
 				}
 				String value = entry.getValue().toString();
-				if(OVERRIDE_PLACEHOLER.equals(value))continue;
+				if(IGNORE_PLACEHOLER.contentEquals(value))continue;
 				properties.setProperty(entry.getKey().toString(), value);
 			}
 		}

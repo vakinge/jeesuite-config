@@ -18,7 +18,8 @@
      <div class="layui-form-item" id="div_global"> 
      <label class="layui-form-label">全局配置</label> 
      <div class="layui-input-block"> 
-      <input type="checkbox" name="global" value="true" lay-skin="switch" lay-text="是|否" /> 
+      <input type="radio" name="global" value="true" title="是" lay-filter="global">
+      <input type="radio" name="global" value="false" title="否" checked lay-filter="global">
      </div> 
     </div>  
     <div class="layui-form-item"> 
@@ -77,7 +78,7 @@
   <script type="text/javascript" src="../webjars/plugins/layui/layui.js"></script> 
   <script type="text/javascript" src="../webjars/js/jeesuitelayui.js?v20180420"></script>  
   <script type="text/javascript">
-    layui.use(['layer','upload'], function(){
+    layui.use(['layer','upload','form'], function(){
     	var $ = layui.jquery ,  layer = layui.layer ,upload = layui.upload;
     	var uploadInst = upload.render({
     	    elem: '#upload_file' //绑定元素
@@ -97,14 +98,14 @@
     	  });
       //
         if(top.currentUser.superAdmin){
-        	$("body").on('click',".layui-form-switch",function() {
-        		var $selected = $(this).hasClass('layui-form-onswitch');
-        		if ($selected) {
-        			$("#div_app_list").hide();
-        		} else {
-        			$("#div_app_list").show();
-        		}
-        	 });
+        	layui.form.on('radio(global)', function(data){
+        		  console.log(data.value); //被点击的radio的value值
+        		  if (data.value === 'true') {
+          			$("#div_app_list").hide();
+          		} else {
+          			$("#div_app_list").show();
+          		}
+        	}); 
         }else{
         	$('#div_global').hide();
         }

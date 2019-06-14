@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.IpUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.JeesuiteBaseException;
+import com.jeesuite.common.json.JsonUtils;
 import com.jeesuite.common.util.FormatValidateUtils;
 import com.jeesuite.spring.helper.EnvironmentHelper;
 
@@ -35,6 +38,8 @@ import com.jeesuite.spring.helper.EnvironmentHelper;
 @RequestMapping("/auth")
 public class AuthController {
 
+	private static Logger logger = LoggerFactory.getLogger("configcenter");
+	
 	private @Autowired UserEntityMapper userMapper;
 	private @Autowired  UserPermissionEntityMapper userPermissionMapper;
 
@@ -73,6 +78,7 @@ public class AuthController {
 		}
 	
 		request.getSession().setAttribute(Constants.LOGIN_SESSION_KEY, loginUserInfo);
+		logger.info(">>PermissonData:{}", JsonUtils.toJson(loginUserInfo.getPermissonData()));
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(loginUserInfo),HttpStatus.OK);
 	}
 	

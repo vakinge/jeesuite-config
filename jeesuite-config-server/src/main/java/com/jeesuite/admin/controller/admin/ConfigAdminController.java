@@ -83,6 +83,7 @@ public class ConfigAdminController {
 	}
 	
 	@RequestMapping(value = "add", method = RequestMethod.POST)
+	@Transactional
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
 		if(!addRequest.getGlobal() && addRequest.getAppIds() == null){
@@ -124,17 +125,18 @@ public class ConfigAdminController {
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 
+	@Transactional
 	@RequestMapping(value = "update", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> updateConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		if(addRequest.getId() == null || addRequest.getId() == 0){
 			throw new JeesuiteBaseException(1003, "id参数缺失");
 		}
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(addRequest.getId());
-		if(!addRequest.getGlobal() && addRequest.getAppIds() == null){
+		if(!entity.getGlobal() && addRequest.getAppIds() == null){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
 		
-		if(addRequest.getGlobal()){
+		if(entity.getGlobal()){
 			SecurityUtil.requireSuperAdmin();
 		}else{			
 			SecurityUtil.requireAllPermission(entity.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
