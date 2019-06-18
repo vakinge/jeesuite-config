@@ -23,6 +23,12 @@
       SELECT * FROM app_configs where env = #{env} AND version = #{version} AND enabled=1 AND (app_ids is null OR app_ids = '')
   </select>
   
+  <select id="findSameByName" resultMap="BaseResultMap" parameterType="map">
+      SELECT * FROM app_configs where enabled=1 AND env = #{env} AND name = #{name}
+      <if test="appId != null and appId !=''">  AND find_in_set(#{appId},app_ids)</if> 
+      LIMIT 1
+  </select>
+  
   <select id="findByQueryParams" resultMap="BaseResultMap" parameterType="map">
       SELECT * FROM app_configs where enabled=1
       <if test="env != null">  AND env = #{env}</if> 

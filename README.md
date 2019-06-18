@@ -9,7 +9,7 @@
 #### 实现功能
    1. 支持多环境、多版本配置管理
    1. 支持全局配置、多应用共享配置
-   2. 支持配置文件(xml,properties)、配置项、json配置支持
+   2. 支持配置文件(properties,yaml,xml)、配置项、json配置支持
    3. 支持加密配置(server自动加密，client自动解密)
    4. 支持spring、springboot无缝对接
    5. 支持环境+项目维度精细化权限(只读/读写)控制

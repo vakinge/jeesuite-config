@@ -56,6 +56,8 @@ public class ConfigAdminController {
 
 	final static Logger logger = LoggerFactory.getLogger("controller");
 	
+	private static List<String> allow_upload_suffix = new ArrayList<>(Arrays.asList("xml","properties","yml"));
+	
 	private @Autowired AppEntityMapper appMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
 	private @Autowired AppConfigsHistoryEntityMapper appconfigHisMapper;
@@ -66,6 +68,11 @@ public class ConfigAdminController {
 	
 	@RequestMapping(value = "upload", method = RequestMethod.POST)
 	public ResponseEntity<Object> uploadConfigFile(@RequestParam("file") MultipartFile file){
+		
+		String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1).toLowerCase();
+		if(!allow_upload_suffix.contains(suffix)){
+			throw new JeesuiteBaseException(9999, "支持上传文件类型:"+Arrays.toString(allow_upload_suffix.toArray()));
+		}
 		try {
 			Map<String, String> result = new HashMap<>();
 			result.put("fileName", file.getOriginalFilename());
@@ -104,9 +111,10 @@ public class ConfigAdminController {
 			SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
 		}
 		
-       if(StringUtils.isNotBlank(addRequest.getName()) && appconfigMapper.findByName(addRequest.getName()) != null){
-    	   throw new JeesuiteBaseException(4001,"配置名称已经存在");
-       }
+//       if(StringUtils.isNotBlank(addRequest.getName()) 
+//    		   && appconfigMapper.findSameByName(addRequest.getEnv(), appId, addRequest.getName()) != null){
+//    	   throw new JeesuiteBaseException(4001,"配置名称已经存在");
+//       }
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));

@@ -1,16 +1,19 @@
 package com.jeesuite.admin.util;
 
+import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.InputSource;
+import org.yaml.snakeyaml.Yaml;
 
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.common.JeesuiteBaseException;
@@ -30,6 +33,8 @@ public class ConfigParseUtils {
 		if(config.getType() == 1){
 			if(config.getName().toLowerCase().endsWith(".xml")){
 				parseDataFromXML(result,config.getContents());
+			}else if(config.getName().toLowerCase().endsWith(".yml") || config.getName().toLowerCase().endsWith(".yaml")){
+				parseDataFromYaml(result,config.getContents());
 			}else{				
 				parseFromProps(result, config.getContents());
 			}
@@ -93,7 +98,7 @@ public class ConfigParseUtils {
 		result.put(key, finalValue.toString());
 	}
 
-	public static void parseFromProps(Map<String, Object> result, String content) {
+	private static void parseFromProps(Map<String, Object> result, String content) {
 		String[] lines = content.split("\n");
 		for (String line : lines) {
 			if(StringUtils.isBlank(line) || line.startsWith("#") || line.indexOf("=") < 0)continue;
@@ -128,33 +133,45 @@ public class ConfigParseUtils {
             }
         } catch (Exception e) {
         	if(e instanceof  org.dom4j.DocumentException){
-        		throw new JeesuiteBaseException(500, "xml文件格式错误");
+        		throw new JeesuiteBaseException(500, "xml文件内容格式错误");
         	}
         	throw new RuntimeException(e);
         }
 	}
 	
-   public static void main(String[] args) throws Exception {
-		
-		Map<String, Object> result = new HashMap<>();
-		result.put("spring.cloud.client.ipAddress", "10.121.10.111");
-		result.put("spring.application.name", "demo");
-		result.put("server.port", "8002");
-		//
-		String key = "instance.id";
-		String value = "${spring.cloud.client.ipAddress}->${spring.application.name}:${server.port}";
-		result.put(key, value);
-		
-		setReplaceHolderRefValue(result, key, value); 
-		
-		System.out.println(result.get(key));
-		
-		key = "instance.id";
-		value = "127.0.0.1:${server.port}";
-		result.put(key, value);
-		
-		setReplaceHolderRefValue(result, key, value); 
-		
-		System.out.println(result.get(key));
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void parseDataFromYaml(Map<String, Object> result, String yamlContents) {
+		 Yaml yaml = new Yaml();
+		 try {			
+			 Map map = yaml.load(yamlContents);
+			 parseYamlInnerMap(null, result, map);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new JeesuiteBaseException(500, "文件内容格式错误");
+		}
 	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void parseYamlInnerMap(String keyPrefix,Map<String, Object> result,Map<String, Object> yamlData){
+		Object value;
+		String currentKey;
+		for (Object key : yamlData.keySet()) {
+			currentKey = keyPrefix == null ? key.toString() : keyPrefix + "." + key.toString();
+			value = yamlData.get(key);
+			if(value instanceof Map){
+				parseYamlInnerMap(currentKey, result, (Map)value);
+			}else{
+				result.put(currentKey, value);
+			}
+		}
+		
+	}
+	
+   public static void main(String[] args) throws Exception {
+	   String content = FileUtils.readFileToString(new File("/Users/jiangwei/tikv-docker-compose.yml"));
+	   Map<String, Object> result = new HashMap<>();
+	   parseDataFromYaml(result, content);
+	   
+	   System.out.println(JsonUtils.toPrettyJson(result));
+   }
 }
