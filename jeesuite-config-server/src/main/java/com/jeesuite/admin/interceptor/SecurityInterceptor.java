@@ -15,6 +15,7 @@ import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.util.IpUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.admin.util.WebUtils;
+import com.jeesuite.common.util.WhoUseMeReporter;
 import com.jeesuite.spring.helper.EnvironmentHelper;
 
 public class SecurityInterceptor implements HandlerInterceptor {
@@ -63,6 +64,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
 		}
 		
 		LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
+		WhoUseMeReporter.post(request.getServerName(), "configcenter");
 		if(loginUserInfo == null){
 			if(WebUtils.isAjax(request)){
 				WebUtils.responseOutWithJson(response,notloginRspJson);

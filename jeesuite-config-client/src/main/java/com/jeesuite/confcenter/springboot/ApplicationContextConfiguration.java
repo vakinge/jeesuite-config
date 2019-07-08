@@ -16,10 +16,12 @@
 package com.jeesuite.confcenter.springboot;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
 
+import com.jeesuite.confcenter.ConfigcenterContext;
 import com.jeesuite.spring.InstanceFactory;
 import com.jeesuite.spring.SpringInstanceProvider;
 
@@ -29,11 +31,16 @@ import com.jeesuite.spring.SpringInstanceProvider;
  * @date 2018年12月20日
  */
 @Configuration
-public class ApplicationContextConfiguration implements ApplicationContextAware{
+public class ApplicationContextConfiguration implements ApplicationContextAware,DisposableBean{
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		InstanceFactory.setInstanceProvider(new SpringInstanceProvider(applicationContext));
+	}
+	
+	@Override
+	public void destroy() throws Exception {
+		ConfigcenterContext.getInstance().close();
 	}
 
 }

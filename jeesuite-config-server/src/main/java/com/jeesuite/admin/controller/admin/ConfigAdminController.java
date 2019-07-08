@@ -56,7 +56,7 @@ public class ConfigAdminController {
 
 	final static Logger logger = LoggerFactory.getLogger("controller");
 	
-	private static List<String> allow_upload_suffix = new ArrayList<>(Arrays.asList("xml","properties","yml"));
+	private static List<String> allow_upload_suffix = new ArrayList<>(Arrays.asList("xml","properties","yml","yaml"));
 	
 	private @Autowired AppEntityMapper appMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;

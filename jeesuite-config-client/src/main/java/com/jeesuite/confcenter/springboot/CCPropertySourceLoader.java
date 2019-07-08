@@ -8,7 +8,6 @@ import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.env.PropertySourceLoader;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -17,7 +16,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import com.jeesuite.confcenter.ConfigcenterContext;
 
-public class CCPropertySourceLoader implements PropertySourceLoader, DisposableBean {
+public class CCPropertySourceLoader implements PropertySourceLoader {
 
 	private final static Logger logger = LoggerFactory.getLogger("com.jeesuite");
 
@@ -26,7 +25,7 @@ public class CCPropertySourceLoader implements PropertySourceLoader, DisposableB
 
 	@Override
 	public String[] getFileExtensions() {
-		return new String[] { "properties" };
+		return new String[] { "properties","yml","yaml" };
 	}
 
 	public PropertySource<?> load(String name, Resource resource, String profile) throws IOException {
@@ -70,11 +69,6 @@ public class CCPropertySourceLoader implements PropertySourceLoader, DisposableB
 		}
 		
 		return new ArrayList<>();
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		ccContext.close();
 	}
 
 }
