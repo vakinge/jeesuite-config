@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.env.PropertySourceLoader;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
@@ -16,7 +17,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import com.jeesuite.confcenter.ConfigcenterContext;
 
-public class CCPropertySourceLoader implements PropertySourceLoader {
+public class CCPropertySourceLoader implements PropertySourceLoader, Ordered{
 
 	private final static Logger logger = LoggerFactory.getLogger("com.jeesuite");
 
@@ -69,6 +70,11 @@ public class CCPropertySourceLoader implements PropertySourceLoader {
 		}
 		
 		return new ArrayList<>();
+	}
+
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE + 11;
 	}
 
 }
