@@ -196,11 +196,11 @@ public class ConfigcenterContext {
 		for (Entry<Object, Object> entry : entrySet) {
 			String key = entry.getKey().toString();
 			String value = entry.getValue().toString();
-			if(value.contains(PLACEHOLDER_PREFIX)){
-				value = setReplaceHolderRefValue(properties,key,value);
-				properties.setProperty(key, value);
-			}
+			
 			ResourceUtils.add(key, value);
+			if(value.contains(PLACEHOLDER_PREFIX)){
+				properties.setProperty(key, ResourceUtils.getProperty(key));
+			}
 		}
 	}
 	
@@ -405,66 +405,6 @@ public class ConfigcenterContext {
 		configChangeListener.unRegister();
 	}
 	
-    private String setReplaceHolderRefValue(Properties properties, String key, String value) {
-		
-    	String[] segments = value.split("\\$\\{");
-		String seg;
-		
-		StringBuilder finalValue = new StringBuilder();
-		for (int i = 0; i < segments.length; i++) {
-			seg = StringUtils.trimToNull(segments[i]);
-			if(StringUtils.isBlank(seg))continue;
-			
-			if(seg.contains(PLACEHOLDER_SUFFIX)){	
-				String refKey = seg.substring(0, seg.indexOf(PLACEHOLDER_SUFFIX)).trim();
-				//其他非${}的占位符如：{{host}}
-				String withBraceString = null;
-				if(seg.contains("{")){
-					withBraceString = seg.substring(seg.indexOf(PLACEHOLDER_SUFFIX)+1);
-				}
-				
-				//如果包含默认值，如：${host:127.0.0.1}
-				String orginKey = refKey;
-				if(refKey.contains(":")){
-					refKey = refKey.split(":")[0];
-				}
-				
-				String refValue = properties.getProperty(refKey);
-				
-				//
-				if(StringUtils.isNotBlank(refValue) && refValue.contains(PLACEHOLDER_PREFIX)){
-					//TODO 避免多层嵌套死循环
-					//refValue = setReplaceHolderRefValue(properties, refKey, refValue);
-					String subRefKey = refValue.replace(PLACEHOLDER_PREFIX, "").replace(PLACEHOLDER_SUFFIX, "");
-					refValue = properties.getProperty(subRefKey);
-				}
-				
-				if(StringUtils.isBlank(refValue)){
-					refValue = System.getProperty(refKey);
-				}
-				if(StringUtils.isBlank(refValue)){
-					refValue = PLACEHOLDER_PREFIX + orginKey + PLACEHOLDER_SUFFIX;
-				}
-				finalValue.append(refValue);
-				
-				if(withBraceString != null){
-					finalValue.append(withBraceString);
-				}else{
-					String[] segments2 = seg.split("\\}");
-					if(segments2.length == 2){
-						finalValue.append(segments2[1]);
-					}
-				}
-			}else{
-				finalValue.append(seg);
-			}
-		}
-		
-		properties.put(key, finalValue.toString());
-		
-		return finalValue.toString();
-	}
-
 	private Object decodeEncryptIfRequire(Object data) {
 		if (data.toString().startsWith(CRYPT_PREFIX)) {
 			Validate.notBlank(secret,"config[jeesuite.configcenter.encrypt-secret] is required");
