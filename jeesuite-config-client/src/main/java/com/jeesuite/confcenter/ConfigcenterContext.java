@@ -31,8 +31,7 @@ import com.jeesuite.common.json.JsonUtils;
 import com.jeesuite.common.util.DigestUtils;
 import com.jeesuite.common.util.NodeNameHolder;
 import com.jeesuite.common.util.ResourceUtils;
-import com.jeesuite.confcenter.listener.HttpConfigChangeListener;
-import com.jeesuite.confcenter.listener.ZkConfigChangeListener;
+import com.jeesuite.common.util.TokenGenerator;
 import com.jeesuite.spring.InstanceFactory;
 import com.jeesuite.spring.helper.EnvironmentHelper;
 
@@ -48,9 +47,6 @@ public class ConfigcenterContext {
 	private static final String IGNORE_PLACEHOLER = "[Ignore]";
 	
 	private static final String CRYPT_PREFIX = "{Cipher}";
-
-	private static final String PLACEHOLDER_PREFIX = "${";
-	private static final String PLACEHOLDER_SUFFIX = "}";
 	
 	private Boolean remoteEnabled;
 
@@ -61,10 +57,12 @@ public class ConfigcenterContext {
 	private String version;
 	private String secret;
 	private String globalSecret;
+	private String tokenCryptKey;
 	private boolean remoteFirst = false;
+	private String zkSyncServers;
 	private boolean isSpringboot;
-	private int syncIntervalSeconds = 90;
-	private ConfigChangeListener configChangeListener;
+	private int syncIntervalSeconds = 15;
+	private InternalConfigChangeListener configChangeListener;
 	
 	private List<ConfigChangeHanlder> configChangeHanlders;
 	
@@ -85,21 +83,23 @@ public class ConfigcenterContext {
 		System.setProperty("client.nodeId", nodeId);
 		System.setProperty("springboot", String.valueOf(isSpringboot));
 		this.isSpringboot = isSpringboot;
-		String defaultAppName = getValue("spring.application.name");
-		app = getValue("jeesuite.configcenter.appName",defaultAppName);
-		if(remoteEnabled == null)remoteEnabled = Boolean.parseBoolean(getValue("jeesuite.configcenter.enabled","true"));
+		String defaultAppName = ResourceUtils.getProperty("spring.application.name");
+		app = ResourceUtils.getProperty("jeesuite.configcenter.appName",defaultAppName);
+		if(remoteEnabled == null)remoteEnabled = ResourceUtils.getBoolean("jeesuite.configcenter.enabled",true);
 		
 		if(!remoteEnabled)return;
 		
-		env = getValue("jeesuite.configcenter.profile","dev");
+		env = ResourceUtils.getProperty("jeesuite.configcenter.profile","dev");
 		
 		Validate.notBlank(env,"[jeesuite.configcenter.profile] is required");
 		
-		setApiBaseUrl(getValue("jeesuite.configcenter.base.url"));
+		setApiBaseUrl(ResourceUtils.getProperty("jeesuite.configcenter.base.url"));
 		
-		version = getValue("jeesuite.configcenter.version","0.0.0");
+		version = ResourceUtils.getProperty("jeesuite.configcenter.version","0.0.0");
 		
-		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 90);
+		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 15);
+		
+		tokenCryptKey = ResourceUtils.getProperty("jeesuite.configcenter.cryptKey");
 		
 		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,remoteEnabled,JsonUtils.toJson(apiBaseUrls)));
 		status = ConfigStatus.INITED; 
@@ -197,10 +197,11 @@ public class ConfigcenterContext {
 			String key = entry.getKey().toString();
 			String value = entry.getValue().toString();
 			
-			ResourceUtils.add(key, value);
-			if(value.contains(PLACEHOLDER_PREFIX)){
-				properties.setProperty(key, ResourceUtils.getProperty(key));
+			if(value.contains(ResourceUtils.PLACEHOLDER_PREFIX)){
+				value = ResourceUtils.replaceRefValue(properties, value);
+				properties.setProperty(key, value);
 			}
+			ResourceUtils.add(key, value);
 		}
 	}
 	
@@ -219,6 +220,7 @@ public class ConfigcenterContext {
 		secret =  Objects.toString(map.remove("jeesuite.configcenter.encrypt-secret"),null);
 		globalSecret = Objects.toString(map.remove("jeesuite.configcenter.global-encrypt-secret"),null);
 		remoteFirst = Boolean.parseBoolean(Objects.toString(map.remove("jeesuite.configcenter.remote-config-first"),"false"));
+		zkSyncServers = Objects.toString(map.remove("jeesuite.configcenter.sync-zk-servers"),null);
 		properties.putAll(map);
 		properties.clear();
 		
@@ -238,7 +240,7 @@ public class ConfigcenterContext {
 		Map<String,Object> result = null;
 		String errorMsg = null;
         for (String apiBaseUrl : apiBaseUrls) {
-        	String url = String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s", apiBaseUrl,app,env,version);
+        	String url = buildTokenParameter(String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s", apiBaseUrl,app,env,version));
     		System.out.println("fetch configs url:" + url);
     		String jsonString = null;
     		try {
@@ -248,7 +250,7 @@ public class ConfigcenterContext {
         			result = JsonUtils.toObject(jsonString, Map.class);
         			if(result.containsKey("code")){
         				errorMsg = result.get("msg").toString();
-        				System.out.println("fetch error:"+errorMsg);
+        				System.err.println("fetch error:"+errorMsg);
         				result = null;
         			}else{
         				break;
@@ -260,6 +262,7 @@ public class ConfigcenterContext {
 		}
         //
         if(result == null){
+        	System.out.println(">>>>>remote Config fecth error, load from local Cache");
         	result = LocalCacheUtils.read();
         }else{
         	LocalCacheUtils.write(result);
@@ -272,7 +275,6 @@ public class ConfigcenterContext {
 		if(!remoteEnabled)return;
 		if(status.equals(ConfigStatus.INITED))return;
 		
-		String syncType = properties.getProperty("jeesuite.configcenter.sync-type");
 		List<String> sortKeys = new ArrayList<>();
 		Map<String, String> params = new  HashMap<>();
 		
@@ -282,7 +284,6 @@ public class ConfigcenterContext {
 		params.put("version", version);
 		params.put("springboot", String.valueOf(isSpringboot));
 		params.put("syncIntervalSeconds", String.valueOf(syncIntervalSeconds));
-		params.put("syncType", syncType);
 		String serverPort = ServerEnvUtils.getServerPort();
 	    if(StringUtils.isNumeric(serverPort)){	    	
 	    	params.put("serverport", serverPort);
@@ -305,7 +306,8 @@ public class ConfigcenterContext {
 			}
 			System.out.println("==================final config list end====================");
 			//register listener
-			registerListener(syncType);
+			configChangeListener = new InternalConfigChangeListener(zkSyncServers);
+			params.put("syncType", configChangeListener.getSyncType());
 		}else{
 			String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
 			if(StringUtils.isNotBlank(serverip)){
@@ -314,7 +316,7 @@ public class ConfigcenterContext {
 		}
 		
 		for (String apiBaseUrl : apiBaseUrls) {			
-			String url = apiBaseUrl + "/api/notify_final_config";
+			String url = buildTokenParameter(apiBaseUrl + "/api/notify_final_config");
 			logger.info("syncConfigToServer,url:" + url);
 			HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
 			if(responseEntity.isSuccessed()){
@@ -327,16 +329,6 @@ public class ConfigcenterContext {
 		status = ConfigStatus.UPLOAED; 
 	}
 
-	private void registerListener(String syncType) {
-		if("zookeeper".equals(syncType)){
-			String zkServers = getValue("jeesuite.configcenter.sync-zk-servers");
-			Validate.notBlank(zkServers,"config[jeesuite.configcenter.sync-zk-servers] is required for syncType [zookeepr]");
-			configChangeListener = new ZkConfigChangeListener(zkServers);
-		}else{
-			configChangeListener = new HttpConfigChangeListener();
-		}
-		configChangeListener.register(this);
-	}
 	
 	public synchronized void updateConfig(Map<String, Object> updateConfig){
 		if(!updateConfig.isEmpty()){
@@ -401,8 +393,13 @@ public class ConfigcenterContext {
 		return result;
 	}
 	
+	public String buildTokenParameter(String url){
+		if(tokenCryptKey == null)return url;
+		return url + (url.contains("?") ? "&" : "?") + "authtoken=" + TokenGenerator.generateWithSign("jeesuite.configcenter");
+	}
+	
 	public void close(){
-		configChangeListener.unRegister();
+		configChangeListener.close();
 	}
 	
 	private Object decodeEncryptIfRequire(Object data) {
@@ -426,6 +423,7 @@ public class ConfigcenterContext {
 			byte[] bytes = AES.decrypt(Base64.decode(data.getBytes(StandardCharsets.UTF_8)),  secretKey.getBytes(StandardCharsets.UTF_8));
 			return  new String(bytes, StandardCharsets.UTF_8);
 		} catch (Exception e) {
+			System.err.println(String.format("解密错误:%s",data));
 			throw new RuntimeException(e);
 		}
 	}
@@ -441,21 +439,5 @@ public class ConfigcenterContext {
 		if(is && length > 1)return orign.substring(0, length/2).concat("****");
 		return orign;
 	}
-	
-	private String getValue(String key){
-		return getValue(key,null);
-	}
-	private String getValue(String key,String defVal){
-		//jvm 启动参数优先
-		String value = System.getProperty(key);
-		if(StringUtils.isNotBlank(value))return value;
-		value = StringUtils.trimToNull(ResourceUtils.getProperty(key,defVal));
-		if(StringUtils.isNotBlank(value)){	
-			if(value.startsWith(PLACEHOLDER_PREFIX)){
-				String refKey = value.substring(2, value.length() - 1).trim();
-				value = ResourceUtils.getProperty(refKey);
-			}
-		}
-		return value;
-	}
+
 }

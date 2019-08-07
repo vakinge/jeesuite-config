@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.jeesuite.admin.component.ConfigStateHolder;
 import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
 import com.jeesuite.admin.component.CryptComponent;
+import com.jeesuite.admin.component.ProfileZkClient;
 import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
@@ -36,6 +37,7 @@ public class ConfigCenterApiController {
 	private @Autowired AppEntityMapper appMapper;
 	private @Autowired CryptComponent cryptComponent;
 	private @Autowired ConfigStateHolder configStateHolder;
+	private @Autowired ProfileZkClient profileZkClient;
 	
 	@RequestMapping(value = "fetch_all_configs", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> fetchConfigs(  @RequestParam(value = "appName") String appName,
@@ -72,6 +74,13 @@ public class ConfigCenterApiController {
         	ConfigParseUtils.parseConfigToKVMap(result, config);
 		}
         result.put("jeesuite.configcenter.encrypt-secret", cryptComponent.getCryptKey(appEntity.getId(), env));
+        
+        //
+        String zkServers = profileZkClient.getZkServer(env);
+        if(zkServers != null){
+        	result.put("jeesuite.configcenter.sync-zk-servers",zkServers);
+        }
+        
 		return result;
 	}
 	

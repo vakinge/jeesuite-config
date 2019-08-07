@@ -12,13 +12,9 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.ZkConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,61 +22,56 @@ import com.jeesuite.common.json.JsonUtils;
 import com.jeesuite.common.util.DateUtils;
 
 @Component
-public class ConfigStateHolder implements InitializingBean{
+public class ConfigStateHolder {
 	
 	private static final String NOTIFY_UPLOAD_CMD = "upload";
 
 	private static Logger logger = LoggerFactory.getLogger("configcenter");
 	
 	private final static String ZK_ROOT_PATH = "/confcenter";
-	public static final String SYNC_TYPE_ZK = "zookeeper";
+	public static final String SYNC_TYPE_HTTP = "http";
 	
-	private @Autowired Environment environment;
+	private static ProfileZkClient profileZkClient;
 	
 	private static Map<String, List<ConfigState>> configStates = new ConcurrentHashMap<>();
-	
-	private static ZkClient zkClient;
 
-	public void afterPropertiesSet() throws Exception {
-		try {
-			String zkServers = environment.getProperty("config.sync.zkServers");
-			if(StringUtils.isNotBlank(zkServers)){				
-				ZkConnection zkConnection = new ZkConnection(zkServers);
-				zkClient = new ZkClient(zkConnection, 3000);
-				logger.info("config_sync_zookeeper {} init finish",zkServers);
-				
-				syncConfigIfMiss();
-				
-			}
-		} catch (Exception e) {
-			zkClient = null;
-			logger.error("init config_sync_zookeeper error",e);
-		}
+	public static void setProfileZkClient(ProfileZkClient profileZkClient) {
+		ConfigStateHolder.profileZkClient = profileZkClient;
+		Map<String, ZkClient> clients = profileZkClient.getClients();
+		clients.forEach((k,v) -> {
+			syncConfigIfMiss(k, v);
+		});
+	}
+
+
+	private static ZkClient getZkClient(String profile){
+		return profileZkClient.getClient(profile);
 	}
 	
-	private void syncConfigIfMiss(){
+	
+	private static void syncConfigIfMiss(String profile,ZkClient zkClient){
+	
 		if(!zkClient.exists(ZK_ROOT_PATH)){
+			zkClient.createPersistent(ZK_ROOT_PATH, true);
 			return;
 		}
 		
-		List<String> envs = zkClient.getChildren(ZK_ROOT_PATH);
-		
-		String parentPath;
-		List<String> apps;
-		for (String env : envs) {
-			parentPath = ZK_ROOT_PATH + "/" + env;
-			apps = zkClient.getChildren(parentPath);
-			for (String app : apps) {
-				parentPath = ZK_ROOT_PATH + "/" + env + "/" + app + "/nodes";
-				
-				int activeNodeCount = zkClient.countChildren(parentPath);
-				if(activeNodeCount == 0)continue;
-				List<ConfigState> localCacheConfigs = configStates.get(app + "#" + env);
-				
-				if(activeNodeCount > 0 && (localCacheConfigs == null || localCacheConfigs.size() < activeNodeCount)){
-					zkClient.writeData(parentPath, NOTIFY_UPLOAD_CMD);
-					logger.info("send cmd[{}] on path[{}]",NOTIFY_UPLOAD_CMD,parentPath);
-				}
+		String parentPath = ZK_ROOT_PATH + "/" + profile;
+		if(!zkClient.exists(parentPath)){
+			zkClient.createPersistent(parentPath, true);
+			return;
+		}
+		List<String> apps = zkClient.getChildren(parentPath);
+		for (String app : apps) {
+			parentPath = ZK_ROOT_PATH + "/" + profile + "/" + app + "/nodes";
+			
+			int activeNodeCount = zkClient.countChildren(parentPath);
+			if(activeNodeCount == 0)continue;
+			List<ConfigState> localCacheConfigs = configStates.get(app + "#" + profile);
+			
+			if(activeNodeCount > 0 && (localCacheConfigs == null || localCacheConfigs.size() < activeNodeCount)){
+				zkClient.writeData(parentPath, NOTIFY_UPLOAD_CMD);
+				logger.info("send cmd[{}] on path[{}]",NOTIFY_UPLOAD_CMD,parentPath);
 			}
 		}
 	}
@@ -108,7 +99,8 @@ public class ConfigStateHolder implements InitializingBean{
 		for (String key : keys) {
 			if(key.endsWith(env)){
 				//
-				clearExpireNodes(key);
+				String[] strings = StringUtils.split(key, "#");
+				clearExpireNodes(strings[0],strings[1]);
 				List<ConfigState> list = configStates.get(key);
 				result.addAll(list);
 			}
@@ -121,16 +113,16 @@ public class ConfigStateHolder implements InitializingBean{
 		return clist == null ? new ArrayList<>() : clist;
 	}
 	
-	private static void clearExpireNodes(String appNameAnaEnvKey){
+	private static void clearExpireNodes(String appName,String profile){
 		try {
-			List<ConfigState> sameAppNodes = configStates.get(appNameAnaEnvKey);
+			List<ConfigState> sameAppNodes = configStates.get(appName + "#" + profile);
 			if(sameAppNodes == null || sameAppNodes.isEmpty())return;
 			String syncType = sameAppNodes.get(0).syncType;
 			String zkPath = sameAppNodes.get(0).zkPath;
 			
 			Date nowTime = new Date();
-			if(SYNC_TYPE_ZK.equals(syncType)){
-				List<String> activeNodes = zkClient.getChildren(zkPath);
+			if(!SYNC_TYPE_HTTP.equals(syncType)){
+				List<String> activeNodes = getZkClient(profile).getChildren(zkPath);
 				if(activeNodes == null)return;
 				if(activeNodes.isEmpty()){
 					sameAppNodes.clear();
@@ -158,7 +150,7 @@ public class ConfigStateHolder implements InitializingBean{
 				}
 			}
 		} catch (Exception e) {
-			logger.error("clearExpireNodes:"+ appNameAnaEnvKey,e);
+			logger.error("clearExpireNodes_error",e);
 		}
 	}
 
@@ -171,10 +163,11 @@ public class ConfigStateHolder implements InitializingBean{
 		private boolean springboot;
 		private String serverip;
 		private int serverport;
-		private int syncIntervalSeconds = 90;
-		private String syncType = "http";
+		private int syncIntervalSeconds = 15;
+		private String syncType;
 		private Date syncTime = new Date();
 		private String zkPath;
+		private boolean existWaitSyncConfig = false;
 		
 		@JsonIgnore
 		private Map<String, String> configs = new TreeMap<>();
@@ -205,15 +198,10 @@ public class ConfigStateHolder implements InitializingBean{
 			
 			zkPath = ZK_ROOT_PATH + "/" + env + "/" + appName + "/nodes";
 			
-			if(SYNC_TYPE_ZK.equals(syncType)){
-				if(zkClient == null){
-					logger.warn("Zookeeper client not init,skip");
-					return ;
-				}
-				
-				if(!zkClient.exists(zkPath))return;
+			if(!SYNC_TYPE_HTTP.equals(syncType)){
+				if(getZkClient(env) == null || !getZkClient(env).exists(zkPath))return;
 				//
-				clearExpireNodes(appName + "#" + env);
+				clearExpireNodes(appName , env);
 				
 				logger.info("int ConfigState ok");
 			}
@@ -224,12 +212,15 @@ public class ConfigStateHolder implements InitializingBean{
 				serverip = datas.get("serverip");
 			}
 			syncTime = new Date();
-			//清理失效节点
-			//clearExpireNodes(appName + "#" + env);
 		}
 		
 		public void onConfigSyncSuccess(){
 			if(waitingSyncConfigs.isEmpty())return;
+			this.existWaitSyncConfig = false;
+			List<ConfigState> list = configStates.get(appName + "#" + env);
+			for (ConfigState configState : list) {
+				if(configState.existWaitSyncConfig)return;
+			}
 			configs.putAll(waitingSyncConfigs);
 			waitingSyncConfigs.clear();
 		}
@@ -308,17 +299,18 @@ public class ConfigStateHolder implements InitializingBean{
 
 		public void publishChangeConfig(Map<String, String> changeConfigs){
 			if(changeConfigs.isEmpty())return;
-			if(SYNC_TYPE_ZK.equals(syncType)){
-				if(zkClient == null){
-					logger.warn("Zookeeper client not init,skip");
-					return ;
-				}
+			if(!SYNC_TYPE_HTTP.equals(syncType)){
+				ZkClient zkClient = getZkClient(env);
 				if(zkClient.countChildren(zkPath) == 0){
 					return;
 				}
 				zkClient.writeData(zkPath, JsonUtils.toJson(changeConfigs));
 			}else{
 				waitingSyncConfigs.putAll(changeConfigs);
+				List<ConfigState> list = configStates.get(appName + "#" + env);
+				for (ConfigState configState : list) {
+					configState.existWaitSyncConfig = true;
+				}
 			}
 		}
 
@@ -352,8 +344,6 @@ public class ConfigStateHolder implements InitializingBean{
 			}
 			return true;
 		}
-
-		
 	}
 
 	

@@ -295,7 +295,7 @@ public class ConfigAdminController {
 					}
 				}
 				String publishedKey = configState.getEnv() + ":" + configState.getAppName();
-				if(ConfigStateHolder.SYNC_TYPE_ZK.equals(configState.getSyncType()) == false 
+				if(ConfigStateHolder.SYNC_TYPE_HTTP.equals(configState.getSyncType()) 
 						|| publishList.contains(publishedKey) == false){				
 					configState.publishChangeConfig(changedMap);
 					publishList.add(publishedKey);

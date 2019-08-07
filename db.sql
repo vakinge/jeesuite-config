@@ -10,6 +10,15 @@ CREATE TABLE `profiles` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `profile_extr_attrs`;
+CREATE TABLE `profile_extr_attrs` (
+  `profile` varchar(32) NOT NULL,
+  `attr_name` varchar(50) NOT NULL,
+  `attr_value` varchar(100) NOT NULL,
+  PRIMARY KEY (`profile`,`attr_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 -- ----------------------------
 --  Table structure for `app_configs`
 -- ----------------------------
