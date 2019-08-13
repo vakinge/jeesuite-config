@@ -122,14 +122,11 @@ public class ConfigAdminController {
 		entity.setCreatedAt(new Date());
 		entity.setUpdatedAt(entity.getCreatedAt());
 		entity.setUpdatedBy(entity.getCreatedBy());
+		
+		encryptPropItemIfRequired(entity);
 		//
 		appconfigMapper.insertSelective(entity);
-		
-		if(encryptPropItemIfRequired(entity)){
-			appconfigMapper.updateByPrimaryKey(entity);
-		}
-		
-		
+
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 
@@ -317,8 +314,9 @@ public class ConfigAdminController {
 		for (String key : props.keySet()) {
 			value = props.get(key).toString();
 			if(!value.startsWith(CryptComponent.cryptPrefix))continue;
-			if(cryptComponent.isEncrpted(entity.getGlobal() ? 0 : entity.getId(), entity.getEnv(), value))continue;
-			encryptValue = cryptComponent.encrypt(entity.getGlobal() ? 0 : entity.getId(), entity.getEnv(), value);
+			int appId = (entity.getGlobal() || !StringUtils.isNumeric(entity.getAppIds())) ? 0 : Integer.parseInt(entity.getAppIds());
+			if(cryptComponent.isEncrpted(appId, entity.getEnv(), value))continue;
+			encryptValue = cryptComponent.encrypt(appId, entity.getEnv(), value);
 			content = StringUtils.replace(content, value, encryptValue);
 			needCrypt = true;
 		}
