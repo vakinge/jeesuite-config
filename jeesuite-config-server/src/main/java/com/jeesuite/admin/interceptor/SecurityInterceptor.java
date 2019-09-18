@@ -12,11 +12,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.jeesuite.admin.model.LoginUserInfo;
-import com.jeesuite.admin.util.IpUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.admin.util.WebUtils;
 import com.jeesuite.common.util.WhoUseMeReporter;
 import com.jeesuite.spring.helper.EnvironmentHelper;
+import com.jeesuite.springweb.utils.IpUtils;
 
 public class SecurityInterceptor implements HandlerInterceptor {
 

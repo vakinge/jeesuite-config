@@ -27,12 +27,12 @@ import com.jeesuite.admin.interceptor.SecurityInterceptor;
 import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.WrapperResponseEntity;
-import com.jeesuite.admin.util.IpUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.json.JsonUtils;
 import com.jeesuite.common.util.FormatValidateUtils;
 import com.jeesuite.spring.helper.EnvironmentHelper;
+import com.jeesuite.springweb.utils.IpUtils;
 
 @Controller
 @RequestMapping("/auth")

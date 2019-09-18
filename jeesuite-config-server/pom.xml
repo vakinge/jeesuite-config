@@ -91,6 +91,12 @@
 			<artifactId>jeesuite-mybatis</artifactId>
 			<version>${jeesuite.libs.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.jeesuite</groupId>
+			<artifactId>jeesuite-springweb</artifactId>
+			<version>${jeesuite.libs.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>commons-logging</groupId>
