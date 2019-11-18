@@ -40,7 +40,7 @@ public class CCPropertySourceLoader implements PropertySourceLoader, Ordered{
 				logger.info("spring.profiles.active = " + profiles + ",ignore load remote config");
 			}
 			// 如果指定了profile，则也不加载远程配置
-			if (profiles == null && ccContext.getStatus() == null) {
+			if (profiles == null && !ccContext.isProcessed()) {
 				ccContext.init(properties, true);
 				ccContext.mergeRemoteProperties(properties);
 				ccContext.syncConfigToServer(properties, true);
@@ -61,7 +61,7 @@ public class CCPropertySourceLoader implements PropertySourceLoader, Ordered{
 			logger.info("spring.profiles.active = " + profiles + ",ignore load remote config");
 		}
 		// 如果指定了profile，则也不加载远程配置
-		if (profiles == null && ccContext.getStatus() == null) {
+		if (profiles == null && !ccContext.isProcessed()) {
 			ccContext.init(properties, true);
 			ccContext.mergeRemoteProperties(properties);
 			ccContext.syncConfigToServer(properties, true);

@@ -4,9 +4,10 @@
 	<parent>
 		<groupId>com.jeesuite</groupId>
 		<artifactId>jeesuite-config</artifactId>
-		<version>1.3.4-SNAPSHOT</version>
+		<version>1.3.5</version>
 	</parent>
 	<artifactId>jeesuite-config-client</artifactId>
+	<version>1.3.5</version>
 	<dependencies>
 		<dependency>
 			<groupId>com.jeesuite</groupId>

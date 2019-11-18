@@ -5,14 +5,10 @@ package com.jeesuite.confcenter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.I0Itec.zkclient.IZkDataListener;
-import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.ZkConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,21 +33,18 @@ public class InternalConfigChangeListener {
 	private final static Logger logger = LoggerFactory.getLogger("com.jeesuite.confcenter");
 
 	private final static String ROOT_PATH = "/confcenter";
-	private static final String NOTIFY_UPLOAD_CMD = "upload";
 	private ScheduledExecutorService hbScheduledExecutor;
-	private ZkClient zkClient;
+	private ZkClientProxy zkClient;
 	
 	private String syncType;
 
 	public InternalConfigChangeListener(String zkServers) {
-		if(StringUtils.isNotBlank(zkServers)){
-			ZkConnection zkConnection = new ZkConnection(zkServers);
-			try {			
-				zkClient = new ZkClient(zkConnection, 5000);
-			} catch (Exception e) {
-				logger.warn("register_ZkConfigChangeListener_error",e);
+		try {
+			Class.forName("org.I0Itec.zkclient.ZkClient");
+			if(StringUtils.isNotBlank(zkServers)){				
+				zkClient = new ZkClientProxy(zkServers, 5000);
 			}
-		}
+		} catch (ClassNotFoundException e) {}
 		
 		ConfigcenterContext context = ConfigcenterContext.getInstance();
 		if(zkClient != null){
@@ -61,6 +54,7 @@ public class InternalConfigChangeListener {
 			resisterHttpListener(context);
 			syncType = "http";
 		}
+		logger.info("register ConfigChangeListener OK ,type:{}",syncType);
 	}
 	
 	/**
@@ -138,30 +132,8 @@ public class InternalConfigChangeListener {
 		}
 		//创建node节点
 		zkClient.createEphemeral(appNodePath);
+		zkClient.subscribeDataChanges(context, appNodePath);
 		
-		zkClient.subscribeDataChanges(appParentPath, new IZkDataListener() {
-			@Override
-			public void handleDataDeleted(String arg0) throws Exception {}
-			
-			@Override
-			public void handleDataChange(String path, Object data) throws Exception {
-				if(data == null || StringUtils.isBlank(data.toString()))return;
-				if(NOTIFY_UPLOAD_CMD.equals(data)){
-					logger.info("receive cmd[{}] from path[{}]",data,path);
-					Properties properties = ResourceUtils.getAllProperties();
-					context.syncConfigToServer(properties,false);
-					logger.info("process cmd[{}] ok~",data);
-				}else{		
-					try {						
-						Map<String, Object> changeDatas = JsonUtils.toObject(data.toString(),Map.class);
-						context.updateConfig(changeDatas);
-					} catch (Exception e) {
-						logger.error("updateConfig error",e);
-					}
-				}
-				
-			}
-		});
 	}
 
 	

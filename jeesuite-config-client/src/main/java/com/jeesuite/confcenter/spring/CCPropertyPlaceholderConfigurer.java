@@ -6,8 +6,6 @@ package com.jeesuite.confcenter.spring;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -25,8 +23,6 @@ import com.jeesuite.spring.SpringInstanceProvider;
  * @date 2016年11月2日
  */
 public class CCPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigurer implements DisposableBean,ApplicationContextAware{
-	
-	private final static Logger logger = LoggerFactory.getLogger(CCPropertyPlaceholderConfigurer.class);
 	
 	private ConfigcenterContext ccContext = ConfigcenterContext.getInstance();
 	

@@ -66,18 +66,24 @@ public class ConfigcenterContext {
 	
 	private List<ConfigChangeHanlder> configChangeHanlders;
 	
-	private ConfigStatus status;
+	private boolean processed;
 	
-	public enum ConfigStatus{
-		INITED,FETCHED,UPLOAED
-	}
-	
+	private Properties remoteProperties;
+
 	private ConfigcenterContext() {}
+	
+
+	/**
+	 * @return the processed
+	 */
+	public boolean isProcessed() {
+		return processed;
+	}
+
+
 
 	public synchronized void init(Properties properties,boolean isSpringboot) {
-		
-		logger.info("client.nodeId:",nodeId);
-		
+		if(processed)return;
 		ResourceUtils.merge(properties);
 		
 		System.setProperty("client.nodeId", nodeId);
@@ -102,7 +108,7 @@ public class ConfigcenterContext {
 		tokenCryptKey = ResourceUtils.getProperty("jeesuite.configcenter.cryptKey");
 		
 		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,remoteEnabled,JsonUtils.toJson(apiBaseUrls)));
-		status = ConfigStatus.INITED; 
+		
 	}
 
 	public static ConfigcenterContext getInstance() {
@@ -166,23 +172,15 @@ public class ConfigcenterContext {
 	public boolean isSpringboot() {
 		return isSpringboot;
 	}
-	
-	
-	
-	public ConfigStatus getStatus() {
-		return status;
-	}
 
 	public void mergeRemoteProperties(Properties properties){
-		Properties remoteProperties = getAllRemoteProperties();
+		remoteProperties = getAllRemoteProperties();
 		if(remoteProperties != null){
 			//合并属性
 			Set<Entry<Object, Object>> entrySet = remoteProperties.entrySet();
 			for (Entry<Object, Object> entry : entrySet) {
 				//本地配置优先
 				if(isRemoteFirst() == false && properties.containsKey(entry.getKey())){
-					
-					logger.info("config[{}] exists in location,skip~",entry.getKey());
 					continue;
 				}
 				String value = entry.getValue().toString();
@@ -207,6 +205,7 @@ public class ConfigcenterContext {
 	
 
 	private Properties getAllRemoteProperties(){
+		if(remoteProperties != null)return remoteProperties;
 		if(!remoteEnabled)return null;
 		
 		Properties properties = new Properties();
@@ -229,8 +228,6 @@ public class ConfigcenterContext {
 			Object value = decodeEncryptIfRequire(map.get(key));
 			properties.put(key, value);
 		}
-	
-		status = ConfigStatus.FETCHED; 
 		
 		return properties;
 	}
@@ -272,8 +269,8 @@ public class ConfigcenterContext {
 	
 	public void syncConfigToServer(Properties properties,boolean first){
 		
+		if(processed)return;
 		if(!remoteEnabled)return;
-		if(status.equals(ConfigStatus.INITED))return;
 		
 		List<String> sortKeys = new ArrayList<>();
 		Map<String, String> params = new  HashMap<>();
@@ -315,18 +312,19 @@ public class ConfigcenterContext {
 			}
 		}
 		
-		for (String apiBaseUrl : apiBaseUrls) {			
-			String url = buildTokenParameter(apiBaseUrl + "/api/notify_final_config");
-			logger.info("syncConfigToServer,url:" + url);
-			HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
-			if(responseEntity.isSuccessed()){
-				logger.info("syncConfigToServer[{}] Ok",url);
-			}else{
-				logger.warn("syncConfigToServer[{}] error",url);
+		if(ResourceUtils.getBoolean("jeesuite.configcenter.syncConfigToServer", false)){
+			for (String apiBaseUrl : apiBaseUrls) {			
+				String url = buildTokenParameter(apiBaseUrl + "/api/notify_final_config");
+				HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
+				if(responseEntity.isSuccessed()){
+					logger.info("syncConfigToServer[{}] Ok",url);
+				}else{
+					logger.warn("syncConfigToServer[{}] error",url);
+				}
 			}
 		}
-	
-		status = ConfigStatus.UPLOAED; 
+		
+		processed = true;
 	}
 
 	
