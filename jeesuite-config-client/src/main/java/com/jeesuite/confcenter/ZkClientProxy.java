@@ -37,11 +37,7 @@ public class ZkClientProxy {
 	
 	public ZkClientProxy(String zkServers, int connectionTimeout) {
 		ZkConnection zkConnection = new ZkConnection(zkServers);
-		try {			
-			zkClient = new ZkClient(zkConnection, connectionTimeout);
-		} catch (Exception e) {
-			logger.warn("register_ZkConfigChangeListener_error:{}",e.getMessage());
-		}
+		zkClient = new ZkClient(zkConnection, connectionTimeout);	
 	}
 	
 	public boolean exists(final String path) {
@@ -55,6 +51,10 @@ public class ZkClientProxy {
 	public void createEphemeral(final String path) throws ZkInterruptedException, IllegalArgumentException, ZkException, RuntimeException {
 		zkClient.createEphemeral(path);
     }
+	
+	public boolean isAvailable(){
+		return zkClient != null;
+	}
 
 	public void close(){
 		if(zkClient != null)zkClient.close();
@@ -71,7 +71,7 @@ public class ZkClientProxy {
 				if(NOTIFY_UPLOAD_CMD.equals(data)){
 					logger.info("receive cmd[{}] from path[{}]",data,path);
 					Properties properties = ResourceUtils.getAllProperties();
-					context.syncConfigToServer(properties,false);
+					context.syncConfigToServer(properties);
 					logger.info("process cmd[{}] ok~",data);
 				}else{		
 					try {						
@@ -84,5 +84,10 @@ public class ZkClientProxy {
 				
 			}
 		});
+	}
+	
+	public static void main(String[] args) {
+		ZkClientProxy clientProxy = new ZkClientProxy("192.168.12.1:2181", 1000);
+		System.out.println(clientProxy);
 	}
 }

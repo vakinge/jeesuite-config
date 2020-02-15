@@ -43,7 +43,6 @@ public class CCPropertySourceLoader implements PropertySourceLoader, Ordered{
 			if (profiles == null && !ccContext.isProcessed()) {
 				ccContext.init(properties, true);
 				ccContext.mergeRemoteProperties(properties);
-				ccContext.syncConfigToServer(properties, true);
 			}
 
 			if (!properties.isEmpty()) {
@@ -64,7 +63,6 @@ public class CCPropertySourceLoader implements PropertySourceLoader, Ordered{
 		if (profiles == null && !ccContext.isProcessed()) {
 			ccContext.init(properties, true);
 			ccContext.mergeRemoteProperties(properties);
-			ccContext.syncConfigToServer(properties, true);
 			PropertySource<?> props = new PropertiesPropertySource(ConfigcenterContext.MANAGER_PROPERTY_SOURCE, properties);
 			return Arrays.asList(props);
 		}

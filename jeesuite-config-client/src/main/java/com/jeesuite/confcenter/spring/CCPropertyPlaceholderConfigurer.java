@@ -24,10 +24,12 @@ import com.jeesuite.spring.SpringInstanceProvider;
  */
 public class CCPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigurer implements DisposableBean,ApplicationContextAware{
 	
+	private boolean setRemoteEnabled = false;
 	private ConfigcenterContext ccContext = ConfigcenterContext.getInstance();
 	
 	public void setRemoteEnabled(boolean remoteEnabled) {
 		ccContext.setRemoteEnabled(remoteEnabled);
+		setRemoteEnabled = true;
 	}
 
 	@Override
@@ -41,12 +43,12 @@ public class CCPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigur
 	@Override
 	protected Properties mergeProperties() throws IOException {
 		Properties properties = super.mergeProperties();
-	
+	    if(!setRemoteEnabled){
+	    	ccContext.setRemoteEnabled(Boolean.parseBoolean(properties.getProperty("jeesuite.configcenter.enabled", "true")));
+	    }
 		ccContext.init(properties,false);
 		
 		ccContext.mergeRemoteProperties(properties);
-		
-		ccContext.syncConfigToServer(properties,true);
 		
 		return properties;
 		//

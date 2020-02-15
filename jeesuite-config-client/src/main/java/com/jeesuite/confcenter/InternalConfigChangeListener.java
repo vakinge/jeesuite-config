@@ -44,10 +44,10 @@ public class InternalConfigChangeListener {
 			if(StringUtils.isNotBlank(zkServers)){				
 				zkClient = new ZkClientProxy(zkServers, 5000);
 			}
-		} catch (ClassNotFoundException e) {}
+		} catch (Exception e) {}
 		
 		ConfigcenterContext context = ConfigcenterContext.getInstance();
-		if(zkClient != null){
+		if(zkClient != null && zkClient.isAvailable()){
 			resisterZkListener(context);
 			syncType = "zookeepr";
 		}else{

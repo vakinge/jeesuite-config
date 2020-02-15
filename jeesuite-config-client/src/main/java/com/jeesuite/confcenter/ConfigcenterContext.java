@@ -201,6 +201,13 @@ public class ConfigcenterContext {
 			}
 			ResourceUtils.add(key, value);
 		}
+		
+		//register listener
+		configChangeListener = new InternalConfigChangeListener(zkSyncServers);
+		//
+		printConfigs(properties);
+		//
+		syncConfigToServer(properties);
 	}
 	
 
@@ -267,12 +274,29 @@ public class ConfigcenterContext {
         return result;
 	}
 	
-	public void syncConfigToServer(Properties properties,boolean first){
+	private void printConfigs(Properties properties){
+		List<String> sortKeys = new ArrayList<>();
+		Set<Entry<Object, Object>> entrySet = properties.entrySet();
+		for (Entry<Object, Object> entry : entrySet) {
+			String key = entry.getKey().toString();
+			sortKeys.add(key);
+		}
+		Collections.sort(sortKeys);
+		System.out.println("==================final config list start==================");
+		String value;
+		for (String key : sortKeys) {
+			value = hideSensitive(key, properties.getProperty(key));
+			System.out.println(String.format("%s = %s", key,value ));
+		}
+		System.out.println("==================final config list end====================");
+		
+	}
+	
+	public void syncConfigToServer(Properties properties){
 		
 		if(processed)return;
 		if(!remoteEnabled)return;
 		
-		List<String> sortKeys = new ArrayList<>();
 		Map<String, String> params = new  HashMap<>();
 		
 		params.put("nodeId", nodeId);
@@ -285,43 +309,29 @@ public class ConfigcenterContext {
 	    if(StringUtils.isNumeric(serverPort)){	    	
 	    	params.put("serverport", serverPort);
 	    }
-		params.put("serverip", ServerEnvUtils.getServerIpAddr());
-		
-		Set<Entry<Object, Object>> entrySet = properties.entrySet();
-		for (Entry<Object, Object> entry : entrySet) {
-			String key = entry.getKey().toString();
-			String value = entry.getValue().toString();
-			params.put(key, hideSensitive(key, value));
-			sortKeys.add(key);
-		}
-		
-		if(first){	
-			Collections.sort(sortKeys);
-			System.out.println("==================final config list start==================");
-			for (String key : sortKeys) {
-				System.out.println(String.format("%s = %s", key,params.get(key) ));
-			}
-			System.out.println("==================final config list end====================");
-			//register listener
-			configChangeListener = new InternalConfigChangeListener(zkSyncServers);
-			params.put("syncType", configChangeListener.getSyncType());
-		}else{
-			String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
-			if(StringUtils.isNotBlank(serverip)){
-				params.put("serverip", serverip);
-			}
+	    
+	    String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
+		if(StringUtils.isNotBlank(serverip)){
+			params.put("serverip", serverip);
+		}else{			
+			params.put("serverip", ServerEnvUtils.getServerIpAddr());
 		}
 		
 		if(ResourceUtils.getBoolean("jeesuite.configcenter.syncConfigToServer", false)){
-			for (String apiBaseUrl : apiBaseUrls) {			
-				String url = buildTokenParameter(apiBaseUrl + "/api/notify_final_config");
-				HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
-				if(responseEntity.isSuccessed()){
-					logger.info("syncConfigToServer[{}] Ok",url);
-				}else{
-					logger.warn("syncConfigToServer[{}] error",url);
-				}
+			Set<Entry<Object, Object>> entrySet = properties.entrySet();
+			for (Entry<Object, Object> entry : entrySet) {
+				String key = entry.getKey().toString();
+				String value = entry.getValue().toString();
+				params.put(key, hideSensitive(key, value));
 			}
+		}
+		
+		String url = buildTokenParameter(apiBaseUrls[0] + "/api/notify_final_config");
+		HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
+		if(responseEntity.isSuccessed()){
+			logger.info("syncConfigToServer[{}] Ok",url);
+		}else{
+			logger.warn("syncConfigToServer[{}] error",url);
 		}
 		
 		processed = true;
@@ -397,7 +407,9 @@ public class ConfigcenterContext {
 	}
 	
 	public void close(){
-		configChangeListener.close();
+		if(configChangeListener != null){
+			configChangeListener.close();
+		}
 	}
 	
 	private Object decodeEncryptIfRequire(Object data) {
