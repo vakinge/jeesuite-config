@@ -61,7 +61,7 @@ public class ConfigcenterContext {
 	private boolean remoteFirst = false;
 	private String zkSyncServers;
 	private boolean isSpringboot;
-	private int syncIntervalSeconds = 15;
+	private int syncIntervalSeconds = 50;
 	private InternalConfigChangeListener configChangeListener;
 	
 	private List<ConfigChangeHanlder> configChangeHanlders;
@@ -83,7 +83,7 @@ public class ConfigcenterContext {
 
 
 	public synchronized void init(Properties properties,boolean isSpringboot) {
-		if(processed)return;
+		if(processed || !isRemoteEnabled())return;
 		ResourceUtils.merge(properties);
 		
 		System.setProperty("client.nodeId", nodeId);
@@ -93,7 +93,7 @@ public class ConfigcenterContext {
 		app = ResourceUtils.getProperty("jeesuite.configcenter.appName",defaultAppName);
 		if(remoteEnabled == null)remoteEnabled = ResourceUtils.getBoolean("jeesuite.configcenter.enabled",true);
 		
-		if(!remoteEnabled)return;
+		if(!isRemoteEnabled())return;
 		
 		env = ResourceUtils.getProperty("jeesuite.configcenter.profile","dev");
 		
@@ -103,11 +103,11 @@ public class ConfigcenterContext {
 		
 		version = ResourceUtils.getProperty("jeesuite.configcenter.version","0.0.0");
 		
-		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 15);
+		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 30);
 		
 		tokenCryptKey = ResourceUtils.getProperty("jeesuite.configcenter.cryptKey");
 		
-		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,remoteEnabled,JsonUtils.toJson(apiBaseUrls)));
+		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,isRemoteEnabled(),JsonUtils.toJson(apiBaseUrls)));
 		
 	}
 
@@ -116,7 +116,7 @@ public class ConfigcenterContext {
 	}
 	
 	public boolean isRemoteEnabled() {
-		return remoteEnabled;
+		return remoteEnabled == null || remoteEnabled;
 	}
 	public void setRemoteEnabled(boolean remoteEnabled) {
 		this.remoteEnabled = remoteEnabled;
@@ -174,6 +174,7 @@ public class ConfigcenterContext {
 	}
 
 	public void mergeRemoteProperties(Properties properties){
+		if(!remoteEnabled)return;
 		remoteProperties = getAllRemoteProperties();
 		if(remoteProperties != null){
 			//合并属性
@@ -207,14 +208,12 @@ public class ConfigcenterContext {
 		//
 		printConfigs(properties);
 		//
-		syncConfigToServer(properties);
+		//syncConfigToServer(properties);
 	}
 	
 
 	private Properties getAllRemoteProperties(){
 		if(remoteProperties != null)return remoteProperties;
-		if(!remoteEnabled)return null;
-		
 		Properties properties = new Properties();
 
 		Map<String,Object> map = fetchConfigFromServer();
@@ -292,7 +291,7 @@ public class ConfigcenterContext {
 		
 	}
 	
-	public void syncConfigToServer(Properties properties){
+	private void syncConfigToServer(Properties properties){
 		
 		if(processed)return;
 		if(!remoteEnabled)return;
@@ -310,20 +309,22 @@ public class ConfigcenterContext {
 	    	params.put("serverport", serverPort);
 	    }
 	    
-	    String serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");
+	    //k8s POD_IP ->valueFrom:fieldRef:fieldPath:status.podIP
+	    String serverip = System.getenv("POD_IP");
+	    if(StringUtils.isBlank(serverip)){	    	
+	    	try {serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");} catch (Exception e) {}
+	    }
 		if(StringUtils.isNotBlank(serverip)){
 			params.put("serverip", serverip);
 		}else{			
 			params.put("serverip", ServerEnvUtils.getServerIpAddr());
 		}
 		
-		if(ResourceUtils.getBoolean("jeesuite.configcenter.syncConfigToServer", false)){
-			Set<Entry<Object, Object>> entrySet = properties.entrySet();
-			for (Entry<Object, Object> entry : entrySet) {
-				String key = entry.getKey().toString();
-				String value = entry.getValue().toString();
-				params.put(key, hideSensitive(key, value));
-			}
+		Set<Entry<Object, Object>> entrySet = properties.entrySet();
+		for (Entry<Object, Object> entry : entrySet) {
+			String key = entry.getKey().toString();
+			String value = entry.getValue().toString();
+			params.put(key, hideSensitive(key, value));
 		}
 		
 		String url = buildTokenParameter(apiBaseUrls[0] + "/api/notify_final_config");

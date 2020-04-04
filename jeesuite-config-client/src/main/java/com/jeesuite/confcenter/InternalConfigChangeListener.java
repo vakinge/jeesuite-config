@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.jeesuite.common.http.HttpResponseEntity;
 import com.jeesuite.common.http.HttpUtils;
 import com.jeesuite.common.json.JsonUtils;
@@ -30,14 +29,15 @@ import com.jeesuite.common.util.ResourceUtils;
  */
 public class InternalConfigChangeListener {
 
+
 	private final static Logger logger = LoggerFactory.getLogger("com.jeesuite.confcenter");
+	
+	private static final String LATEST_FETCH_TIMESTAMP = "latest.fetch.timestamp";
 
 	private final static String ROOT_PATH = "/confcenter";
 	private ScheduledExecutorService hbScheduledExecutor;
 	private ZkClientProxy zkClient;
 	
-	private String syncType;
-
 	public InternalConfigChangeListener(String zkServers) {
 		try {
 			Class.forName("org.I0Itec.zkclient.ZkClient");
@@ -49,22 +49,11 @@ public class InternalConfigChangeListener {
 		ConfigcenterContext context = ConfigcenterContext.getInstance();
 		if(zkClient != null && zkClient.isAvailable()){
 			resisterZkListener(context);
-			syncType = "zookeepr";
+			logger.info("resisterZkUpdaterListener OK zkServers:{}",zkServers);
 		}else{
 			resisterHttpListener(context);
-			syncType = "http";
 		}
-		logger.info("register ConfigChangeListener OK ,type:{}",syncType);
 	}
-	
-	/**
-	 * @return the syncType
-	 */
-	public String getSyncType() {
-		return syncType;
-	}
-
-
 
 	public void close(){
 		if(zkClient !=  null)zkClient.close();
@@ -77,42 +66,33 @@ public class InternalConfigChangeListener {
 	private void resisterHttpListener(ConfigcenterContext context) {
 		hbScheduledExecutor = Executors.newScheduledThreadPool(1);
 
-		final String[] syncStatusUrls = new String[context.getApiBaseUrls().length];
-		for (int i = 0; i < context.getApiBaseUrls().length; i++) {
-			syncStatusUrls[i] = context.getApiBaseUrls()[i] + "/api/sync_status";
-		}
-		
+		final String url = context.getApiBaseUrls()[0] + "/api/fetch_changed_configs";
 		final Map<String, String> params = new HashMap<>();
-		params.put("nodeId", context.getNodeId());
+		params.put("version", context.getVersion());
 		params.put("appName", context.getApp());
 		params.put("env", context.getEnv());
+		params.put("lastTime", ResourceUtils.getProperty(LATEST_FETCH_TIMESTAMP, String.valueOf(System.currentTimeMillis())));
 		hbScheduledExecutor.scheduleAtFixedRate(new Runnable() {
 			@Override
 			public void run() {
-				// 由于初始化的时候还拿不到spring.cloud.client.ipAddress，故在同步过程上送
-				if (context.isSpringboot()) {
-					String serverip = ResourceUtils.getProperty("spring.cloud.client.ipAddress");
-					if (StringUtils.isNotBlank(serverip)) {
-						params.put("serverip", serverip);
+				String safeUrl = ConfigcenterContext.getInstance().buildTokenParameter(url);
+				HttpResponseEntity response = HttpUtils.postJson(safeUrl, JsonUtils.toJson(params),
+						HttpUtils.DEFAULT_CHARSET);
+				// 刷新服务端更新的配置
+				if (response.isSuccessed()) {
+					Map map = JsonUtils.toObject(response.getBody(), Map.class);
+					if(map.containsKey("data")){
+						map = (Map) map.get("data");
+						if(map.containsKey(LATEST_FETCH_TIMESTAMP)){
+							params.put("lastTime", map.remove(LATEST_FETCH_TIMESTAMP).toString());
+						}
+						if(!map.isEmpty())context.updateConfig(map);
 					}
 				}
-
-				boolean updated = false;
-				for (String url : syncStatusUrls) {
-					url = ConfigcenterContext.getInstance().buildTokenParameter(url);
-					HttpResponseEntity response = HttpUtils.postJson(url, JsonUtils.toJson(params),
-							HttpUtils.DEFAULT_CHARSET);
-					if(updated)return;
-					// 刷新服务端更新的配置
-					if (updated = response.isSuccessed()) {
-						JsonNode jsonNode = JsonUtils.getNode(response.getBody(), "data");
-						Map map = JsonUtils.toObject(jsonNode.toString(), Map.class);
-						context.updateConfig(map);
-					}
-				}
-
 			}
-		}, 5, context.getSyncIntervalSeconds(), TimeUnit.SECONDS);
+		}, context.getSyncIntervalSeconds(), context.getSyncIntervalSeconds(), TimeUnit.SECONDS);
+		
+		logger.info("resisterHttpUpdaterListener OK intervalSeconds:{},lastFetchTime:{}",context.getSyncIntervalSeconds(),params.get("lastTime"));
 	}
 
 	/**
@@ -132,7 +112,9 @@ public class InternalConfigChangeListener {
 		}
 		//创建node节点
 		zkClient.createEphemeral(appNodePath);
-		zkClient.subscribeDataChanges(context, appNodePath);
+		zkClient.subscribeDataChanges(context, appParentPath);
+		System.out.println("configClient nodePath:" + appNodePath);
+		System.out.println("configClient subscribeDataChangePath:" + appParentPath);
 		
 	}
 

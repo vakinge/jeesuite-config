@@ -4,7 +4,6 @@
 package com.jeesuite.confcenter;
 
 import java.util.Map;
-import java.util.Properties;
 
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
@@ -16,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jeesuite.common.json.JsonUtils;
-import com.jeesuite.common.util.ResourceUtils;
 
 /**
  * 
@@ -68,20 +66,12 @@ public class ZkClientProxy {
 			@Override
 			public void handleDataChange(String path, Object data) throws Exception {
 				if(data == null || StringUtils.isBlank(data.toString()))return;
-				if(NOTIFY_UPLOAD_CMD.equals(data)){
-					logger.info("receive cmd[{}] from path[{}]",data,path);
-					Properties properties = ResourceUtils.getAllProperties();
-					context.syncConfigToServer(properties);
-					logger.info("process cmd[{}] ok~",data);
-				}else{		
-					try {						
-						Map<String, Object> changeDatas = JsonUtils.toObject(data.toString(),Map.class);
-						context.updateConfig(changeDatas);
-					} catch (Exception e) {
-						logger.error("updateConfig error",e);
-					}
+				try {						
+					Map<String, Object> changeDatas = JsonUtils.toObject(data.toString(),Map.class);
+					context.updateConfig(changeDatas);
+				} catch (Exception e) {
+					logger.error("updateConfig error",e);
 				}
-				
 			}
 		});
 	}
