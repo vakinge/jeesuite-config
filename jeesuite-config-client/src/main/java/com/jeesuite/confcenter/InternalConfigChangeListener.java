@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.jeesuite.common.http.HttpResponseEntity;
 import com.jeesuite.common.http.HttpUtils;
 import com.jeesuite.common.json.JsonUtils;
+import com.jeesuite.common.util.NetworkUtils;
 import com.jeesuite.common.util.ResourceUtils;
 
 /**
@@ -41,7 +42,7 @@ public class InternalConfigChangeListener {
 	public InternalConfigChangeListener(String zkServers) {
 		try {
 			Class.forName("org.I0Itec.zkclient.ZkClient");
-			if(StringUtils.isNotBlank(zkServers)){				
+			if(StringUtils.isNotBlank(zkServers) && NetworkUtils.telnet(zkServers, 2000)){				
 				zkClient = new ZkClientProxy(zkServers, 5000);
 			}
 		} catch (Exception e) {}
@@ -71,6 +72,12 @@ public class InternalConfigChangeListener {
 		params.put("version", context.getVersion());
 		params.put("appName", context.getApp());
 		params.put("env", context.getEnv());
+		if(context.isIgnoreGlobal()){
+			params.put("ignoreGlobal", String.valueOf(context.isIgnoreGlobal()));
+		}
+		if(context.getGlobalVersion() != null){
+			params.put("globalVersion", context.getGlobalVersion());
+		}
 		params.put("lastTime", ResourceUtils.getProperty(LATEST_FETCH_TIMESTAMP, String.valueOf(System.currentTimeMillis())));
 		hbScheduledExecutor.scheduleAtFixedRate(new Runnable() {
 			@Override

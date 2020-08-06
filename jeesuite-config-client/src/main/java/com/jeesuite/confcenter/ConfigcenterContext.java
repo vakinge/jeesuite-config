@@ -1,5 +1,6 @@
 package com.jeesuite.confcenter;
 
+import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +56,8 @@ public class ConfigcenterContext {
 	private String app;
 	private String env;
 	private String version;
+	private boolean ignoreGlobal;
+	private String globalVersion; 
 	private String secret;
 	private String globalSecret;
 	private String tokenCryptKey;
@@ -101,10 +104,10 @@ public class ConfigcenterContext {
 		
 		setApiBaseUrl(ResourceUtils.getProperty("jeesuite.configcenter.base.url"));
 		
-		version = ResourceUtils.getProperty("jeesuite.configcenter.version","0.0.0");
-		
-		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 30);
-		
+		version = ResourceUtils.getProperty("jeesuite.configcenter.version","latest");
+		globalVersion = ResourceUtils.getProperty("jeesuite.configcenter.global-version");
+		ignoreGlobal = ResourceUtils.getBoolean("jeesuite.configcenter.global-ignore",false);
+		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 60);
 		tokenCryptKey = ResourceUtils.getProperty("jeesuite.configcenter.cryptKey");
 		
 		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,isRemoteEnabled(),JsonUtils.toJson(apiBaseUrls)));
@@ -152,7 +155,15 @@ public class ConfigcenterContext {
 	public String getVersion() {
 		return version;
 	}
-    
+
+	public boolean isIgnoreGlobal() {
+		return ignoreGlobal;
+	}
+
+	public String getGlobalVersion() {
+		return globalVersion;
+	}
+
 	public String getSecret() {
 		return secret;
 	}
@@ -203,6 +214,20 @@ public class ConfigcenterContext {
 			ResourceUtils.add(key, value);
 		}
 		
+		//加载本地测试配置
+		String path = System.getProperty("localtest.config.location");
+		if(StringUtils.isNotBlank(path)){
+			try {
+				Properties localProperties = new Properties();
+				FileReader fileReader = new FileReader(path);
+				localProperties.load(fileReader);
+				if(!localProperties.isEmpty()){
+					properties.putAll(localProperties);
+				}
+			} catch (Exception e) {}
+		}
+		
+		
 		//register listener
 		configChangeListener = new InternalConfigChangeListener(zkSyncServers);
 		//
@@ -243,7 +268,10 @@ public class ConfigcenterContext {
 		Map<String,Object> result = null;
 		String errorMsg = null;
         for (String apiBaseUrl : apiBaseUrls) {
-        	String url = buildTokenParameter(String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s", apiBaseUrl,app,env,version));
+        	String url = buildTokenParameter(String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s&ignoreGlobal=%s", apiBaseUrl,app,env,version,ignoreGlobal));
+        	if(StringUtils.isNotBlank(globalVersion)){
+        		url = url + "&globalVersion=" + globalVersion;
+        	}
     		System.out.println("fetch configs url:" + url);
     		String jsonString = null;
     		try {
