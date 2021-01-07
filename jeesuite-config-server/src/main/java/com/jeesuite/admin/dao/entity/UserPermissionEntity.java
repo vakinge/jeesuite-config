@@ -1,5 +1,7 @@
 package com.jeesuite.admin.dao.entity;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,7 +19,7 @@ public class UserPermissionEntity extends BaseEntity {
     @Column(name = "user_id")
     private Integer userId;
 
-    private String env;
+    private String env = "all";
 
     @Column(name = "app_id")
     private Integer appId;
@@ -26,10 +28,9 @@ public class UserPermissionEntity extends BaseEntity {
 
     public UserPermissionEntity() {}
 
-	public UserPermissionEntity(Integer userId, String env, Integer appId, String operate) {
+	public UserPermissionEntity(Integer userId, Integer appId, String operate) {
 		super();
 		this.userId = userId;
-		this.env = env;
 		this.appId = appId;
 		this.operate = operate;
 	}
@@ -104,7 +105,10 @@ public class UserPermissionEntity extends BaseEntity {
         this.operate = operate;
     }
     
-    public String toPermissionCode(){
-    	return String.format("%s-%s:%s", env,appId,operate);
+    public boolean equals2(UserPermissionEntity o){
+    	if(!Objects.equals(userId, o.userId))return false;
+    	if(!Objects.equals(appId, o.appId))return false;
+    	if(!Objects.equals(operate, o.operate))return false;
+    	return true;
     }
 }

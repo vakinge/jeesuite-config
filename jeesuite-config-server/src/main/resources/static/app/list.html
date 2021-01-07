@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>应用列表</title>
+    <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" />
+    <link rel="stylesheet" href="../assets/css/global.css" media="all">
+    <style type="text/css">
+		  .status-up {
+	        font-size: 75%;
+	        border-radius: .25em;
+	        background: #00CD00;
+	        padding: .1em .5em .2em;
+	        cursor:pointer;
+	        color: #fff
+          }
+          .status-down {
+	        font-size: 75%;
+	        border-radius: .25em;
+	        background: #e33;
+	        padding: .1em .5em .2em;
+	        cursor:pointer;
+	        color: #fff
+          }
+		</style>
+</head>
+
+<body>
+<div class="admin-main">
+    <blockquote class="layui-elem-quote layui-quote-nm">
+        <a class="layui-btn layui-btn-sm layui-btn-normal J_iframe_dialog" href="javascript:;" data-url="./add.html" data-title="添加应用">
+            <i class="layui-icon">&#xe608;</i> 添加应用
+        </a>
+    </blockquote>
+    <form id="searchform" action="" class="layui-form" method="post">
+        <!-- <div class="layui-inline">
+           <select name="groupId" asnycSelect="../admin/group/options" lay-filter="group_select">
+             <option value="">请选择组</option>
+           </select>     
+        </div> -->
+        <div class="layui-input-inline" style="width: 150px;">
+            <select name="appType" asnycSelect="../admin/app/type/options">
+               <option value="">请选择类型</option>
+            </select>
+        </div>
+        <div class="layui-inline">
+            <input type="button" class="layui-btn layui-btn-normal J_search" lay-submit lay-filter="search" value="查询"/>
+        </div>
+    </form>
+    <fieldset class="layui-elem-field">
+        <legend>应用列表</legend>
+        <div class="layui-field-box layui-form">
+            <table class="layui-hide" id="tablecont" lay-filter="table"></table>
+        </div>
+    </fieldset>
+</div>
+
+<script type="text/html" id="toolBar">
+<a class="layui-btn layui-btn-normal layui-btn-sm J_iframe_dialog" href="javascript:;" data-title="编辑应用" data-url="./edit.html?id={{ d.id }}">编辑</a>
+<a href="javascript:;" class="layui-btn layui-btn-sm {{  d.enabled ? 'layui-btn-danger' : 'layui-btn-normal'}}" lay-event="toggle">{{ d.enabled ? '禁用' : '启用'}}</a>
+</script>
+<script type="text/html" id="enabledTpl">
+  <input type="checkbox" data-id="{{d.id}}" value="{{d.enabled}}" lay-skin="switch" lay-text="是|否" {{ d.enabled ? 'checked' : '' }} disabled>          
+</script>
+<script type="text/javascript" src="../assets/plugins/layui/layui.js"></script>
+<script type="text/javascript" src="./app.js"></script>
+<script type="text/javascript">
+    var viewType = 'list';
+    layui.config({
+  	  base: '/assets/js/'
+   }).use(['jeesuitelayui'], function(){
+  	 if(!top.currentUser.superAdmin){ 
+  	 }
+   });
+    function reloadData(){
+        layui.jquery('.J_search').click();
+    }
+</script>
+</body>
+
+</html>

@@ -6,7 +6,8 @@
       WARNING - @mbg.generated
     -->
     <id column="id" property="id" jdbcType="INTEGER" />
-    <result column="app_ids" property="appIds" jdbcType="VARCHAR" />
+    <result column="group_id" property="groupId" jdbcType="INTEGER" />
+    <result column="app_id" property="appId" jdbcType="INTEGER" />
     <result column="env" property="env" jdbcType="VARCHAR" />
     <result column="version" property="version" jdbcType="VARCHAR" />
     <result column="name" property="name" jdbcType="VARCHAR" />
@@ -20,12 +21,12 @@
   </resultMap>
   
   <select id="findGlobalConfig" resultMap="BaseResultMap" parameterType="map">
-      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND enabled=1 AND (app_ids is null OR app_ids = '')
+      SELECT * FROM app_configs where env = #{env} AND version = #{version} AND enabled=1 AND group_id=#{groupId} AND (app_ids is null OR app_ids = '')
   </select>
   
   <select id="findSameByName" resultMap="BaseResultMap" parameterType="map">
       SELECT * FROM app_configs where enabled=1 AND env = #{env} AND name = #{name}
-      <if test="appId != null and appId !=''">  AND find_in_set(#{appId},app_ids)</if> 
+      <if test="appId != null">  AND app_id = #{appId}</if> 
       LIMIT 1
   </select>
   
@@ -34,17 +35,14 @@
       <if test="env != null">  AND env = #{env}</if> 
       <if test="name != null">  AND name = #{name}</if> 
       <if test="version != null and version !=''">  AND version = #{version}</if> 
-      <if test="appId != null and appId !=''">  AND (find_in_set(#{appId},app_ids) OR app_ids is null)</if> 
-      <if test="envs != null">
-        AND env in
-      <foreach index="index" collection="envs" open="(" separator="," close=")">
-		 #{envs[${index}]}
-	  </foreach>
-      </if>
-      <if test="appIds != null">
-        AND 
+      <if test="groupId != null">  AND group_id = #{groupId}</if> 
+      <if test="appId != null">  AND app_id = #{appId}</if> 
+      <if test="isGlobal != null"> AND (app_ids is null OR app_ids = '')</if>
+      <if test="lastUpdateTime != null">  AND updated_at &gt; #{lastUpdateTime}</if> 
+      <if test="appIds != null and appIds.size() gt 0">
+        AND app_id IN
       <foreach index="index" collection="appIds" open="(" separator=" OR " close=")">
-		 find_in_set(#{appIds[${index}]},app_ids)
+		 #{appIds[${index}]}
 	  </foreach>
       </if> 
       ORDER BY id

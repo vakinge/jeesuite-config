@@ -7,7 +7,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import com.jeesuite.admin.constants.UserType;
 import com.jeesuite.common.util.DigestUtils;
 import com.jeesuite.mybatis.core.BaseEntity;
 
@@ -27,12 +29,16 @@ public class UserEntity extends BaseEntity {
 
     private String mobile;
 
+    @Column(name = "email",updatable=false)
     private String email;
 
     @Column(name = "type",updatable=false)
-    private Short type;
+    private String type;
 
-    private Short status;
+    private Boolean enabled;
+
+    @Column(name = "group_id")
+    private Integer groupId;
 
     @Column(name = "created_at",updatable=false)
     private Date createdAt;
@@ -40,6 +46,10 @@ public class UserEntity extends BaseEntity {
     @Column(name = "updated_at")
     private Date updatedAt;
     
+    @Transient
+    private String groupName;
+    @Transient
+    private boolean groupMaster;
 
     /**
      * @return id
@@ -111,35 +121,23 @@ public class UserEntity extends BaseEntity {
         this.email = email;
     }
 
-    /**
-     * @return type
-     */
-    public Short getType() {
-        return type;
-    }
+    public String getType() {
+		return type;
+	}
 
-    /**
-     * @param type
-     */
-    public void setType(Short type) {
-        this.type = type;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    /**
-     * @return status
-     */
-    public Short getStatus() {
-        return status;
-    }
+	public Boolean getEnabled() {
+		return enabled;
+	}
 
-    /**
-     * @param status
-     */
-    public void setStatus(Short status) {
-        this.status = status;
-    }
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    /**
+	/**
      * @return created_at
      */
     public Date getCreatedAt() {
@@ -166,8 +164,53 @@ public class UserEntity extends BaseEntity {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
-    public static String encryptPassword(String password) {
+
+    /**
+	 * @return the groupId
+	 */
+	public Integer getGroupId() {
+		return groupId;
+	}
+
+	/**
+	 * @param groupId the groupId to set
+	 */
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	/**
+	 * @param groupName the groupName to set
+	 */
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public String getTypeAlias(){
+		return UserType.valueOf(type).getCnName();
+	}
+	
+	public boolean isGroupMaster() {
+		return groupMaster;
+	}
+
+	public void setGroupMaster(boolean groupMaster) {
+		this.groupMaster = groupMaster;
+	}
+	
+	public boolean isSuperAdmin() {
+		return UserType.superAdmin.name().equals(getType());
+	}
+	
+	public boolean isGroupAdmin() {
+		return UserType.groupAdmin.name().equals(getType());
+	}
+
+	public static String encryptPassword(String password) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < password.length(); i++) {
 			sb.append(password.charAt(i)).append(salts.substring(i*2, (i+1)*2));
@@ -179,5 +222,5 @@ public class UserEntity extends BaseEntity {
     public static void main(String[] args) {
 		System.out.println(encryptPassword("123456"));
 	}
-    
+
 }

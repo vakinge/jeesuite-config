@@ -43,6 +43,8 @@ public class ConfigcenterContext {
 	
 	private static ConfigcenterContext instance = new ConfigcenterContext();
 	
+	private List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));
+	
 	public static final String MANAGER_PROPERTY_SOURCE = "configcenter";
 	
 	private static final String IGNORE_PLACEHOLER = "[Ignore]";
@@ -467,7 +469,7 @@ public class ConfigcenterContext {
 		}
 	}
 
-	List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));
+	
 	private String hideSensitive(String key,String orign){
 		if(StringUtils.isAnyBlank(key,orign))return "";
 		boolean is = false;

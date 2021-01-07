@@ -10,8 +10,9 @@
     <result column="password" property="password" jdbcType="VARCHAR" />
     <result column="mobile" property="mobile" jdbcType="CHAR" />
     <result column="email" property="email" jdbcType="VARCHAR" />
-    <result column="type" property="type" jdbcType="SMALLINT" />
-    <result column="status" property="status" jdbcType="SMALLINT" />
+    <result column="type" property="type" jdbcType="CHAR" />
+    <result column="enabled" property="enabled" jdbcType="BIT" />
+    <result column="group_id" property="groupId" jdbcType="INTEGER" />
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP" />
   </resultMap>

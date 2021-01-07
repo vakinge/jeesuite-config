@@ -1,7 +1,5 @@
 package com.jeesuite.admin.model.request;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.jeesuite.admin.model.Constants;
@@ -9,7 +7,8 @@ import com.jeesuite.admin.model.Constants;
 public class AddOrEditConfigRequest {
 
 	private Integer id;
-	private List<String> appIds;
+	private Integer groupId;
+	private Integer appId;
 	private String env;
 	private String version = Constants.DEFAULT_CONFIG_VERSION;
 	private String name;
@@ -24,12 +23,17 @@ public class AddOrEditConfigRequest {
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	
-	public List<String> getAppIds() {
-		return appIds;
+	/**
+	 * @return the appId
+	 */
+	public Integer getAppId() {
+		return appId;
 	}
-	public void setAppIds(List<String> appIds) {
-		this.appIds = appIds;
+	/**
+	 * @param appId the appId to set
+	 */
+	public void setAppId(Integer appId) {
+		this.appId = appId;
 	}
 	public String getEnv() {
 		return env;
@@ -67,6 +71,13 @@ public class AddOrEditConfigRequest {
 	public void setGlobal(Boolean global) {
 		this.global = global;
 	}
-	
-	
+
+
+	public Integer getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
 }

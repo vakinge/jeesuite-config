@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>Table</title> 
+  <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../assets/css/global.css" media="all" /> 
+ </head> 
+ <body> 
+  <div class="admin-main" dataLoad="../admin/user/myinfo"> 
+   <form class="layui-form" action="../admin/user/update">  
+    <div class="layui-form-item">
+		<label class="layui-form-label">用户名</label>
+		<div class="layui-input-block">
+		   <input type="text" bindAttr="name" class="layui-input" disabled="disabled">
+		</div>
+	</div>  
+    <div class="layui-form-item">
+		<label class="layui-form-label">手机</label>
+		<div class="layui-input-block">
+		   <input type="text" bindAttr="mobile" name="mobile" placeholder="手机号码(告警通知等.)" autocomplete="off" class="layui-input">
+		</div>
+	</div>
+    <div class="layui-form-item">
+		<label class="layui-form-label">邮箱</label>
+		<div class="layui-input-block">
+		   <input type="text" bindAttr="email" name="email" placeholder="邮箱(告警通知等.)"  autocomplete="off" class="layui-input">
+		</div>
+	</div>
+	
+	<div class="layui-form-item">
+		<label class="layui-form-label">原密码</label>
+		<div class="layui-input-block">
+		   <input type="password" name="oldPassword" placeholder="如需要修改密码，则必填"  autocomplete="off" class="layui-input">
+		</div>
+	</div>
+	
+	<div class="layui-form-item">
+		<label class="layui-form-label">新密码</label>
+		<div class="layui-input-block">
+		   <input type="password" name="password" placeholder="无需修改密码留空"  autocomplete="off" class="layui-input">
+		</div>
+	</div>
+      
+    <div class="layui-form-item"> 
+     <div class="layui-input-block"> 
+        <input type="button"  class="layui-btn layui-btn-normal J_ajaxSubmit"  onSuccessCallback="reload" value="保存"/>
+        <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
+     </div> 
+    </div> 
+   </form> 
+  </div> 
+  <script type="text/javascript" src="../assets/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="../assets/js/jeesuitelayui.js?v20180420"></script>  
+ </body>
+</html>

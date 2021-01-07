@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Table</title>
+		<link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="../assets/css/global.css" media="all">
+	</head>
+
+	<body>
+		<div class="admin-main">
+			<blockquote class="layui-elem-quote layui-quote-nm">
+				<a class="layui-btn layui-btn-sm layui-btn-normal J_iframe_dialog" href="javascript:;" data-url="./add.html" data-title="添加用户"> 
+			      <i class="layui-icon">&#xe608;</i> 添加用户
+			    </a>
+			</blockquote>
+			<fieldset class="layui-elem-field">
+				<legend>用户列表</legend>
+				<div class="layui-field-box layui-form">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th width="80">姓名</th>
+								<th width="80">手机</th>
+								<th width="120">邮箱</th>
+								<th width="80">业务组</th>
+								<th width="60">类型</th>
+								<th width="50">状态</th>
+								<th width="300">操作</th>
+							</tr>
+						</thead>
+						<tbody id="content" dataLoad="../admin/user/list" template-id="list_tpl"></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板-->
+		<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+				<td>{{ item.name }}</td>
+				<td>{{ item.mobile }}</td>
+				<td>{{ item.email }}</td>
+                <td>{{ item.groupName }}</td>
+                <td>{{ item.typeAlias }}</td>
+                <td>{{ item.enabled ? '启用' : '禁用' }}</td>
+				<td>
+                    {{#  if(item.type === 'user'){ }}
+                    <a class="layui-btn layui-btn-sm layui-btn-normal J_show_perms" href="javascript:;" data-id="{{ item.id }}">查看权限</a>
+                    {{#  } }}
+                    {{#  if( top.currentUser.id != item.id && top.currentUser.groupMaster && item.type !== 'superAdmin'){ }}
+                    <a href="javascript:;" class="layui-btn layui-btn-sm {{  item.type === 'groupAdmin' ? 'layui-btn-danger' : 'layui-btn-normal'}} J_confirm" data-url="../admin/user/changeGroupAdmin/{{ item.id }}" ajax-method="POST" onSuccessCallback="reload">{{ item.type === 'groupAdmin' ? '解除' : '设为'}}组管理员</a>
+                    {{#  } }}
+                    <a href="javascript:;" class="layui-btn layui-btn-sm {{  item.enabled ? 'layui-btn-danger' : 'layui-btn-normal'}} J_confirm" data-url="../admin/user/switch/{{ item.id }}" onSuccessCallback="reload">{{ item.enabled ? '禁用' : '启用'}}</a>
+					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm reset_pass_btn" data-url="../admin/user/resetpassword/{{ item.id }}">重置密码</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="../assets/plugins/layui/layui.js"></script>
+        <script type="text/javascript" src="../assets/js/jeesuitelayui.js?v20180420"></script>
+	</body>
+<script>
+layui.config({
+	  version: '20190612',
+	  base : '/assets/js/'
+	}).use(['layer'], function() {
+	   var $ = layui.jquery,layer = layui.layer;
+  $('body').on('click','.J_show_perms', function(){
+		var self = $(this),userId = self.attr('data-id');
+		var url = 'selectPermission.html?userId='+userId;
+		layer.open({
+			  type: 2,
+			  title: '查看/编辑权限',
+			  shadeClose: true,
+			  shade: 0.3,
+			  area: ['450px', '550px'],
+			  content: url
+			}); 
+	});
+ });
+
+ 
+</script>  
+</html>

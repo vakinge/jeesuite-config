@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Table</title>
+		<link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="../assets/css/global.css" media="all">
+	</head>
+
+	<body>
+		<div class="admin-main">
+			<blockquote class="layui-elem-quote layui-quote-nm" id="add_btn_div">
+				<a class="layui-btn layui-btn-sm layui-btn-normal J_iframe_dialog" href="javascript:;" data-url="./add.html" data-title="添加业务组"> 
+			      <i class="layui-icon">&#xe608;</i> 添加业务组
+			    </a>
+			</blockquote>
+			<fieldset class="layui-elem-field">
+				<legend>业务组列表</legend>
+				<div class="layui-field-box layui-form" style="width: 800px;">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th width="150">业务组名</th>
+								<th width="100">负责人</th>
+								<th width="120">应用数</th>
+								<th width="50">状态</th>
+								<th width="300">操作</th>
+							</tr>
+						</thead>
+						<tbody id="content" dataLoad="../admin/group/list" template-id="list_tpl"></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板-->
+		<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+				<td>{{ item.name }}</td>
+				<td>{{ item.master }}</td>
+				<td></td>
+                <td>{{ item.enabled ? '启用' : '禁用' }}</td>
+				<td>
+                    {{#  if(top.currentUser.superAdmin){ }}
+                    <a class="layui-btn layui-btn-normal layui-btn-sm" href="javascript:;" onclick="selectUser({{ item.id }});">设置负责人</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-sm {{  item.enabled ? 'layui-btn-danger' : 'layui-btn-normal'}}" lay-event="switch">{{ item.enabled ? '禁用' : '启用'}}</a>
+                    {{#  } }}
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="../assets/plugins/layui/layui.js"></script>
+	</body>
+<script>
+layui.config({
+	  base: '/assets/js/'
+ }).use(['jeesuitelayui'], function(){
+	 if(!top.currentUser.superAdmin){ 
+		 layui.jquery('#add_btn_div').hide();
+	 }
+ });
+var id;
+function selectUser(groupId){
+	id = groupId;
+	var url = '../user/single-selector.html?groupId='+groupId+'&callbackfunc=setGroupMaster';
+	layui.layer.open({
+		  type: 2,
+		  title: '选择负责人',
+		  shadeClose: true,
+		  shade: 0.3,
+		  area: ['450px', '550px'],
+		  content: url
+		});
+}
+
+function setGroupMaster(userId,userName){
+	var param = {};
+	param.id = id;
+	param.masterUid = userId;
+	layui.jeesuitelayui.post('/admin/group/update',param,function(){
+		setTimeout(function(){window.location.reload();},500);
+	});
+}
+</script>  
+</html>

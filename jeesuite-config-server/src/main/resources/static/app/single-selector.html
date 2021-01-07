@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>选择应用</title> 
+  <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../assets/css/global.css" media="all" /> 
+ </head> 
+ <body> 
+<div class="admin-main">
+		<fieldset class="layui-elem-field">
+			<legend>应用列表</legend>
+			<div class="layui-field-box layui-form">
+				<table class="layui-table admin-table">
+					<thead>
+						<tr>
+							<th width="60">应用ID</th>
+							<th width="120">应用名称</th>
+							<th>应用标识</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="list_cont"></tbody>
+				</table>
+			</div>
+		</fieldset>
+	</div>
+  
+<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+                <td>{{ item.id }}</td>
+				<td>{{ item.appName }}</td>
+                <td>{{ item.appKey }}</td>
+				<td>
+                    <a class="layui-btn layui-btn-sm layui-btn-normal J_select" href="javascript:;">选择</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+
+<script type="text/javascript" src="../assets/plugins/layui/layui.js"></script> 
+<script>
+layui.config({
+	  base: '/assets/js/'
+}).use(['form','laytpl','jeesuitelayui'], function(){
+  var $ = layui.jquery,form = layui.form,laytpl = layui.laytpl,jeesuitelayui = layui.jeesuitelayui;
+  
+  var callback = jeesuitelayui.getQueryParams('callbackfunc');
+  var url = '/admin/app/list?x=1';
+  var paramValue = jeesuitelayui.getQueryParams('routeType');
+  if(paramValue)url = url + "&routeType=" + paramValue;
+  paramValue = jeesuitelayui.getQueryParams('exportapiType');
+  if(paramValue)url = url + "&exportapiType=" + paramValue;
+  
+  jeesuitelayui.get(url,function(data){
+	  var tpl = $('#list_tpl').html();
+		laytpl(tpl).render(data, function(html){
+			$('#list_cont').html(html);
+	 });
+  });
+  
+  $('#list_cont').on('click','.J_select',function(){
+	  var td = $(this).parent().prev();
+	  var appCode = td.text();
+	  td = td.prev();
+	  var appName = td.text();
+	  td = td.prev();
+	  var appId = td.text();
+	  eval("parent." + callback+"(appId,appName,appCode)");
+      
+	  var index = parent.layer.getFrameIndex(window.name); 
+	  parent.layer.close(index);
+  });
+  
+});  
+</script>  
+ </body>
+</html>

@@ -1,0 +1,37 @@
+<div style="margin: 15px;">
+	<form class="layui-form" action="../admin/profile/update/attrs">
+	    <input type="hidden" id="name_input" name="id">
+		<div class="layui-form-item">
+			<label class="layui-form-label">ZK地址</label>
+			<div class="layui-input-block">
+				<input type="text" id="zk_server_input" name="zk_server" class="layui-input">
+			</div>
+		</div>
+		<button lay-filter="submitbtn" lay-submit style="display: none;"></button>
+	</form>
+	<script type="text/javascript">
+        function pageRender(data){
+          layui.jquery('#name_input').val(data.id);
+  		  data = data.extrAttrs;
+  		  for(var i in data){
+  			  if(data[i].key === 'ZK_SERVERS'){
+  				layui.jquery('#zk_server_input').val(data[i].value);
+  			  }
+  		  }
+  	    }
+        
+        function submitFrom(data){
+        	var url = '../admin/profile/update/attrs?id=' + data.id;
+        	var params = new Array();
+        	params.push({key:'APIGATEWAY_BASE_URL',value:data.apigateway_url || ''});
+        	params.push({key:'OPENAPI_GATEWAY_BASE_URL',value:data.openapi_gateway_url || ''});
+        	params.push({key:'ZK_SERVERS',value:data.zk_server || ''});
+    
+        	layui.jeesuitelayui.post(url,params,function(res){
+        		layui.jeesuitelayui.success("操作成功");
+	        	setTimeout(function(){layui.layer.close(index);},500);
+	        	window.location.reload() ;
+        	});
+        }
+        </script>
+</div>

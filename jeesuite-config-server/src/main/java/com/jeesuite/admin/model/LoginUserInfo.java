@@ -1,58 +1,92 @@
 package com.jeesuite.admin.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.jeesuite.admin.constants.UserType;
+import com.jeesuite.common.model.AuthUser;
 
-public class LoginUserInfo {
+public class LoginUserInfo extends AuthUser{
 
-	private int id;
-	private String name;
-	private boolean superAdmin;
+	private String mobile;
+	private String email;
+	private Integer groupId;
+	private boolean groupMaster;
 	@JsonIgnore
-	private Map<String,List<String>> permissonData  = new HashMap<>();
+	private List<String> grantPermissons  = new ArrayList<>();
+	@JsonIgnore
 	private List<Integer> grantAppIds = new ArrayList<>();
-
-	public LoginUserInfo(String name) {
-		super();
-		this.name = name;
+	
+	/**
+	 * @return the mobile
+	 */
+	public String getMobile() {
+		return mobile;
 	}
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public boolean isSuperAdmin() {
-		return superAdmin;
-	}
-	public void setSuperAdmin(boolean superAdmin) {
-		this.superAdmin = superAdmin;
+	/**
+	 * @param mobile the mobile to set
+	 */
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
 	}
 	
-	public Map<String, List<String>> getPermissonData() {
-		return permissonData;
+	/**
+	 * @return the email
+	 */
+	public String getEmail() {
+		return email;
 	}
-	public void setPermissonData(Map<String, List<String>> permissonData) {
-		this.permissonData = permissonData;
+	/**
+	 * @param email the email to set
+	 */
+	public void setEmail(String email) {
+		this.email = email;
 	}
-	public List<String> getGrantedProfiles() {
-		return new ArrayList<>(permissonData.keySet());
+	
+	public boolean isSuperAdmin() {
+		return UserType.superAdmin.name().equals(getUserType());
 	}
+	
+	public boolean isGroupAdmin() {
+		return UserType.groupAdmin.name().equals(getUserType());
+	}
+
+	public List<String> getGrantPermissons() {
+		return grantPermissons;
+	}
+
+	public void setGrantPermissons(List<String> grantPermissons) {
+		this.grantPermissons = grantPermissons;
+	}
+
 	public List<Integer> getGrantAppIds() {
 		return grantAppIds;
 	}
 	public void setGrantAppIds(List<Integer> grantAppIds) {
 		this.grantAppIds = grantAppIds;
+	}
+
+	/**
+	 * @return the groupId
+	 */
+	public Integer getGroupId() {
+		return groupId;
+	}
+
+	/**
+	 * @param groupId the groupId to set
+	 */
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
+
+	public boolean isGroupMaster() {
+		return groupMaster;
+	}
+
+	public void setGroupMaster(boolean groupMaster) {
+		this.groupMaster = groupMaster;
 	}
 	
 	

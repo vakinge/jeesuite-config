@@ -5,6 +5,8 @@ public class SelectOption {
 	private String value;
 	private String text;
 	private boolean selected;
+	private String parentValue;
+	private String linkkey; //级联
 	
 	
 	public SelectOption(String value, String text) {
@@ -36,6 +38,27 @@ public class SelectOption {
 	}
 	public void setSelected(boolean selected) {
 		this.selected = selected;
+	}
+	
+	/**
+	 * @return the parentValue
+	 */
+	public String getParentValue() {
+		return parentValue;
+	}
+
+	/**
+	 * @param parentValue the parentValue to set
+	 */
+	public void setParentValue(String parentValue) {
+		this.parentValue = parentValue;
+	}
+
+	public String getLinkkey() {
+		return linkkey;
+	}
+	public void setLinkkey(String linkkey) {
+		this.linkkey = linkkey;
 	}
 
 	@Override

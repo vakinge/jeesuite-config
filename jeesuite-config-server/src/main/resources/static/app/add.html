@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>新增app</title> 
+  <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../assets/css/global.css" media="all" /> 
+ </head> 
+ <body> 
+  <div class="admin-main">  
+   <form class="layui-form" action="../admin/app/add">
+        <div class="layui-form-item">
+			<label class="layui-form-label">应用名称</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" name="appName" placeholder="中文名称" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用标识</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" name="appKey" placeholder="应用标识" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">注册服务名</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" name="serviceId" placeholder="对应注册中心注册服务名" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用类型</label>
+			<div class="layui-input-block" style="width: 600px;">
+			   <select name="appType" asnycSelect="../admin/app/type/options"></select>
+			</div>
+		</div>
+	   <div class="layui-form-item">
+		   <label class="layui-form-label">业务组</label>
+		   <div class="layui-input-block">
+			   <ul id="groupList" templateLoad="../admin/group/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
+			   <script type="text/html" id="checklist_tpl">
+				   {{# layui.each(d, function(index, item){ }}
+                   {{#  if(top.currentUser.superAdmin){ }}
+				   <span><input type="radio" name="groupId" lay-verify="required" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}" /></span>
+                   {{#  } else{ }}
+                   <span><input type="radio" name="groupId" lay-verify="required" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}" {{top.currentUser.groupId.toString() === item.value ? 'checked' : 'disabled'}} /></span>
+                   {{#  } }}
+				   {{# }); }}
+			   </script>
+		   </div>
+	   </div>
+		<div class="layui-form-item" id="master_div">
+			<label class="layui-form-label">负责人</label>
+			<div class="layui-input-block" style="width: 600px;"> 
+             <select id="masterUid" name="masterUid" asnycSelect="../admin/user/options" lay-filter="masterUid_select"> 
+               <option value="">请选择负责人</option> 
+             </select> 
+            </div>
+		</div>
+		<div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">匿名接口</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<textarea bindAttr="anonymousUris" name="anonymousUris" placeholder="一行一个,支持通配符,如:/user/*" class="layui-textarea"></textarea>
+			</div>
+		</div>
+		<div class="layui-form-item"> 
+          <div class="layui-input-block"> 
+           <input type="button"  class="layui-btn layui-btn-normal J_ajaxSubmit" onSuccessCallback="reload" value="保存"/>
+           <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
+          </div> 
+       </div> 
+	</form>
+  </div> 
+  <script type="text/javascript" src="../assets/plugins/layui/layui.js"></script> 
+  <script type="text/javascript">
+  layui.config({
+	  base: '/assets/js/'
+ }).use(['jeesuitelayui','form'], function(){
+	 if(!top.currentUser.superAdmin){
+		 layui.jquery('#master_div').hide();
+	 }
+ });
+  function onFinishCallback(){
+	  layui.form.render();
+  }
+	
+  </script>
+ </body>
+</html>

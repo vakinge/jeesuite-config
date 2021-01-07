@@ -1,23 +1,29 @@
 package com.jeesuite.admin.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
 import com.jeesuite.admin.constants.GrantOperate;
-import com.jeesuite.admin.model.Constants;
+import com.jeesuite.admin.constants.UserType;
+import com.jeesuite.admin.dao.entity.AppEntity;
+import com.jeesuite.admin.dao.entity.UserEntity;
+import com.jeesuite.admin.dao.entity.UserPermissionEntity;
+import com.jeesuite.admin.dao.mapper.AppEntityMapper;
+import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.common.JeesuiteBaseException;
+import com.jeesuite.spring.InstanceFactory;
+import com.jeesuite.springweb.CurrentRuntimeContext;
 
 public class SecurityUtil {
 	
 	public static LoginUserInfo getLoginUserInfo(){
-		 HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-		return (LoginUserInfo) request.getSession().getAttribute(Constants.LOGIN_SESSION_KEY);
+		return (LoginUserInfo) CurrentRuntimeContext.getCurrentUser();
+	}
+	
+	public static Integer getLoginUserId(){
+		String id = CurrentRuntimeContext.getCurrentUser().getId();
+		return Integer.parseInt(id);
 	}
 	
 	public static boolean isSuperAdmin(){
@@ -28,16 +34,30 @@ public class SecurityUtil {
 	public static void requireSuperAdmin(){
 		if(!isSuperAdmin())throw new JeesuiteBaseException(403, "超级管理员才有权限操作");
 	}
-	
-	public static void requireAnyPermission(String env,List<String> appIds,GrantOperate operate){
-		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "profile字段缺失");
+
+	public static void hasPermssionFor(UserEntity targetUser){
 		LoginUserInfo userInfo = getLoginUserInfo();
 		if(userInfo.isSuperAdmin())return;
-        List<String> permCodes = userInfo.getPermissonData().get(env);
+		if(!userInfo.isGroupAdmin())throw new JeesuiteBaseException(403, "你不是业务组管理员");
+		if(!userInfo.getGroupId().equals(targetUser.getGroupId())){
+			throw new JeesuiteBaseException(403, "不能操作其他组成员");
+		}
+		if(targetUser.getId() != null && !userInfo.getId().equals(targetUser.getId().toString())){
+			throw new JeesuiteBaseException(403, "不能操作本人");
+		}
+		if(!userInfo.isGroupMaster() && UserType.superAdmin.name().equals(targetUser.getType())){
+			throw new JeesuiteBaseException(403, "组负责人才能操作组管理员");
+		}
+	}
+	
+	public static void requireAnyPermission(List<String> appIds,GrantOperate operate){
+		LoginUserInfo userInfo = getLoginUserInfo();
+		if(userInfo.isSuperAdmin())return;
+        List<String> permCodes = userInfo.getGrantPermissons();
         if(permCodes == null)throw new JeesuiteBaseException(403, "你没有该项目权限");
 		if (appIds != null) {
 			for (String appId : appIds) {
-				if(permCodes.contains(buildPermissionCode(env, appId, operate))){
+				if(permCodes.contains(buildPermissionCode(appId, operate))){
 					return;
 				}
 			}
@@ -45,20 +65,61 @@ public class SecurityUtil {
 		}
 	}
 	
-	public static void requireAllPermission(String env,List<String> appIds,GrantOperate operate){
-		if(StringUtils.isBlank(env))throw new JeesuiteBaseException(1001, "字段[env]必填");
+	public static void requireAllPermission(Integer groupId, Integer appId, GrantOperate operate) {
 		LoginUserInfo userInfo = getLoginUserInfo();
-		if(userInfo.isSuperAdmin())return;
-		 List<String> permCodes = userInfo.getPermissonData().get(env);
-	        if(permCodes == null)throw new JeesuiteBaseException(403, "你没有该项目权限");
-		for (String appId : appIds) {
-			if(!permCodes.contains(buildPermissionCode(env, appId, operate))){
-				throw new JeesuiteBaseException(403, "你没有appId["+appId+"]在环境["+env+"]权限");
+		if (userInfo.isSuperAdmin())
+			return;
+		if (userInfo.getGroupId() != null && userInfo.getGroupId().equals(groupId))
+			return;
+		if(appId == null || appId == 0){
+			throw new JeesuiteBaseException(403, "你没有全局配置权限");
+		}
+		List<String> permCodes = userInfo.getGrantPermissons();
+		if (permCodes == null)
+			throw new JeesuiteBaseException(403, "你没有该项目权限");
+		if (!permCodes.contains(buildPermissionCode(appId.toString(), operate))) {
+			throw new JeesuiteBaseException(403, "你没有appId[" + appId + "]权限");
+		}
+	}
+	
+	public static void  initPermssionDatas(LoginUserInfo loginUserInfo){
+
+		List<AppEntity> apps = new ArrayList<>(0);
+		if(loginUserInfo.getUserType().equals(UserType.user.name())) {
+			apps = InstanceFactory.getInstance(AppEntityMapper.class).findByMaster(Integer.parseInt(loginUserInfo.getId()));
+		} else if (loginUserInfo.getUserType().equals(UserType.groupAdmin.name())) {
+ 			apps = InstanceFactory.getInstance(AppEntityMapper.class).findByGroupId(loginUserInfo.getGroupId());
+		}
+		String permissionCode;
+		for (AppEntity entity : apps) {
+			permissionCode = buildPermissionCode(entity.getId().toString(), GrantOperate.RW);
+			loginUserInfo.getGrantPermissons().add(permissionCode);
+			loginUserInfo.getGrantAppIds().add(entity.getId());
+		}
+		Integer userId = Integer.parseInt(loginUserInfo.getId());
+		List<UserPermissionEntity> userPermissions = InstanceFactory.getInstance(UserPermissionEntityMapper.class).findByUserId(userId);
+		for (UserPermissionEntity entity : userPermissions) {
+			if(loginUserInfo.getGrantAppIds().contains(entity.getAppId())){
+				continue;
+			}
+			permissionCode = buildPermissionCode(entity.getAppId().toString(), GrantOperate.valueOf(entity.getOperate()));
+			loginUserInfo.getGrantPermissons().add(permissionCode);
+			if(!loginUserInfo.getGrantAppIds().contains(entity.getAppId())){
+				loginUserInfo.getGrantAppIds().add(entity.getAppId());
 			}
 		}
 	}
-
-	 private static String buildPermissionCode(String env,String appId,GrantOperate operate){
-	     return String.format("%s-%s:%s", env,appId,operate.name());
+	
+	public static void reloadPermssionDatas(){
+		LoginUserInfo userInfo = getLoginUserInfo();
+		if(userInfo.isSuperAdmin())return;
+		userInfo.getGrantAppIds().clear();
+		userInfo.getGrantPermissons().clear();
+		initPermssionDatas(userInfo);
+	}
+	
+	 private static String buildPermissionCode(String appId,GrantOperate operate){
+	     return String.format("%s:%s", appId,operate.name());
 	 }
+
 }

@@ -6,11 +6,39 @@
       WARNING - @mbg.generated
     -->
     <id column="id" property="id" jdbcType="INTEGER" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="alias" property="alias" jdbcType="VARCHAR" />
-    <result column="app_type" property="appType" jdbcType="INTEGER" />
+    <result column="app_key" property="appKey" jdbcType="VARCHAR" />
+    <result column="group_id" property="groupId" jdbcType="INTEGER" />
+    <result column="app_name" property="appName" jdbcType="VARCHAR" />
+    <result column="service_id" property="serviceId" jdbcType="VARCHAR" />
+    <result column="app_type" property="appType" jdbcType="VARCHAR" />
     <result column="master" property="master" jdbcType="VARCHAR" />
     <result column="master_uid" property="masterUid" jdbcType="INTEGER" />
     <result column="remarks" property="remarks" jdbcType="LONGVARCHAR" />
+    <result column="anonymous_uris" property="anonymousUris" jdbcType="VARCHAR" />
+    <result column="health_uri" property="healthUri" jdbcType="VARCHAR" />
+    <result column="enabled" property="enabled" jdbcType="BIT" />
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />
+    <result column="created_by" property="createdBy" jdbcType="INTEGER" />
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP" />
+    <result column="updated_by" property="updatedBy" jdbcType="INTEGER" />
   </resultMap>
+  
+  
+  <select id="findByQueryParams" parameterType="map" resultMap="BaseResultMap">
+     SELECT app.* FROM apps app WHERE 1=1
+     <if test="enabled != null">AND enabled=#{enabled}</if>
+     <if test="groupId != null">AND group_id=#{groupId}</if>
+     <if test="appType != null">AND app_type=#{appType}</if>
+     <if test="userId != null">
+     AND (
+      master_uid = #{userId} 
+      OR exists (
+       select app_id FROM user_permissions up where up.app_id = app.id AND user_id = #{userId} 
+       <if test="operate != null">AND up.operate=#{operate}</if>
+      )
+     )
+     </if>
+  </select>
+
+
 </mapper>

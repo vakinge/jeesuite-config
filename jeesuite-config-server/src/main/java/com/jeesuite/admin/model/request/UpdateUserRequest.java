@@ -6,7 +6,8 @@ public class UpdateUserRequest {
 	private String email;
 	private String oldPassword;
 	private String password;
-	
+	private Integer groupId;
+
 
 	public String getMobile() {
 		return mobile;
@@ -32,6 +33,17 @@ public class UpdateUserRequest {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
+	/**
+	 * @return the groupId
+	 */
+	public Integer getGroupId() {
+		return groupId;
+	}
+	/**
+	 * @param groupId the groupId to set
+	 */
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
 	
 }

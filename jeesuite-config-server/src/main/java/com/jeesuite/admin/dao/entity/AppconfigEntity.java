@@ -20,8 +20,11 @@ public class AppconfigEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "app_ids")
-    private String appIds;
+    @Column(name = "group_id",updatable = false)
+    private Integer groupId;
+
+    @Column(name = "app_id")
+    private Integer appId;
     @Column(name = "env",updatable = false)
     private String env;
 
@@ -70,14 +73,13 @@ public class AppconfigEntity extends BaseEntity {
     public void setId(Integer id) {
         this.id = id;
     }
-
     
-    public String getAppIds() {
-		return StringUtils.trimToNull(appIds);
+	public Integer getAppId() {
+		return appId;
 	}
 
-	public void setAppIds(String appIds) {
-		this.appIds = appIds;
+	public void setAppId(Integer appId) {
+		this.appId = appId;
 	}
 
 	/**
@@ -180,7 +182,7 @@ public class AppconfigEntity extends BaseEntity {
      * @return updated_at
      */
     public Date getUpdatedAt() {
-        return updatedAt;
+        return updatedAt == null ? createdAt : updatedAt;
     }
 
     /**
@@ -194,7 +196,7 @@ public class AppconfigEntity extends BaseEntity {
      * @return updated_by
      */
     public String getUpdatedBy() {
-        return updatedBy;
+        return updatedBy == null ? createdBy : updatedBy;
     }
 
     /**
@@ -220,7 +222,7 @@ public class AppconfigEntity extends BaseEntity {
     
     //全局配置
     public boolean getGlobal() {
-		return StringUtils.isBlank(appIds);
+		return appId == null || appId == 0;
 	}
     
     //类型(1:文件，2:配置项,3:JSON)
@@ -239,4 +241,11 @@ public class AppconfigEntity extends BaseEntity {
 		this.appNames = appNames;
 	}
 
+    public Integer getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(Integer groupId) {
+        this.groupId = groupId;
+    }
 }

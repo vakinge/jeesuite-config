@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>Table</title> 
+  <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../assets/css/global.css" media="all" /> 
+  <style type="text/css">
+     .applist{}
+     .applist li{
+        float:left;width:24%;
+     }
+  </style>
+ </head> 
+ <body> 
+  <div class="admin-main"> 
+   <form class="layui-form" action="../admin/config/add">  
+     <div class="layui-form-item" id="div_global"> 
+     <label class="layui-form-label">全局配置</label> 
+     <div class="layui-input-block"> 
+      <input type="radio" name="global" value="true" title="是" lay-filter="global">
+      <input type="radio" name="global" value="false" title="否" checked lay-filter="global">
+     </div> 
+    </div>  
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">环境</label> 
+     <div class="layui-input-block"> 
+       <select id="env" name="env" lay-verify="required" asnycSelect="../admin/profile/options" lay-filter="env_select">
+          <option value="">请选择环境</option> 
+       </select> 
+     </div> 
+    </div> 
+    <div class="layui-form-item" id="div_app_list"> 
+     <label class="layui-form-label">选择应用</label> 
+     <div class="layui-input-block"> 
+      <select name="appId" id="appList" asnycSelect="../admin/app/options" lay-filter="app_select">
+          <option value="">请选择应用</option>
+      </select>
+     </div> 
+    </div>  
+    <div class="layui-form-item"> 
+     <label class="layui-form-label">配置类型</label> 
+     <div class="layui-input-block"> 
+      <input type="radio" name="type" value="1" title="配置文件" checked="" /> 
+      <input type="radio" name="type" value="2" title="配置项" /> 
+      <input type="radio" name="type" value="3" title="JSON" />
+     </div>
+    </div> 
+    <div class="layui-inline">
+      <label class="layui-form-label">配置名</label>
+      <div class="layui-input-inline" style="width: 200px;">
+        <input type="text" id="fileName" name="name" value="application.properties" lay-verify="required" placeholder="请输入配置名或者直接上传" autocomplete="off" class="layui-input" style="width:200px;" /> 
+      </div>
+      <div class="layui-input-inline" style="width: 200px;">
+        <button type="button" class="layui-btn layui-btn-normal" id="upload_file"><i class="layui-icon">&#xe67c;</i>上传配置文件</button>
+      </div>
+    </div>    
+    <div class="layui-form-item layui-form-text"> 
+     <label class="layui-form-label">配置内容</label> 
+     <div class="layui-input-inline" style="width: 750px;">
+        <textarea id="fileContent" name="contents" placeholder="如:db.passport={Cipher}123456" class="layui-textarea"></textarea> 
+      </div>
+      <div class="layui-input-inline" style="width: 100px;">
+        <input type="button" id="content_pop_btn" class="layui-btn layui-btn-warm layui-btn-min" value="全屏显示"/>
+      </div>
+    </div>
+    <div class="layui-form-item" style="padding-left: 100px;color:#FFB800;">
+     * 如果需要加密配置请手动加上前缀:<b style="color:#FF5722;">{Cipher}</b>,如:<b style="color:#FF5722;">db.passport={Cipher}123456</b>
+       <br><b style="color:#FF5722;font-size: 16;">特别注意:</b>yaml配置需要加双引号，否则会报错。如:<b style="color:#FF5722;">password: "{Cipher}root"</b>
+    </div>
+    <div class="layui-form-item"> 
+     <div class="layui-input-block"> 
+        <input type="button"  class="layui-btn layui-btn-normal J_ajaxSubmit" onSuccessCallback="onSubmitSuccess" value="保存"/>
+        <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
+     </div> 
+    </div> 
+   </form> 
+  </div> 
+  <script type="text/javascript" src="../assets/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="../assets/js/jeesuitelayui.js?v20180420"></script>  
+  <script type="text/javascript">
+    layui.use(['layer','upload','form'], function(){
+    	var $ = layui.jquery ,  layer = layui.layer ,upload = layui.upload;
+    	var uploadInst = upload.render({
+    	    elem: '#upload_file' //绑定元素
+    	    ,url: '/admin/config/upload' //上传接口
+    	    ,accept: 'file'
+    	    ,done: function(res){
+    	    	if(res.code == 200){
+        			$('#fileContent').val(res.data.content);
+        			$('#fileName').val(res.data.fileName);
+        		}else{
+        			layui.layer.msg(res.msg, {icon: 5});
+        		}
+    	    }
+    	    ,error: function(){
+    	      //请求异常回调
+    	    }
+    	  });
+      //
+        if(top.currentUser.superAdmin){
+        	layui.form.on('radio(global)', function(data){
+        		  if (data.value === 'true') {
+          			$("#div_app_list").hide();
+          		} else {
+          			$("#div_app_list").show();
+          		}
+        	}); 
+        }else{
+        	$('#div_global').hide();
+        }
+      //
+      $('#content_pop_btn').on('click',function(){
+    	  parent.parent.layer.open({
+    	    type: 1 
+    	    ,area: ['1024px', '660px']
+    	    ,title: '编辑配置内容'
+    	    ,shade: 0.6 //遮罩透明度
+    	    ,maxmin: true //允许全屏最小化
+    	    ,anim: 1 //0-6的动画形式，-1不开启
+    	    ,content: '<div style="padding:5px;"><textarea id="pop_fileContent" style="width:1000px;height:550px;border:1px dashed #000;">'+$('#fileContent').val()+'</textarea> </div>'
+    	    ,btn: ['确认']
+    	    ,yes: function(index, layero){
+    	    	var content = $('#pop_fileContent', window.parent.parent.document).val();
+    	    	$('#fileContent').val(content);
+    	    	parent.parent.layer.close(index);
+    	    }
+    	  }); 
+      });
+	});
+    
+    function onSubmitSuccess(data){
+      var index = parent.layer.getFrameIndex(window.name);
+      if(index){   
+    	parent.reloadData();
+        parent.layer.close(index);
+      }else{
+    	  window.location.href = './list.html';
+      }
+    }
+    function onFinishCallback(){
+        layui.form.render();
+    }
+  </script>
+ </body>
+</html>

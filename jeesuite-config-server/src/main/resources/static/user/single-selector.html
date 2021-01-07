@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>选择用户</title> 
+  <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../assets/css/global.css" media="all" /> 
+ </head> 
+ <body> 
+<div class="admin-main">
+		<fieldset class="layui-elem-field">
+			<legend>用户列表</legend>
+			<div class="layui-field-box layui-form">
+				<table class="layui-table admin-table">
+					<thead>
+						<tr>
+							<th width="60">用户ID</th>
+							<th width="120">用户名称</th>
+							<th>所属业务组</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="list_cont"></tbody>
+				</table>
+			</div>
+		</fieldset>
+	</div>
+  
+<script type="text/html" id="list_tpl">
+			{{# layui.each(d, function(index, item){ }}
+			<tr>
+                <td>{{ item.id }}</td>
+				<td>{{ item.name }}</td>
+                <td>{{ item.groupName }}</td>
+				<td>
+                    <a class="layui-btn layui-btn-sm layui-btn-normal J_select" href="javascript:;">选择</a>
+				</td>
+			</tr>
+			{{# }); }}
+		</script>
+
+<script type="text/javascript" src="../assets/plugins/layui/layui.js"></script> 
+<script>
+layui.config({
+	  base: '/assets/js/'
+}).use(['form','laytpl','jeesuitelayui'], function(){
+  var $ = layui.jquery,form = layui.form,laytpl = layui.laytpl,jeesuitelayui = layui.jeesuitelayui;
+  
+  var callback = jeesuitelayui.getQueryParams('callbackfunc');
+  var groupId = jeesuitelayui.getQueryParams('groupId');
+  var url = '/admin/user/list?groupId=' + groupId;
+  jeesuitelayui.get(url,function(data){
+	  var tpl = $('#list_tpl').html();
+		laytpl(tpl).render(data, function(html){
+			$('#list_cont').html(html);
+	 });
+  });
+  
+  $('#list_cont').on('click','.J_select',function(){
+	  var td = $(this).parent().prev().prev();
+	  var userName = td.text();
+	  td = td.prev();
+	  var userId = td.text();
+	  eval("parent." + callback+"(userId,userName)");
+      
+	  var index = parent.layer.getFrameIndex(window.name); 
+	  parent.layer.close(index);
+  });
+  
+});  
+</script>  
+ </body>
+</html>

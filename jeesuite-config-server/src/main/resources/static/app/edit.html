@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <meta charset="UTF-8" /> 
+  <title>编辑app</title> 
+  <link rel="stylesheet" href="../assets/plugins/layui/css/layui.css" media="all" /> 
+  <link rel="stylesheet" href="../assets/css/global.css" media="all" /> 
+ </head> 
+ <body> 
+  <div class="admin-main" dataLoad="/admin/app/{id}" onFinishCallback="dataLoadFinish"> 
+   <form class="layui-form" action="../admin/app/update">
+	    <input type="hidden" bindAttr="id" name="id">
+	    <div class="layui-form-item">
+			<label class="layui-form-label">应用名称</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" name="appName" bindAttr="appName" placeholder="中文名称" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用标识</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" bindAttr="appKey" name="appKey" placeholder="字母、数字、下划线、中划线" required lay-verify="required" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用类型</label>
+			<div class="layui-input-block" style="width: 600px;">
+			   <select name="appType" bindAttr="appType" asnycSelect="../admin/app/type/options"></select>
+			</div>
+		</div>
+	   <div class="layui-form-item">
+		   <label class="layui-form-label">业务组</label>
+		   <div class="layui-input-block">
+			   <ul id="groupList" templateLoad="../admin/group/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
+			   <script type="text/html" id="checklist_tpl">
+				   {{# layui.each(d, function(index, item){ }}
+				   <span><input type="radio" name="groupId" lay-verify="required" bindAttr="groupId" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}"></span>
+				   {{# }); }}
+			   </script>
+		   </div>
+	   </div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">服务名</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" name="serviceId" bindAttr="serviceId" placeholder="对应注册中心注册的服务名" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">应用SCM</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<input type="text" bindAttr="scmLink" name="scmLink" placeholder="git地址" autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">负责人</label>
+			<div class="layui-input-block" style="width: 600px;"> 
+             <input type="text" bindAttr="master" class="layui-input" style="width:200px;" disabled/>  
+            </div>
+		</div>
+		<div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">匿名接口</label>
+			<div class="layui-input-block" style="width: 600px;">
+				<textarea bindAttr="anonymousUris" name="anonymousUris" placeholder="一行一个,支持通配符,如:/user/*" class="layui-textarea"></textarea>
+			</div>
+		</div>
+		<div class="layui-form-item"> 
+          <div class="layui-input-block"> 
+           <input type="button"  class="layui-btn layui-btn-normal J_ajaxSubmit" onSuccessCallback="reload" value="更新"/>
+           <input type="reset" class="layui-btn layui-btn-primary" value="重置"/>
+          </div> 
+       </div>		
+	</form>
+  </div> 
+  <script type="text/javascript" src="../assets/plugins/layui/layui.js"></script> 
+  <script type="text/javascript" src="../assets/js/jeesuitelayui.js?v20180420"></script>
+  <script type="text/javascript">
+  var defMasterId;
+  function dataLoadFinish(data){
+	  defMasterId =  data.masterUid;
+  }
+  function onFinishCallback(){
+	  layui.form.render();
+  }
+  </script>  
+ </body>
+</html>

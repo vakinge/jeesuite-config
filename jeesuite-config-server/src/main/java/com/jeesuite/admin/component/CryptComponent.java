@@ -60,9 +60,10 @@ public class CryptComponent {
 	}
 	
 	public static void main(String[] args) {
-		String aes = encryptWithAES("123456", "asd");
-		System.out.println(aes);
-		System.out.println(decryptWithAES("123456", aes));
+		CryptComponent component = new CryptComponent();
+		component.secretKey = "zy2019@123";
+		String cryptKey = component.getCryptKey(37, "prd");
+		System.out.println(decryptWithAES(cryptKey, "SJEfop6UDw8xollCT72sT+pI48bf4vXV7cgi5CsEpr4="));
 	}
 
 

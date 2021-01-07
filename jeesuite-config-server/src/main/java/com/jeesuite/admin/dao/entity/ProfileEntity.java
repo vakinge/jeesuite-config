@@ -1,11 +1,15 @@
 package com.jeesuite.admin.dao.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import com.jeesuite.common.model.KeyValuePair;
 import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "profiles")
@@ -22,6 +26,9 @@ public class ProfileEntity extends BaseEntity {
     private Boolean isDefault;
 
     private Boolean enabled;
+    
+    @Transient
+    private List<KeyValuePair>  extrAttrs;
 
     /**
      * @return id
@@ -92,4 +99,20 @@ public class ProfileEntity extends BaseEntity {
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
+
+	/**
+	 * @return the extrAttrs
+	 */
+	public List<KeyValuePair> getExtrAttrs() {
+		return extrAttrs;
+	}
+
+	/**
+	 * @param extrAttrs the extrAttrs to set
+	 */
+	public void setExtrAttrs(List<KeyValuePair> extrAttrs) {
+		this.extrAttrs = extrAttrs;
+	}
+    
+    
 }

@@ -1,35 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration status="OFF">
-    
+
 	<appenders>
-	    <Console name="Console" target="SYSTEM_OUT" follow="true">  
-            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />  
-        </Console> 		
-		<RollingFile name="LogFileAppender" fileName="logs/config.log" filePattern="logs/config-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
-            <SizeBasedTriggeringPolicy size="10M"/>
-            <Filters>
-                <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
-              </Filters>
-        </RollingFile>
-        
-         <RollingFile name="ErrorLogFileAppender" fileName="logs/config-error.log" filePattern="logs/config-error-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
-            <SizeBasedTriggeringPolicy size="10M"/>
-            <Filters>
-                <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
-              </Filters>
-        </RollingFile> 
+		<Console name="Console" target="SYSTEM_OUT" follow="true">
+			<PatternLayout
+				pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />
+		</Console>
+		<RollingFile name="LogFileAppender" fileName="logs/config.log"
+			filePattern="logs/config-%d{yyyy-MM-dd}-%i.log.gz">
+			<PatternLayout
+				pattern="%d{yyyy-MM-dd HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n" />
+			<Policies>
+				<SizeBasedTriggeringPolicy size="50MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="100">
+				<Delete basePath="logs" maxDepth="1">
+					<IfFileName glob="*/app-*.log.gz">
+						<IfLastModified age="30d">
+							<IfAny>
+								<IfAccumulatedFileSize exceeds="100MB" />
+								<IfAccumulatedFileCount exceeds="10" />
+							</IfAny>
+						</IfLastModified>
+					</IfFileName>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
 
 	</appenders>
 
 	<loggers>
-	    <logger name="com.jeesuite.admin" level="debug" />
-	    <logger name="com.jeesuite.admin.dao" level="INFO" />
-		<root level="info">
-		    <appender-ref ref="Console" />
-			<!-- <appender-ref ref="LogFileAppender" />
-			<appender-ref ref="ErrorLogFileAppender" /> -->
+		<logger name="com.jeesuite" level="INFO" />
+		<logger name="com.jeesuite.admin.dao" level="DEBUG" />
+		<root level="INFO">
+			<appender-ref ref="Console" />
+			<appender-ref ref="LogFileAppender" />
 		</root>
 	</loggers>
 

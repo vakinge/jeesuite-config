@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -27,12 +27,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.jeesuite.admin.component.ConfigStateHolder;
-import com.jeesuite.admin.component.ConfigStateHolder.ConfigState;
 import com.jeesuite.admin.component.CryptComponent;
+import com.jeesuite.admin.component.ProfileZkClient;
 import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
-import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppConfigsHistoryEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
@@ -44,11 +42,13 @@ import com.jeesuite.admin.model.request.AddOrEditConfigRequest;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.JeesuiteBaseException;
+import com.jeesuite.common.model.Page;
+import com.jeesuite.common.model.PageParams;
+import com.jeesuite.common.util.AssertUtil;
 import com.jeesuite.common.util.BeanUtils;
-import com.jeesuite.mybatis.plugin.pagination.Page;
+import com.jeesuite.common.util.ResourceUtils;
 import com.jeesuite.mybatis.plugin.pagination.PageExecutor;
 import com.jeesuite.mybatis.plugin.pagination.PageExecutor.PageDataLoader;
-import com.jeesuite.mybatis.plugin.pagination.PageParams;
 
 @Controller
 @RequestMapping("/admin/config")
@@ -56,14 +56,15 @@ public class ConfigAdminController {
 
 	final static Logger logger = LoggerFactory.getLogger("controller");
 	
+	private List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));
 	private static List<String> allow_upload_suffix = new ArrayList<>(Arrays.asList("xml","properties","yml","yaml"));
+	private boolean sensitiveForceEncrypt = ResourceUtils.getBoolean("sensitive.config.force.encrypt");
 	
 	private @Autowired AppEntityMapper appMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
 	private @Autowired AppConfigsHistoryEntityMapper appconfigHisMapper;
 	private @Autowired CryptComponent cryptComponent;
-	private @Autowired ConfigStateHolder configStateHolder;
-	
+	private @Autowired ProfileZkClient profileZkClient;
 
 	
 	@RequestMapping(value = "upload", method = RequestMethod.POST)
@@ -86,6 +87,9 @@ public class ConfigAdminController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
+		SecurityUtil.requireAllPermission(entity.getGroupId(),entity.getAppId(),GrantOperate.RO);
+		String appName = buildConfigRalateAppNames(entity);
+		entity.setAppNames(appName);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
 	
@@ -93,7 +97,11 @@ public class ConfigAdminController {
 	@Transactional
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
-		if(!addRequest.getGlobal() && addRequest.getAppIds() == null){
+        if(addRequest.getGlobal() && SecurityUtil.isSuperAdmin()){
+        	throw new JeesuiteBaseException(403,"请使用业务组管理员添加全局配置");
+		}
+        
+		if(!addRequest.getGlobal() && addRequest.getAppId() == null){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
 		}
 		
@@ -105,11 +113,8 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
 		
-		if(addRequest.getGlobal()){
-			SecurityUtil.requireSuperAdmin();
-		}else{			
-			SecurityUtil.requireAllPermission(addRequest.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
-		}
+		addRequest.setGroupId(SecurityUtil.getLoginUserInfo().getGroupId());
+		SecurityUtil.requireAllPermission(addRequest.getGroupId(),addRequest.getAppId(),GrantOperate.RW);
 		
 //       if(StringUtils.isNotBlank(addRequest.getName()) 
 //    		   && appconfigMapper.findSameByName(addRequest.getEnv(), appId, addRequest.getName()) != null){
@@ -117,16 +122,16 @@ public class ConfigAdminController {
 //       }
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
-		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));
+		entity.setAppId(addRequest.getAppId());
 		entity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
 		entity.setCreatedAt(new Date());
 		entity.setUpdatedAt(entity.getCreatedAt());
 		entity.setUpdatedBy(entity.getCreatedBy());
-		
+		//
 		encryptPropItemIfRequired(entity);
 		//
 		appconfigMapper.insertSelective(entity);
-
+		
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 
@@ -137,19 +142,9 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(1003, "id参数缺失");
 		}
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(addRequest.getId());
-		if(!entity.getGlobal() && addRequest.getAppIds() == null){
-			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
-		}
-		
-		if(entity.getGlobal()){
-			SecurityUtil.requireSuperAdmin();
-		}else{			
-			SecurityUtil.requireAllPermission(entity.getEnv(),addRequest.getAppIds(),GrantOperate.RW);
-		}
+		SecurityUtil.requireAllPermission(entity.getGroupId(),entity.getAppId(),GrantOperate.RW);
 		//
 		saveAppConfigHistory(entity);
-		
-		entity.setAppIds(StringUtils.join(addRequest.getAppIds(),","));
 		entity.setVersion(addRequest.getVersion());
 		
 		String orignContents = entity.getContents();
@@ -177,16 +172,21 @@ public class ConfigAdminController {
 		Map<String, Object> queryParams = new HashMap<>();
 		
 		LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
-		if(!loginUserInfo.isSuperAdmin()){
-			if(loginUserInfo.getGrantedProfiles().isEmpty()){
+		if(loginUserInfo.isGroupAdmin()){
+			queryParams.put("groupId", loginUserInfo.getGroupId());
+		}else if(!loginUserInfo.isSuperAdmin()){
+			if(loginUserInfo.getGrantAppIds().isEmpty()){
 				return new PageResult<>(pageNo, pageSize, 0L, new ArrayList<>(0));
 			}
 			if(appId == null)queryParams.put("appIds", loginUserInfo.getGrantAppIds());
-			if(StringUtils.isBlank(env))queryParams.put("envs", loginUserInfo.getGrantedProfiles());
 		}
 		
 		if(appId != null){
-			queryParams.put("appId", appId);
+			if(appId <= 0){
+				queryParams.put("isGlobal", true);
+			}else{				
+				queryParams.put("appId", appId);
+			}
 		}
 		if(StringUtils.isNotBlank(env)){
 			queryParams.put("env", env);
@@ -215,27 +215,27 @@ public class ConfigAdminController {
 	 */
 	@RequestMapping(value = "config_histories/{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> queryHistoryConfigs(@PathVariable("id") int id){
-		List<AppConfigsHistoryEntity> historyList = appconfigHisMapper.findByConfigId(id);
+		List<AppConfigsHistoryEntity> historyList = appconfigHisMapper.findTopNLatest(id, 5);
 		if(!historyList.isEmpty()){
 			AppconfigEntity appconfigEntity = appconfigMapper.selectByPrimaryKey(historyList.get(0).getOriginId());
 			for (AppConfigsHistoryEntity entity : historyList) {
 				entity.setActiveContents(appconfigEntity.getContents());
+			}
+			//删除历史记录
+			if(historyList.size() == 5){
+				try {
+					Integer keepMaxId = historyList.get(4).getId();
+					appconfigHisMapper.deleteExpireHisConfigs(id, keepMaxId);
+				} catch (Exception e) {}
 			}
 		}
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(historyList),HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "delete/{id}", method = RequestMethod.POST)
-	@Transactional
 	public ResponseEntity<WrapperResponseEntity> deleteConfig(@PathVariable("id") int id){
 		AppconfigEntity entity = appconfigMapper.selectByPrimaryKey(id);
-		//全局配置
-		if(entity.getGlobal()){
-			SecurityUtil.requireSuperAdmin();
-		}else{			
-			SecurityUtil.requireAllPermission(entity.getEnv(),Arrays.asList(entity.getAppIds()),GrantOperate.RW);
-		}
-		
+		SecurityUtil.requireAllPermission(entity.getGroupId(),entity.getAppId(),GrantOperate.RW);
 		entity.setEnabled(false);
 		appconfigMapper.updateByPrimaryKeySelective(entity);
 		
@@ -247,64 +247,77 @@ public class ConfigAdminController {
 		AppConfigsHistoryEntity historyEntity = appconfigHisMapper.selectByPrimaryKey(id);
 		if(historyEntity != null){
 			AppconfigEntity appconfigEntity = appconfigMapper.selectByPrimaryKey(historyEntity.getOriginId());
-			appconfigEntity.setAppIds(historyEntity.getAppIds());
+			SecurityUtil.requireAllPermission(appconfigEntity.getGroupId(),appconfigEntity.getAppId(),GrantOperate.RW);
+			appconfigEntity.setAppId(historyEntity.getAppId());
 			appconfigEntity.setContents(historyEntity.getContents());
 			appconfigMapper.updateByPrimaryKeySelective(appconfigEntity);
 		}
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
 	}	
 	
+	@RequestMapping(value = "delete/history/{id}", method = RequestMethod.POST)
+	@Transactional
+	public ResponseEntity<WrapperResponseEntity> deleteHisConfig(@PathVariable("id") int id){
+		SecurityUtil.requireSuperAdmin();
+		AppConfigsHistoryEntity entity = appconfigHisMapper.selectByPrimaryKey(id);
+		AssertUtil.notNull(entity);
+		List<AppConfigsHistoryEntity> latest = appconfigHisMapper.findTopNLatest(entity.getOriginId(),1);
+		if(latest.size() > 0 && latest.get(0).getId().intValue() == id){
+			throw new JeesuiteBaseException(403, "最后一条备份记录禁止删除");
+		}
+		appconfigHisMapper.deleteByPrimaryKey(id);
+		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(),HttpStatus.OK);
+	}
+
 	private void publishConfigChangeEvent(String orignContents,AppconfigEntity entity) {
 		try {
-			logger.info("begin publishConfigChangeEvent,{}-{}",entity.getAppIds(),entity.getEnv());
-			//更新后的配置
-			Map<String, Object> currentConfigMap = ConfigParseUtils.parseConfigToKVMap(entity);
+			if(profileZkClient.getClient(entity.getEnv()) == null){
+				logger.info("skip publishConfigChangeEvent,env:{},appId:{}",entity.getEnv(),entity.getAppId());
+				return;
+			}
+			logger.info("begin publishConfigChangeEvent,env:{},appId:{}",entity.getEnv(),entity.getAppId());
+			Map<String, String> changedMap = buildChangeConfigs(entity, orignContents);
+			if(changedMap.isEmpty()){
+				return ;
+			}
 			
-			entity.setContents(orignContents);
-			Map<String, Object> orignConfigMap = ConfigParseUtils.parseConfigToKVMap(entity);
-			
-			List<ConfigState> configStates;
+			List<String> appKeys;
+			//通知所有应用
 			if(entity.getGlobal()){
-				configStates = configStateHolder.get(entity.getEnv());
-			}else{	
-				configStates = new ArrayList<>();
-				String[] appIds = entity.getAppIds().split(",");
-				for (int i = 0; i < appIds.length; i++) {
-					AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
-					List<ConfigState> tmpList = configStateHolder.get(appEntity.getName(), entity.getEnv());
-					if(tmpList != null && !tmpList.isEmpty())configStates.addAll(tmpList);
-				}
+				appKeys = appMapper.findByGroupId(entity.getGroupId()).stream().map(e -> {return e.getAppKey();}).collect(Collectors.toList());
+			}else{
+				appKeys = Arrays.asList(appMapper.selectByPrimaryKey(entity.getAppId()).getAppKey());
 			}
 			
-			if(configStates.isEmpty())return;
-			
-			//zookeeper 通知同一环境+app只需要通知一次，所以这里保存一个通知状态
-			Set<String> publishList = new HashSet<>();
-			for (ConfigState configState : configStates) {
-				Set<String> keys = currentConfigMap.keySet();
-				
-				Map<String, String> changedMap = new HashMap<>();
-				for (String key : keys) {
-					Object orignValue = orignConfigMap.get(key);
-					Object currentVaule = currentConfigMap.get(key);
-					if(!Objects.equals(orignValue, currentVaule)){
-						changedMap.put(key, currentVaule.toString());
-					}
-				}
-				String publishedKey = configState.getEnv() + ":" + configState.getAppName();
-				if(ConfigStateHolder.SYNC_TYPE_HTTP.equals(configState.getSyncType()) 
-						|| publishList.contains(publishedKey) == false){				
-					configState.publishChangeConfig(changedMap);
-					publishList.add(publishedKey);
-					logger.info("publishConfigChangeEvent,env:{},appName:{},changeConfig:{}",configState.getEnv(),configState.getAppName(),changedMap);
-				}
-			}
+			profileZkClient.publishChangeConfig(entity.getEnv(), appKeys, changedMap);
+			logger.info("finish publishConfigChangeEvent,env:{},appId:{},changedMap:{}",entity.getEnv(),entity.getAppId(),changedMap);
 		} catch (Exception e) {
 			logger.error("publishConfigChangeEvent error",e);
 		}
 	}
 	
-	private boolean encryptPropItemIfRequired(AppconfigEntity entity) {
+	public static Map<String, String> buildChangeConfigs(AppconfigEntity currentEntity,String orignContents){
+		
+		Map<String, Object> currentConfigMap = ConfigParseUtils.parseConfigToKVMap(currentEntity);
+		
+		currentEntity.setContents(orignContents);
+		Map<String, Object> orignConfigMap = ConfigParseUtils.parseConfigToKVMap(currentEntity);
+		
+		Set<String> keys = currentConfigMap.keySet();
+		
+		Map<String, String> changedMap = new HashMap<>();
+		for (String key : keys) {
+			Object orignValue = orignConfigMap.get(key);
+			Object currentVaule = currentConfigMap.get(key);
+			if(!Objects.equals(orignValue, currentVaule)){
+				changedMap.put(key, currentVaule.toString());
+			}
+		}
+		
+		return changedMap;
+	}
+	
+	private void encryptPropItemIfRequired(AppconfigEntity entity) {
 		Map<String, Object> props = ConfigParseUtils.parseConfigToKVMap(entity) ;
 		
 		String content = entity.getContents();
@@ -313,16 +326,20 @@ public class ConfigAdminController {
 		boolean needCrypt = false;
 		for (String key : props.keySet()) {
 			value = props.get(key).toString();
-			if(!value.startsWith(CryptComponent.cryptPrefix))continue;
-			int appId = (entity.getGlobal() || !StringUtils.isNumeric(entity.getAppIds())) ? 0 : Integer.parseInt(entity.getAppIds());
+			//
+			needCrypt = value.startsWith(CryptComponent.cryptPrefix);
+			if(!needCrypt && sensitiveForceEncrypt) {
+				for (String k : sensitiveKeys) {
+					if(needCrypt = key.toLowerCase().contains(k))break;
+				}
+			}
+			if(!needCrypt)continue;
+			int appId = entity.getGlobal() ? 0 : entity.getAppId();
 			if(cryptComponent.isEncrpted(appId, entity.getEnv(), value))continue;
 			encryptValue = cryptComponent.encrypt(appId, entity.getEnv(), value);
 			content = StringUtils.replace(content, value, encryptValue);
-			needCrypt = true;
 		}
 		entity.setContents(content);
-		
-		return needCrypt;
 	}
 	
 	/**
@@ -333,7 +350,7 @@ public class ConfigAdminController {
 		historyEntity.setOriginId(entity.getId());
 		historyEntity.setName(historyEntity.getName());
 		historyEntity.setEnv(entity.getEnv());
-		historyEntity.setAppIds(entity.getAppIds());
+		historyEntity.setAppId(entity.getAppId());
 		historyEntity.setAppNames(buildConfigRalateAppNames(entity));
 		historyEntity.setType(entity.getType());
 		historyEntity.setContents(entity.getContents());
@@ -344,18 +361,11 @@ public class ConfigAdminController {
 	}
 	
 	private String buildConfigRalateAppNames(AppconfigEntity appconfigEntity) {
-		String appName = "";
-		if(StringUtils.isBlank(appconfigEntity.getAppIds())){
-			appName = "全局配置";
+		if(appconfigEntity.getGlobal()){
+			return "全局配置";
 		}else{
-			String[] appIds = appconfigEntity.getAppIds().split(",");
-			for (int i = 0; i < appIds.length; i++) {
-				AppEntity appEntity = appMapper.selectByPrimaryKey(Integer.parseInt(appIds[i]));
-				if(appEntity == null)continue;
-				appName = appName + appEntity.getAlias() + (i < appIds.length - 1 ? "," : "" );
-			}
+			return appMapper.selectByPrimaryKey(appconfigEntity.getAppId()).getFullName();
 		}
-		return appName;
 	}
 	
 }

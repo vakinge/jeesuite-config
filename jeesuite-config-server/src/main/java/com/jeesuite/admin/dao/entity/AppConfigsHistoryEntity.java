@@ -21,11 +21,11 @@ public class AppConfigsHistoryEntity extends BaseEntity {
     @Column(name = "origin_id")
     private Integer originId;
     
-    @Column(name = "app_ids")
-    private String appIds;
+    @Column(name = "app_id")
+    private Integer appId;
     
-    @Column(name = "app_names")
-    private String appNames;
+    @Column(name = "app_name")
+    private String appName;
 
     private String env;
 
@@ -73,20 +73,20 @@ public class AppConfigsHistoryEntity extends BaseEntity {
 	}
 	
 
-    public String getAppIds() {
-		return appIds;
+	public Integer getAppId() {
+		return appId;
 	}
 
-	public void setAppIds(String appIds) {
-		this.appIds = appIds;
+	public void setAppId(Integer appId) {
+		this.appId = appId;
 	}
 
-	public String getAppNames() {
-		return appNames;
+	public String getAppName() {
+		return appName;
 	}
 
-	public void setAppNames(String appNames) {
-		this.appNames = appNames;
+	public void setAppNames(String appName) {
+		this.appName = appName;
 	}
 
 	/**
