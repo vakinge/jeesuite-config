@@ -10,5 +10,5 @@ package com.jeesuite.admin.constants;
  * @date 2019年7月15日
  */
 public enum ProfileExtrAttrName {
-	ZK_SERVERS
+	zkServers,ipWhiteList
 }

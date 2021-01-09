@@ -67,7 +67,7 @@ public class ProfileAdminController {
 				continue;
 			}
 			
-			if(StringUtils.equals(kvPair.getKey(), ProfileExtrAttrName.ZK_SERVERS.name())){
+			if(StringUtils.equals(kvPair.getKey(), ProfileExtrAttrName.zkServers.name())){
 				if(StringUtils.isNotBlank(orginAttrs.get(kvPair.getKey()))){
 					profileZkClient.remove(entity.getName(),true);
 				}

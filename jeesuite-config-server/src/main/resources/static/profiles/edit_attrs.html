@@ -4,7 +4,13 @@
 		<div class="layui-form-item">
 			<label class="layui-form-label">ZK地址</label>
 			<div class="layui-input-block">
-				<input type="text" id="zk_server_input" name="zk_server" class="layui-input">
+				<input type="text" id="zk_server_input" name="zkServers" placeholder="下发配置等" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">ip白名单</label>
+			<div class="layui-input-block">
+				<input type="text" id="ip_white_list_input" name="ipWhiteList" placeholder="多个‘;’隔开" class="layui-input">
 			</div>
 		</div>
 		<button lay-filter="submitbtn" lay-submit style="display: none;"></button>
@@ -14,8 +20,10 @@
           layui.jquery('#name_input').val(data.id);
   		  data = data.extrAttrs;
   		  for(var i in data){
-  			  if(data[i].key === 'ZK_SERVERS'){
+  			  if(data[i].key === 'zkServers'){
   				layui.jquery('#zk_server_input').val(data[i].value);
+  			  }else if(data[i].key === 'ipWhiteList'){
+  				layui.jquery('#ip_white_list_input').val(data[i].value);
   			  }
   		  }
   	    }
@@ -23,9 +31,8 @@
         function submitFrom(data){
         	var url = '../admin/profile/update/attrs?id=' + data.id;
         	var params = new Array();
-        	params.push({key:'APIGATEWAY_BASE_URL',value:data.apigateway_url || ''});
-        	params.push({key:'OPENAPI_GATEWAY_BASE_URL',value:data.openapi_gateway_url || ''});
-        	params.push({key:'ZK_SERVERS',value:data.zk_server || ''});
+        	params.push({key:'ipWhiteList',value:data.ipWhiteList || ''});
+        	params.push({key:'zkServers',value:data.zkServers || ''});
     
         	layui.jeesuitelayui.post(url,params,function(res){
         		layui.jeesuitelayui.success("操作成功");

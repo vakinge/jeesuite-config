@@ -165,7 +165,7 @@ public class ProfileZkClient implements CommandLineRunner,DisposableBean{
 	private synchronized void initProfileClient(String profileName,String zkServers) {
 		if(profileZkClientMapping.containsKey(profileName))return;
 		if(StringUtils.isBlank(zkServers)){
-			zkServers = profileMapper.findExtrAttr(profileName, ProfileExtrAttrName.ZK_SERVERS.name());
+			zkServers = profileMapper.findExtrAttr(profileName, ProfileExtrAttrName.zkServers.name());
 		}
 		if(StringUtils.isNotBlank(zkServers)){
 			try {

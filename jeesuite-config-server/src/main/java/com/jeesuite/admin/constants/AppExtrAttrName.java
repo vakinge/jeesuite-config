@@ -10,5 +10,5 @@ package com.jeesuite.admin.constants;
  * @date 2019年8月15日
  */
 public enum AppExtrAttrName {
-   PROXY_URL;
+	
 }
