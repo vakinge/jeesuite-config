@@ -29,9 +29,9 @@ public interface AppEntityMapper extends CustomBaseMapper<AppEntity> {
 	@ResultMap("BaseResultMap")
 	List<AppEntity> findByMaster(Integer masterUid);
 
-	@Select("SELECT attr_name as key,attr_value as value FROM app_extr_attrs WHERE app_id=#{appId} and attr_name=#{attrName}")
+	@Select("SELECT env as `key`,attr_value as `value` FROM app_extr_attrs WHERE app_id=#{appId} and attr_name=#{attrName}")
 	@ResultType(KeyValuePair.class)
-    List<KeyValuePair> findExtrAttrs(@Param("appId") int appId,@Param("attrName") String attrName);
+    List<KeyValuePair> findProfileExtrAttrs(@Param("appId") int appId,@Param("attrName") String attrName);
 	
 	@Select("SELECT attr_value FROM app_extr_attrs WHERE app_id=#{appId} and env=#{env} and attr_name=#{attrName} limit 1")
 	@ResultType(String.class)

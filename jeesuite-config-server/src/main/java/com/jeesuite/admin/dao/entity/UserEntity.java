@@ -10,13 +10,10 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.jeesuite.admin.constants.UserType;
-import com.jeesuite.common.util.DigestUtils;
 import com.jeesuite.mybatis.core.BaseEntity;
 
 @Table(name = "users")
 public class UserEntity extends BaseEntity {
-	
-	private static final String salts = DigestUtils.md5(UserEntity.class.getName());
 	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -210,17 +207,5 @@ public class UserEntity extends BaseEntity {
 		return UserType.groupAdmin.name().equals(getType());
 	}
 
-	public static String encryptPassword(String password) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < password.length(); i++) {
-			sb.append(password.charAt(i)).append(salts.substring(i*2, (i+1)*2));
-		}
-		return DigestUtils.md5(sb.toString());
-
-	}
-    
-    public static void main(String[] args) {
-		System.out.println(encryptPassword("123456"));
-	}
 
 }

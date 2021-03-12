@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.component.EventPublishClient;
+import com.jeesuite.admin.constants.AppExtrAttrName;
 import com.jeesuite.admin.constants.AppType;
 import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.constants.UserType;
@@ -45,6 +47,7 @@ import com.jeesuite.common.model.Page;
 import com.jeesuite.common.model.PageParams;
 import com.jeesuite.common.util.AssertUtil;
 import com.jeesuite.common.util.BeanUtils;
+import com.jeesuite.common.util.TokenGenerator;
 import com.jeesuite.mybatis.plugin.pagination.PageExecutor;
 
 @Controller
@@ -102,6 +105,7 @@ public class AppAdminController {
 	}
 	
 	@RequestMapping(value = "add", method = RequestMethod.POST)
+	@Transactional
 	public ResponseEntity<WrapperResponseEntity> addApp(@RequestBody AddOrEditAppRequest addAppRequest){
 		LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
 		if(!loginUserInfo.isSuperAdmin() || addAppRequest.getMasterUid() == null || addAppRequest.getMasterUid() == 0){
@@ -126,7 +130,13 @@ public class AppAdminController {
 		appEntity.setCreatedAt(new Date());
 		appEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
 		appMapper.insertSelective(appEntity);
-		
+		//
+		List<ProfileEntity> profiles = profileMapper.selectAll();
+		String token;
+		for (ProfileEntity profile : profiles) {
+			token = TokenGenerator.generate();
+			appMapper.insertAttr(appEntity.getId(), profile.getName(), AppExtrAttrName.API_TOKEN.name(), token);
+		}
 		//
 		SecurityUtil.reloadPermssionDatas();
 		//发送事件
@@ -151,7 +161,6 @@ public class AppAdminController {
 			appEntity.setMaster(master.getName());
 		}
 		
-		appEntity.setAnonymousUris(StringUtils.trimToEmpty(appEntity.getAnonymousUris()));
 		appEntity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getName());
 		appEntity.setUpdatedAt(new Date());
 		appMapper.updateByPrimaryKeySelective(appEntity);
@@ -227,6 +236,12 @@ public class AppAdminController {
 			attrs.add(new KeyValuePair(profile.getName(), StringUtils.trimToEmpty(extrAttr)));
 		}
 		return new WrapperResponseEntity(attrs);
+	}
+	
+	@RequestMapping(value = "tokens", method = RequestMethod.GET)
+	public @ResponseBody WrapperResponseEntity getAppTokens(@RequestParam int appId){
+		List<KeyValuePair> list = appMapper.findProfileExtrAttrs(appId, AppExtrAttrName.API_TOKEN.name());
+		return new WrapperResponseEntity(list);
 	}
 
 	

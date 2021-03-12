@@ -3,6 +3,7 @@ package com.jeesuite.admin.component;
 import java.util.Arrays;
 import java.util.List;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +55,8 @@ public class DefaultSecurityDecisionProvider extends SecurityDecisionProvider<Lo
 		}else{
 			userEntity = userMapper.findByName(name);
 		}
-		if(userEntity == null || !userEntity.getPassword().equals(UserEntity.encryptPassword(password))){
+		
+		if(userEntity == null || !BCrypt.checkpw(password, userEntity.getPassword())){
 			throw new UserPasswordWrongException();
 		}
 
@@ -111,7 +113,7 @@ public class DefaultSecurityDecisionProvider extends SecurityDecisionProvider<Lo
 	 */
 	@Override
 	public String superAdminName() {
-		return "sa";
+		return "admin";
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,20 +19,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.component.ProfileZkClient;
+import com.jeesuite.admin.constants.AppExtrAttrName;
 import com.jeesuite.admin.constants.ProfileExtrAttrName;
+import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.entity.ProfileEntity;
+import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.model.SelectOption;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.model.KeyValuePair;
+import com.jeesuite.common.util.TokenGenerator;
 
 @Controller
 @RequestMapping("/admin/profile")
 public class ProfileAdminController {
 
 	private @Autowired ProfileEntityMapper profileMapper;
+	private @Autowired AppEntityMapper appMapper;
 	
 	private @Autowired ProfileZkClient profileZkClient;
 	
@@ -90,11 +96,19 @@ public class ProfileAdminController {
 	}
 	
 	@RequestMapping(value = "add", method = RequestMethod.POST)
+	@Transactional
 	public ResponseEntity<WrapperResponseEntity> addProfile(@RequestBody ProfileEntity param){
 		SecurityUtil.requireSuperAdmin();
 		ProfileEntity entity = profileMapper.findByName(param.getName());
 		if(entity != null)throw new JeesuiteBaseException(1002, "Profile["+param.getName()+"]已存在");
 		profileMapper.insertSelective(param);
+		//初始化应用token
+		List<AppEntity> allApps = appMapper.selectAll();
+		String token;
+		for (AppEntity appEntity : allApps) {
+			token = TokenGenerator.generate();
+			appMapper.insertAttr(appEntity.getId(), param.getName(), AppExtrAttrName.API_TOKEN.name(), token);
+		}
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(true),HttpStatus.OK);
 	}
 	

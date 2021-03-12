@@ -14,7 +14,6 @@
     <result column="master" property="master" jdbcType="VARCHAR" />
     <result column="master_uid" property="masterUid" jdbcType="INTEGER" />
     <result column="remarks" property="remarks" jdbcType="LONGVARCHAR" />
-    <result column="anonymous_uris" property="anonymousUris" jdbcType="VARCHAR" />
     <result column="health_uri" property="healthUri" jdbcType="VARCHAR" />
     <result column="enabled" property="enabled" jdbcType="BIT" />
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />

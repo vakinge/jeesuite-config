@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -132,8 +133,8 @@ public class UserAdminController {
 		}
 		
 		SecurityUtil.hasPermssionFor(param);
-		
-		param.setPassword(UserEntity.encryptPassword(param.getMobile().substring(3)));
+		//默认手机后8位是密码
+		BCrypt.hashpw(param.getMobile().substring(3), BCrypt.gensalt(4));
 		param.setEnabled(true);
 		if(param.getType() == null) {
 			param.setType(UserType.user.name());
@@ -157,11 +158,10 @@ public class UserAdminController {
 		if(StringUtils.isNotBlank(param.getMobile()))entity.setMobile(param.getMobile());
 		if(StringUtils.isNotBlank(param.getPassword())){
 			
-			String oldPassword = UserEntity.encryptPassword(param.getOldPassword());
-			if(!StringUtils.equals(entity.getPassword(), oldPassword)){
+			if(!BCrypt.checkpw(param.getOldPassword(), entity.getPassword())){
 				throw new JeesuiteBaseException(1001, "原密码不正确");
 			}
-			entity.setPassword(UserEntity.encryptPassword(param.getPassword()));
+			entity.setPassword(BCrypt.hashpw(param.getPassword(), BCrypt.gensalt(4)));
 		}
 		if(param.getGroupId() != null && param.getGroupId() > 0){
 			entity.setGroupId(param.getGroupId());
@@ -206,7 +206,7 @@ public class UserAdminController {
 		//
 		SecurityUtil.hasPermssionFor(entity);
 		String password = RandomStringUtils.random(8, true, true);
-		entity.setPassword(UserEntity.encryptPassword(password));
+		entity.setPassword(BCrypt.hashpw(password, BCrypt.gensalt(4)));
 		userMapper.updateByPrimaryKey(entity);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(password),HttpStatus.OK);
 	}

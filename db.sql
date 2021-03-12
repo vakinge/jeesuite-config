@@ -11,7 +11,7 @@ CREATE TABLE `business_group` (
   `updated_at` datetime DEFAULT NULL,
   `updated_by` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业务组';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='业务组';
 
 
 DROP TABLE IF EXISTS `profiles`;
@@ -68,7 +68,6 @@ CREATE TABLE `apps` (
   `master_uid` int(10) DEFAULT NULL,
   `health_uri` varchar(200) DEFAULT NULL,
   `scm_link` varchar(100) DEFAULT NULL,
-  `anonymous_uris` varchar(500) DEFAULT NULL,
   `remarks` text,
   `enabled` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT NULL,
@@ -96,7 +95,7 @@ CREATE TABLE `users` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `group_id` INT(10) NULL COMMENT '所属业务组',
   `name` varchar(16) DEFAULT NULL,
-  `password` varchar(32) DEFAULT NULL,
+  `password` varchar(64) DEFAULT NULL,
   `mobile` char(11) DEFAULT NULL,
   `email` varchar(32) DEFAULT NULL,
   `type` ENUM('user','groupAdmin','superAdmin') DEFAULT 'user',
@@ -135,6 +134,7 @@ CREATE TABLE `user_permissions` (
 
 
 INSERT INTO `profiles` VALUES (1,'dev','开发环境',1,1),(2,'test','测试环境',1,1),(3,'pre',' 预发布环境',1,1),(4,'prd','线上环境',1,1);
-INSERT INTO `users` (`name`, `password`, `type`, `enabled`) VALUES ('admin', 'b54041c8f16086dbfec7d90cadd64ae7', 'superAdmin', 1);
+INSERT INTO `users` (`name`, `password`, `type`, `enabled`) VALUES ('admin', '$2a$04$/KqvyU5TPlrygqmIAlBLUeE1fEIO5SGQgOsCuJ1wGMod.vr5YX8/S', 'superAdmin', 1);
+INSERT INTO `business_group` (`name`, `enabled`) VALUES ('默认组', '1');
 
 

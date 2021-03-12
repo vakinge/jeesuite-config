@@ -44,9 +44,6 @@ public class AppEntity extends BaseEntity {
 
     private String remarks;
     
-    @Column(name = "anonymous_uris")
-    private String anonymousUris;
-    
     @Column(name = "health_uri")
     private String healthUri;
     
@@ -183,24 +180,7 @@ public class AppEntity extends BaseEntity {
     public void setRemarks(String remarks) {
         this.remarks = remarks;
     }
-    
-    
-    /**
-	 * @return the anonymousUris
-	 */
-	public String getAnonymousUris() {
-		return anonymousUris;
-	}
 
-	/**
-	 * @param anonymousUris the anonymousUris to set
-	 */
-	public void setAnonymousUris(String anonymousUris) {
-		if(StringUtils.isNotBlank(anonymousUris) && anonymousUris.contains(";")){
-			anonymousUris = anonymousUris.replaceAll(";", "\n");
-		}
-		this.anonymousUris = anonymousUris;
-	}
 
 	public String getFullName(){
     	if(StringUtils.equals(appName, appKey))return appName;

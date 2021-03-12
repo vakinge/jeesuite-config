@@ -31,14 +31,14 @@ layui.define(['jeesuitelayui', 'table','form'], function(exports){
 		    	  ,dataName: 'data'
 		    	}
 		    ,cols: [[ //表头
-		      {field: 'id', title: 'ID', width:40, fixed: 'left'}
+		      {field: 'id', title: 'ID', width:80, fixed: 'left'}
 		      ,{field: 'appName', title: '应用名称', width:120}
-		      ,{field: 'appKey', title: '应用标识', width:100}
-		      ,{field: 'serviceId', title: '服务名称', width:120}
-		      ,{field: 'appTypeAlias', title: '类型', width:80}
-		      ,{field: 'enabled', title: '状态', width:80, templet: '#enabledTpl'}
-		      ,{field: 'master', title: '负责人', width:80}
-		      ,{fixed: 'right', title: '操作',width:230, align:'left', toolbar: '#toolBar'}
+		      ,{field: 'appKey', title: '应用标识', width:120}
+		      ,{field: 'serviceId', title: '服务名称', width:150}
+		      ,{field: 'appTypeAlias', title: '类型', width:100}
+		      ,{field: 'enabled', title: '状态', width:100, templet: '#enabledTpl'}
+		      ,{field: 'master', title: '负责人', width:100}
+		      ,{fixed: 'right', title: '操作', align:'left', toolbar: '#toolBar'}
 		    ]],
 		  });
 	  

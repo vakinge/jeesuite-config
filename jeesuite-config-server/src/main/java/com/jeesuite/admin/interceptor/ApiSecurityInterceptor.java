@@ -9,15 +9,15 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.jeesuite.admin.constants.ProfileExtrAttrName;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
+import com.jeesuite.common.util.ResourceUtils;
 import com.jeesuite.spring.InstanceFactory;
-import com.jeesuite.spring.helper.EnvironmentHelper;
 import com.jeesuite.springweb.utils.IpUtils;
 import com.jeesuite.springweb.utils.WebUtils;
 
 public class ApiSecurityInterceptor implements HandlerInterceptor {
 
 	
-	private boolean extranetEnabled = Boolean.parseBoolean(EnvironmentHelper.getProperty("api.extranet.enabled"));
+	private boolean extranetEnabled = ResourceUtils.getBoolean("api.extranet.enabled", false);
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)

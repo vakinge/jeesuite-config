@@ -1,0 +1,22 @@
+<div style="margin: 15px; width: 450px;">
+	<table class="layui-hide" id="cont"></table>
+	<script type="text/javascript">
+        function pageRender(data){
+            var tableData = [];        
+            data.forEach(function(item,index,array){
+            	tableData.push({profile:item.key,token:item.value});　
+            });
+        	var table = layui.table; 
+        	  //展示已知数据
+        	  table.render({
+        	    elem: '#cont'
+        	    ,cols: [[ //标题栏
+        	      {field: 'profile', title: '环境', width: 100}
+        	      ,{field: 'token', title: 'token', width: 300}
+        	    ]]
+        	    ,data: tableData
+        	    ,even: true
+        	  });
+  	    }
+        </script>
+</div>

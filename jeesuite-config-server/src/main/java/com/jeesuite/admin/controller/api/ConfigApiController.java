@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.component.ProfileZkClient;
+import com.jeesuite.admin.constants.AppExtrAttrName;
 import com.jeesuite.admin.controller.admin.ConfigAdminController;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
 import com.jeesuite.admin.dao.entity.AppEntity;
@@ -33,12 +34,10 @@ import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.common.JeesuiteBaseException;
-import com.jeesuite.common.util.ResourceUtils;
-import com.jeesuite.common.util.TokenGenerator;
 
 @Controller
 @RequestMapping("/api")
-public class ConfigCenterApiController {
+public class ConfigApiController {
 
 	private static final String LATEST_FETCH_TIMESTAMP = "latest.fetch.timestamp";
 	private @Autowired AppconfigEntityMapper appconfigMapper;
@@ -54,7 +53,7 @@ public class ConfigCenterApiController {
 			@RequestParam(value = "globalVersion", required = false) String globalVersion,
 			@RequestParam(value = "ignoreGlobal", required = false,defaultValue="false") boolean ignoreGlobal) {
 
-		if (StringUtils.isBlank(version) || "0.0.0".equals(version) || "release".equals(version)){
+		if (StringUtils.isBlank(version)){
 			version = Constants.DEFAULT_CONFIG_VERSION;
 		}
 
@@ -66,7 +65,7 @@ public class ConfigCenterApiController {
 		if (appEntity == null)
 			throw new JeesuiteBaseException(1001, "app不存在");
 
-		validateSignature(request);
+		validateSignature(request,appEntity.getId(),env);
 
 		List<AppconfigEntity> globalConfigs = ignoreGlobal ? new  ArrayList<>(0) : appconfigMapper.findGlobalConfig(env,appEntity.getGroupId(), globalVersion);
 		// 再查应用的
@@ -114,11 +113,14 @@ public class ConfigCenterApiController {
 		Date lastFetchTime = new Date(Long.parseLong(params.remove("lastTime").toString()));
 		boolean ignoreGlobal = params.containsKey("ignoreGlobal") && Boolean.parseBoolean(params.remove("ignoreGlobal").toString());
 		boolean fetchAll = params.containsKey("fetchAll") && Boolean.parseBoolean(params.remove("fetchAll").toString());
+		String env = params.get("env").toString();
 		
-		if (StringUtils.isBlank(version) || "0.0.0".equals(version) || "release".equals(version)){
+		if (StringUtils.isBlank(version)){
 			version = Constants.DEFAULT_CONFIG_VERSION;
 		}
 		AppEntity appEntity = appMapper.findByAppKey(params.remove("appName").toString());
+		//
+		validateSignature(request, appEntity.getId(),env);
 		params.put("groupId", appEntity.getGroupId());
 		params.put("lastUpdateTime", lastFetchTime);
 		
@@ -168,13 +170,14 @@ public class ConfigCenterApiController {
 		return "200";
 	}
 
-	private void validateSignature(HttpServletRequest request) {
-		if (!ResourceUtils.getBoolean("api.auth.enabled"))
-			return;
+	private void validateSignature(HttpServletRequest request,int appId,String env ) {
 		String authtoken = request.getParameter("authtoken");
 		if (StringUtils.isBlank(authtoken))
-			throw new JeesuiteBaseException(400,
-					"ClientConfig[jeesuite.configcenter.cryptKey] OR param[authtoken] is miss");
-		TokenGenerator.validate("config.token", authtoken, true);
+			throw new JeesuiteBaseException(400,"[authtoken] is miss");
+		
+		String value = appMapper.findExtrAttr(appId, env, AppExtrAttrName.API_TOKEN.name());
+		if(!StringUtils.equals(authtoken, value)) {
+			throw new JeesuiteBaseException(400,"[authtoken] validate fail");
+		}
 	}
 }

@@ -57,6 +57,7 @@
 </div>
 
 <script type="text/html" id="toolBar">
+<a href="javascript:;" class="layui-btn layui-btn-normal layui-btn-sm J_form_dialog" data-templdate="./view_tokens.html" data-url="../admin/app/tokens?appId={{ d.id }}" data-render="pageRender" data-submit="submitFrom">查看Token</a>
 <a class="layui-btn layui-btn-normal layui-btn-sm J_iframe_dialog" href="javascript:;" data-title="编辑应用" data-url="./edit.html?id={{ d.id }}">编辑</a>
 <a href="javascript:;" class="layui-btn layui-btn-sm {{  d.enabled ? 'layui-btn-danger' : 'layui-btn-normal'}}" lay-event="toggle">{{ d.enabled ? '禁用' : '启用'}}</a>
 </script>
