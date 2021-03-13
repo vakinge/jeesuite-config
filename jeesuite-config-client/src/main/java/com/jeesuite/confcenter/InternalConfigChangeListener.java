@@ -75,9 +75,6 @@ public class InternalConfigChangeListener {
 		if(context.isIgnoreGlobal()){
 			params.put("ignoreGlobal", String.valueOf(context.isIgnoreGlobal()));
 		}
-		if(context.getGlobalVersion() != null){
-			params.put("globalVersion", context.getGlobalVersion());
-		}
 		params.put("lastTime", ResourceUtils.getProperty(LATEST_FETCH_TIMESTAMP, String.valueOf(System.currentTimeMillis())));
 		hbScheduledExecutor.scheduleAtFixedRate(new Runnable() {
 			@Override

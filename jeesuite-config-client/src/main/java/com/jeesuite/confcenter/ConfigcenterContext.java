@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,7 @@ import org.springframework.core.env.StandardEnvironment;
 
 import com.jeesuite.common.crypt.AES;
 import com.jeesuite.common.crypt.Base64;
+import com.jeesuite.common.crypt.DES;
 import com.jeesuite.common.http.HttpRequestEntity;
 import com.jeesuite.common.http.HttpResponseEntity;
 import com.jeesuite.common.http.HttpUtils;
@@ -32,9 +33,7 @@ import com.jeesuite.common.json.JsonUtils;
 import com.jeesuite.common.util.DigestUtils;
 import com.jeesuite.common.util.NodeNameHolder;
 import com.jeesuite.common.util.ResourceUtils;
-import com.jeesuite.common.util.TokenGenerator;
 import com.jeesuite.spring.InstanceFactory;
-import com.jeesuite.spring.helper.EnvironmentHelper;
 
 
 public class ConfigcenterContext {
@@ -43,7 +42,7 @@ public class ConfigcenterContext {
 	
 	private static ConfigcenterContext instance = new ConfigcenterContext();
 	
-	private List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));
+	private List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("password","key","secret","token","credentials"));
 	
 	public static final String MANAGER_PROPERTY_SOURCE = "configcenter";
 	
@@ -59,10 +58,9 @@ public class ConfigcenterContext {
 	private String env;
 	private String version;
 	private boolean ignoreGlobal;
-	private String globalVersion; 
 	private String secret;
 	private String globalSecret;
-	private String tokenCryptKey;
+	private String token;
 	private boolean remoteFirst = false;
 	private String zkSyncServers;
 	private boolean isSpringboot;
@@ -107,10 +105,9 @@ public class ConfigcenterContext {
 		setApiBaseUrl(ResourceUtils.getProperty("jeesuite.configcenter.base.url"));
 		
 		version = ResourceUtils.getProperty("jeesuite.configcenter.version","latest");
-		globalVersion = ResourceUtils.getProperty("jeesuite.configcenter.global-version");
 		ignoreGlobal = ResourceUtils.getBoolean("jeesuite.configcenter.global-ignore",false);
 		syncIntervalSeconds = ResourceUtils.getInt("jeesuite.configcenter.sync-interval-seconds", 60);
-		tokenCryptKey = ResourceUtils.getProperty("jeesuite.configcenter.cryptKey");
+		token = ResourceUtils.getProperty("jeesuite.configcenter.token");
 		
 		System.out.println(String.format("\n=====Configcenter config=====\nappName:%s\nenv:%s\nversion:%s\nremoteEnabled:%s\napiBaseUrls:%s\n=====Configcenter config=====", app,env,version,isRemoteEnabled(),JsonUtils.toJson(apiBaseUrls)));
 		
@@ -160,10 +157,6 @@ public class ConfigcenterContext {
 
 	public boolean isIgnoreGlobal() {
 		return ignoreGlobal;
-	}
-
-	public String getGlobalVersion() {
-		return globalVersion;
 	}
 
 	public String getSecret() {
@@ -271,9 +264,6 @@ public class ConfigcenterContext {
 		String errorMsg = null;
         for (String apiBaseUrl : apiBaseUrls) {
         	String url = buildTokenParameter(String.format("%s/api/fetch_all_configs?appName=%s&env=%s&version=%s&ignoreGlobal=%s", apiBaseUrl,app,env,version,ignoreGlobal));
-        	if(StringUtils.isNotBlank(globalVersion)){
-        		url = url + "&globalVersion=" + globalVersion;
-        	}
     		System.out.println("fetch configs url:" + url);
     		String jsonString = null;
     		try {
@@ -320,55 +310,7 @@ public class ConfigcenterContext {
 		System.out.println("==================final config list end====================");
 		
 	}
-	
-	private void syncConfigToServer(Properties properties){
-		
-		if(processed)return;
-		if(!remoteEnabled)return;
-		
-		Map<String, String> params = new  HashMap<>();
-		
-		params.put("nodeId", nodeId);
-		params.put("appName", app);
-		params.put("env", env);
-		params.put("version", version);
-		params.put("springboot", String.valueOf(isSpringboot));
-		params.put("syncIntervalSeconds", String.valueOf(syncIntervalSeconds));
-		String serverPort = ServerEnvUtils.getServerPort();
-	    if(StringUtils.isNumeric(serverPort)){	    	
-	    	params.put("serverport", serverPort);
-	    }
-	    
-	    //k8s POD_IP ->valueFrom:fieldRef:fieldPath:status.podIP
-	    String serverip = System.getenv("POD_IP");
-	    if(StringUtils.isBlank(serverip)){	    	
-	    	try {serverip = EnvironmentHelper.getProperty("spring.cloud.client.ipAddress");} catch (Exception e) {}
-	    }
-		if(StringUtils.isNotBlank(serverip)){
-			params.put("serverip", serverip);
-		}else{			
-			params.put("serverip", ServerEnvUtils.getServerIpAddr());
-		}
-		
-		Set<Entry<Object, Object>> entrySet = properties.entrySet();
-		for (Entry<Object, Object> entry : entrySet) {
-			String key = entry.getKey().toString();
-			String value = entry.getValue().toString();
-			params.put(key, hideSensitive(key, value));
-		}
-		
-		String url = buildTokenParameter(apiBaseUrls[0] + "/api/notify_final_config");
-		HttpResponseEntity responseEntity = HttpUtils.postJson(url, JsonUtils.toJson(params),HttpUtils.DEFAULT_CHARSET);
-		if(responseEntity.isSuccessed()){
-			logger.info("syncConfigToServer[{}] Ok",url);
-		}else{
-			logger.warn("syncConfigToServer[{}] error",url);
-		}
-		
-		processed = true;
-	}
 
-	
 	public synchronized void updateConfig(Map<String, Object> updateConfig){
 		if(!updateConfig.isEmpty()){
 			Set<String> keySet = updateConfig.keySet();
@@ -433,8 +375,9 @@ public class ConfigcenterContext {
 	}
 	
 	public String buildTokenParameter(String url){
-		if(tokenCryptKey == null)return url;
-		return url + (url.contains("?") ? "&" : "?") + "authtoken=" + TokenGenerator.generateWithSign("jeesuite.configcenter");
+		String str = DigestUtils.md5Short(token).concat(String.valueOf(new Date().getTime()));
+		String authtoken = DES.encrypt(token.substring(0,8), str).toLowerCase();
+		return url + (url.contains("?") ? "&" : "?") + "authtoken=" + authtoken;
 	}
 	
 	public void close(){

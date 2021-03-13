@@ -56,7 +56,7 @@ public class ConfigAdminController {
 
 	final static Logger logger = LoggerFactory.getLogger("controller");
 	
-	private List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("pass","key","secret","token","credentials"));
+	private List<String> sensitiveKeys = new ArrayList<>(Arrays.asList("password","key","secret","token","credentials"));
 	private static List<String> allow_upload_suffix = new ArrayList<>(Arrays.asList("xml","properties","yml","yaml"));
 	private boolean sensitiveForceEncrypt = ResourceUtils.getBoolean("sensitive.config.force.encrypt",false);
 	

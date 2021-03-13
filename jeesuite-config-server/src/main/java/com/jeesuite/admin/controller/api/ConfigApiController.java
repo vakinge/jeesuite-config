@@ -34,6 +34,8 @@ import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.common.JeesuiteBaseException;
+import com.jeesuite.common.crypt.DES;
+import com.jeesuite.common.util.DigestUtils;
 
 @Controller
 @RequestMapping("/api")
@@ -50,15 +52,10 @@ public class ConfigApiController {
 	public @ResponseBody Map<String, Object> fetchConfigs(HttpServletRequest request,
 			@RequestParam(value = "appName") String appName, @RequestParam(value = "env") String env,
 			@RequestParam(value = "version", required = false) String version,
-			@RequestParam(value = "globalVersion", required = false) String globalVersion,
 			@RequestParam(value = "ignoreGlobal", required = false,defaultValue="false") boolean ignoreGlobal) {
 
 		if (StringUtils.isBlank(version)){
 			version = Constants.DEFAULT_CONFIG_VERSION;
-		}
-
-		if(StringUtils.isBlank(globalVersion)){
-			globalVersion = version;
 		}
 
 		AppEntity appEntity = appMapper.findByAppKey(appName);
@@ -67,7 +64,7 @@ public class ConfigApiController {
 
 		validateSignature(request,appEntity.getId(),env);
 
-		List<AppconfigEntity> globalConfigs = ignoreGlobal ? new  ArrayList<>(0) : appconfigMapper.findGlobalConfig(env,appEntity.getGroupId(), globalVersion);
+		List<AppconfigEntity> globalConfigs = ignoreGlobal ? new  ArrayList<>(0) : appconfigMapper.findGlobalConfig(env,appEntity.getGroupId(), version);
 		// 再查应用的
 		Map<String, Object> queyParams = new HashMap<>();
 		queyParams.put("env", env);
@@ -175,9 +172,19 @@ public class ConfigApiController {
 		if (StringUtils.isBlank(authtoken))
 			throw new JeesuiteBaseException(400,"[authtoken] is miss");
 		
-		String value = appMapper.findExtrAttr(appId, env, AppExtrAttrName.API_TOKEN.name());
-		if(!StringUtils.equals(authtoken, value)) {
-			throw new JeesuiteBaseException(400,"[authtoken] validate fail");
+		String token = appMapper.findExtrAttr(appId, env, AppExtrAttrName.API_TOKEN.name());
+		String decryptStr = null;
+		try {
+			decryptStr = DES.decrypt(token.substring(0,8), authtoken);
+		} catch (Exception e) {
+			throw new JeesuiteBaseException("[authtoken] is error");
+		}
+		long timestamp = Long.parseLong(decryptStr.substring(6));
+		if(!DigestUtils.md5Short(token).equals(decryptStr.substring(0,6))) {
+			throw new JeesuiteBaseException(4005, "[authtoken] is error");
+		}
+		if(new Date().getTime() - timestamp > 180 * 1000){
+			throw new JeesuiteBaseException(4005, "[authtoken] is expired");
 		}
 	}
 }
