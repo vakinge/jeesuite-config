@@ -185,7 +185,7 @@ public class AppAdminController {
 		app.setUpdatedAt(new Date());
 		appMapper.updateByPrimaryKey(app);
 		//删除关联的配置
-		appconfigMapper.deleteByAppId(id.toString());
+		appconfigMapper.deleteByAppId(id);
 		
 		//发送事件
 		EventPublishClient.publishAllEnvs("configChanged", "app", null);

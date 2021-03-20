@@ -13,7 +13,7 @@ import com.jeesuite.mybatis.plugin.cache.annotation.Cache;
 
 public interface AppconfigEntityMapper extends CustomBaseMapper<AppconfigEntity> {
 	
-	AppconfigEntity findSameByName(@Param("env") String env,@Param("appId") String appId,@Param("name") String name);
+	AppconfigEntity findSameByName(@Param("env") String env,@Param("appId") Integer appId,@Param("name") String name);
 	
 	@Cache
 	List<AppconfigEntity> findGlobalConfig(@Param("env") String env,@Param("groupId") Integer groupId,@Param("version") String version);
@@ -21,12 +21,8 @@ public interface AppconfigEntityMapper extends CustomBaseMapper<AppconfigEntity>
 	@Cache
 	List<AppconfigEntity> findByQueryParams(Map<String, Object> params);
 	
-	@Update("UPDATE app_configs SET enabled=0 WHERE app_ids=#{appId}")
+	@Update("UPDATE app_configs SET enabled=0 WHERE app_id=#{appId}")
 	@ResultType(Integer.class)
-	int deleteByAppId(@Param("appId") String appId);
-	
-	@Update("UPDATE app_configs SET enabled=1 WHERE app_ids=#{appId}")
-	@ResultType(Integer.class)
-	int activeByAppId(@Param("appId") String appId);
+	int deleteByAppId(Integer appId);
 
 }

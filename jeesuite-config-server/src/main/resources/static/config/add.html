@@ -38,6 +38,21 @@
       </select>
      </div> 
     </div>  
+    <div class="layui-form-item" id="div_group_list" style="display: none;">
+		   <label class="layui-form-label">业务组</label>
+		   <div class="layui-input-block">
+			   <ul id="groupList" templateLoad="../admin/group/options" template-id="checklist_tpl" onFinishCallback="onFinishCallback"></ul>
+			   <script type="text/html" id="checklist_tpl">
+				   {{# layui.each(d, function(index, item){ }}
+                   {{#  if(top.currentUser.superAdmin){ }}
+				   <span><input type="radio" name="groupId" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}" /></span>
+                   {{#  } else{ }}
+                   <span><input type="radio" name="groupId" lay-skin="primary" title="{{ item.text }}" value="{{ item.value }}" {{top.currentUser.groupId.toString() === item.value ? 'checked' : 'disabled'}} /></span>
+                   {{#  } }}
+				   {{# }); }}
+			   </script>
+		   </div>
+	</div> 
     <div class="layui-form-item"> 
      <label class="layui-form-label">配置类型</label> 
      <div class="layui-input-block"> 
@@ -102,8 +117,10 @@
         	layui.form.on('radio(global)', function(data){
         		  if (data.value === 'true') {
           			$("#div_app_list").hide();
+          			$("#div_group_list").show();
           		} else {
           			$("#div_app_list").show();
+          			$("#div_group_list").hide();
           		}
         	}); 
         }else{

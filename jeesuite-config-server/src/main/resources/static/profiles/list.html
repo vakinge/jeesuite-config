@@ -44,7 +44,7 @@
 				<td>
                     <a href="javascript:;" class="layui-btn layui-btn-sm {{ item.enabled ? 'layui-btn-danger' : 'layui-btn-normal'}} J_confirm" data-url="../admin/profile/switch/{{ item.id }}" onSuccessCallback="reload">{{ item.enabled ? '禁用' : '启用'}}</a>
 					<a href="javascript:;" class="layui-btn layui-btn-normal layui-btn-sm J_form_dialog" data-templdate="./edit.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}">编辑</a>
-                    <a href="javascript:;" class="layui-btn layui-btn-normal layui-btn-sm J_form_dialog" data-templdate="./edit_attrs.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}" data-render="pageRender" data-submit="submitFrom">环境变量</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-normal layui-btn-sm J_form_dialog" data-templdate="./edit_attrs.html?id={{ item.id }}" data-url="../admin/profile/{{ item.id }}" data-title="环境变量配置" data-render="pageRender" data-submit="submitFrom">环境变量</a>
 					<a href="javascript:;" class="J_confirm layui-btn layui-btn-danger layui-btn-sm" data-url="../admin/profile/delete/{{ item.id }}">删除</a>
 				</td>
 			</tr>

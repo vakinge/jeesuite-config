@@ -42,7 +42,7 @@ public class AddOrEditConfigRequest {
 		this.env = env;
 	}
 	public String getVersion() {
-		return StringUtils.isBlank(version) ? "0.0.0" : version;
+		return StringUtils.isBlank(version) ? Constants.DEFAULT_CONFIG_VERSION : version;
 	}
 	public void setVersion(String version) {
 		this.version = version;

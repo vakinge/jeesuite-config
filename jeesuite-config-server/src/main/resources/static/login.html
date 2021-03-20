@@ -65,12 +65,13 @@
 				        data:JSON.stringify(data.field) ,
 						complete: function(){layer.close(loading);},
 						success: function(data){
-							layer.msg(data.msg, {
-								icon: 6
-							});
 					        if(data.code==200){
 					        	 setTimeout(function(){window.location.href = './admin.html';},500);
-					          }
+					          }else{
+					        	  layer.msg(data.msg, {
+										icon: 6
+								   });
+						      }
 					        },
 						error: function(xhr, type){
 							layer.msg('系统错误', {

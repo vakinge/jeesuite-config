@@ -97,9 +97,12 @@ public class ConfigAdminController {
 	@Transactional
 	public ResponseEntity<WrapperResponseEntity> addConfig(@RequestBody AddOrEditConfigRequest addRequest){
 		
-        if(addRequest.getGlobal() && SecurityUtil.isSuperAdmin()){
-        	throw new JeesuiteBaseException(403,"请使用业务组管理员添加全局配置");
-		}
+        if(addRequest.getGlobal()){
+        	if(addRequest.getGroupId() == null) {
+        		throw new JeesuiteBaseException(4001,"全局配置需要指定所属业务组");
+        	}
+        	SecurityUtil.requireAllPermission(addRequest.getGroupId(), null, GrantOperate.RW);
+        }
         
 		if(!addRequest.getGlobal() && addRequest.getAppId() == null){
 			throw new JeesuiteBaseException(4001,"非全局绑定应用不能为空");
@@ -113,7 +116,6 @@ public class ConfigAdminController {
 			throw new JeesuiteBaseException(4001,"配置项名称不能空");
 		}
 		
-		addRequest.setGroupId(SecurityUtil.getLoginUserInfo().getGroupId());
 		SecurityUtil.requireAllPermission(addRequest.getGroupId(),addRequest.getAppId(),GrantOperate.RW);
 		
 //       if(StringUtils.isNotBlank(addRequest.getName()) 
@@ -123,6 +125,10 @@ public class ConfigAdminController {
 
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
 		entity.setAppId(addRequest.getAppId());
+		if(!addRequest.getGlobal()){
+			Integer groupId = appMapper.selectByPrimaryKey(addRequest.getAppId()).getGroupId();
+			entity.setGroupId(groupId);
+		}
 		entity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
 		entity.setCreatedAt(new Date());
 		entity.setUpdatedAt(entity.getCreatedAt());
