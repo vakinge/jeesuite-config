@@ -83,7 +83,7 @@ CREATE TABLE `app_extr_attrs` (
   `app_id` int(10) NOT NULL,
   `env` varchar(16) NOT NULL,
   `attr_name` varchar(32) NOT NULL,
-  `attr_value` varchar(32) NOT NULL,
+  `attr_value` varchar(100) NOT NULL,
   PRIMARY KEY (`app_id`,`env`,`attr_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
