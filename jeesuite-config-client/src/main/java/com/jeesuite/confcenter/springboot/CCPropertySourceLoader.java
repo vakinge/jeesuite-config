@@ -1,14 +1,14 @@
 package com.jeesuite.confcenter.springboot;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.boot.env.OriginTrackedMapPropertySource;
 import org.springframework.boot.env.PropertySourceLoader;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -64,11 +64,11 @@ public class CCPropertySourceLoader implements PropertySourceLoader, Ordered{
 		if (profiles == null && ccContext.isRemoteEnabled() && !ccContext.isProcessed()) {
 			ccContext.init(properties, true);
 			ccContext.mergeRemoteProperties(properties);
-			PropertySource<?> props = new PropertiesPropertySource(ConfigcenterContext.MANAGER_PROPERTY_SOURCE, properties);
-			return Arrays.asList(props);
+			PropertySource<?> props = new OriginTrackedMapPropertySource(ConfigcenterContext.MANAGER_PROPERTY_SOURCE, properties);
+			return Collections.singletonList(props);
 		}
 		
-		return new ArrayList<>();
+		return Collections.singletonList(new OriginTrackedMapPropertySource(name, properties));
 	}
 	
 	private Properties loadProperties(String name, Resource resource) throws IOException{

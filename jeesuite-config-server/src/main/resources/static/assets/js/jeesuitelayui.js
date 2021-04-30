@@ -709,6 +709,8 @@ exports('jeesuitelayui', jeesuitelayui);
 		     dataurl = jeesuitelayui.buildPath(self.attr('data-url')),
 		     dialogTitle = self.attr('data-title') || '表单',
 		     onLoadFinished = self.attr('onLoadFinishedCallback'),
+		     width = self.attr('data-width') || '700px',
+		     heigh = self.attr('data-heigh') || '400px',
 		     onSubmit = self.attr('data-submit');
 		var addBoxIndex = -1;
 		$.get(templdateurl, null, function(f) {
@@ -718,8 +720,7 @@ exports('jeesuitelayui', jeesuitelayui);
 				content: f,
 				btn: ['提交', '取消'],
 				shade: false,
-				offset: ['100px', '30%'],
-				area: ['600px', '400px'],
+				area: [width, heigh],
 				zIndex: 99999,
 				maxmin: true,
 				yes: function(index) {
@@ -749,10 +750,11 @@ exports('jeesuitelayui', jeesuitelayui);
 						var loading = layer.load();
 						$.getJSON(dataurl,function(result){
 							layer.close(loading);
+							var _data = result.data ? result.data : result;
 							if(dataRender){
-								eval(dataRender+"(result.data)");
+								eval(dataRender+"(_data)");
 							}else{								
-								jeesuitelayui.dataRender($form,result.data);
+								jeesuitelayui.dataRender($form,_data);
 							}
 						});
 					}
