@@ -26,7 +26,6 @@ import org.springframework.core.env.StandardEnvironment;
 import com.jeesuite.common.crypt.AES;
 import com.jeesuite.common.crypt.Base64;
 import com.jeesuite.common.crypt.DES;
-import com.jeesuite.common.http.HttpRequestEntity;
 import com.jeesuite.common.http.HttpResponseEntity;
 import com.jeesuite.common.http.HttpUtils;
 import com.jeesuite.common.json.JsonUtils;
@@ -35,7 +34,16 @@ import com.jeesuite.common.util.NodeNameHolder;
 import com.jeesuite.common.util.ResourceUtils;
 import com.jeesuite.spring.InstanceFactory;
 
-
+/**
+ * 
+ * 
+ * <br>
+ * Class Name   : ConfigClient
+ *
+ * @author <a href="mailto:vakinge@gmail.com">vakin</a>
+ * @version 1.0.0
+ * @date 2016年11月2日
+ */
 public class ConfigcenterContext {
 
 	private final static Logger logger = LoggerFactory.getLogger("com.jeesuite");
@@ -102,7 +110,7 @@ public class ConfigcenterContext {
 		
 		Validate.notBlank(env,"[jeesuite.configcenter.profile] is required");
 		
-		setApiBaseUrl(ResourceUtils.getProperty("jeesuite.configcenter.base.url"));
+		setApiBaseUrl(ResourceUtils.getAnyProperty("jeesuite.configcenter.baseUrl","jeesuite.configcenter.base.url"));
 		
 		version = ResourceUtils.getProperty("jeesuite.configcenter.version","latest");
 		ignoreGlobal = ResourceUtils.getBoolean("jeesuite.configcenter.global-ignore",false);
@@ -363,7 +371,7 @@ public class ConfigcenterContext {
 		boolean result = false;
 		try {
 			System.out.println("pingCcServer ,retry:"+retry);
-			result = HttpUtils.get(pingUrl,HttpRequestEntity.create().connectTimeout(2000).readTimeout(2000)).isSuccessed();
+			result = HttpUtils.get(pingUrl).isSuccessed();
 		} catch (Exception e) {}
 		if(retry == 0)return false;
 		if(!result){

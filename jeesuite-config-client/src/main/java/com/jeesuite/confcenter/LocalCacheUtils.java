@@ -41,7 +41,7 @@ public class LocalCacheUtils {
 			File dir = new File(localStorageDir);
 			if (!dir.exists())
 				dir.mkdirs();
-			File file = new File(dir, "config-cache.json");
+			File file = new File(dir, "config-cache.log");
 			if (!file.exists()) {
 				file.createNewFile();
 			}
@@ -58,7 +58,7 @@ public class LocalCacheUtils {
 			File dir = new File(localStorageDir);
 			if (!dir.exists())
 				dir.mkdirs();
-			File file = new File(dir, "config-cache.json");
+			File file = new File(dir, "config-cache.log");
 			if (!file.exists()) {
 				return null;
 			}

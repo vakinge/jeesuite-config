@@ -20,6 +20,7 @@ import com.jeesuite.admin.constants.ProfileExtrAttrName;
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.common.json.JsonUtils;
+import com.jeesuite.common.util.NetworkUtils;
 import com.jeesuite.common.util.NodeNameHolder;
 
 /**
@@ -167,7 +168,7 @@ public class ProfileZkClient implements CommandLineRunner,DisposableBean{
 		if(StringUtils.isBlank(zkServers)){
 			zkServers = profileMapper.findExtrAttr(profileName, ProfileExtrAttrName.zkServers.name());
 		}
-		if(StringUtils.isNotBlank(zkServers)){
+		if(StringUtils.isNotBlank(zkServers) && NetworkUtils.telnet(zkServers, 2000)){
 			try {
 				ZkConnection zkConnection = new ZkConnection(zkServers);
 				ZkClient zkClient = new ZkClient(zkConnection, 3000);
@@ -186,6 +187,8 @@ public class ProfileZkClient implements CommandLineRunner,DisposableBean{
 				profileZkServersMapping.put(profileName, null);
 				logger.error("create zkClient:" + zkServers,e);
 			}
+		}else if(StringUtils.isNotBlank(zkServers)) {
+			logger.warn("!!!can't connect -> profileName:{},zkServers:{}",profileName,zkServers);
 		}
 	}
 	

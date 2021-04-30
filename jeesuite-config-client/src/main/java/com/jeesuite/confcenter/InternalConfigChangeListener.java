@@ -80,8 +80,7 @@ public class InternalConfigChangeListener {
 			@Override
 			public void run() {
 				String safeUrl = ConfigcenterContext.getInstance().buildTokenParameter(url);
-				HttpResponseEntity response = HttpUtils.postJson(safeUrl, JsonUtils.toJson(params),
-						HttpUtils.DEFAULT_CHARSET);
+				HttpResponseEntity response = HttpUtils.postJson(safeUrl, JsonUtils.toJson(params));
 				// 刷新服务端更新的配置
 				if (response.isSuccessed()) {
 					Map map = JsonUtils.toObject(response.getBody(), Map.class);

@@ -17,14 +17,14 @@ import com.jeesuite.admin.util.SecurityUtil;
 import com.jeesuite.common.JeesuiteBaseException;
 import com.jeesuite.common.util.FormatValidateUtils;
 import com.jeesuite.common.util.ResourceUtils;
-import com.jeesuite.security.SecurityDecisionProvider;
+import com.jeesuite.security.SecurityConfigurerProvider;
 import com.jeesuite.security.exception.UserNotFoundException;
 import com.jeesuite.security.exception.UserPasswordWrongException;
 import com.jeesuite.security.model.UserSession;
 import com.jeesuite.spring.InstanceFactory;
 
 @Component
-public class DefaultSecurityDecisionProvider extends SecurityDecisionProvider<LoginUserInfo> {
+public class DefaultSecurityDecisionProvider extends SecurityConfigurerProvider<LoginUserInfo> {
 	
 	private static List<String> anonymousUrlPatterns = Arrays.asList("/user/login");
 	
