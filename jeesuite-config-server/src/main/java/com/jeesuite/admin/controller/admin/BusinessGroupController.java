@@ -54,7 +54,7 @@ public class BusinessGroupController {
     	AssertUtil.isNull(businessGroupMapper.findByName(param.getName()),"组名已存在");
     	
     	param.setCreatedAt(new Date());
-    	param.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
+    	param.setCreatedBy(SecurityUtil.getLoginUserInfo().getUsername());
     	businessGroupMapper.insertSelective(param);
     	return new WrapperResponseEntity();
     }
@@ -72,7 +72,7 @@ public class BusinessGroupController {
     	}
     	groupEntity.setName(param.getName());
     	groupEntity.setRemarks(param.getRemarks());
-    	groupEntity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getName());
+    	groupEntity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getUsername());
     	groupEntity.setUpdatedAt(new Date());
     	businessGroupMapper.updateByPrimaryKeySelective(groupEntity);
     	return new WrapperResponseEntity();

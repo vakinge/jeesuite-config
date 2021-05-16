@@ -126,7 +126,7 @@ public class UserAdminController {
 			groupEntity = new BusinessGroupEntity();
 			groupEntity.setName( param.getGroupName());
 			groupEntity.setCreatedAt(new Date());
-			groupEntity.setCreatedBy(loginUserInfo.getName());
+			groupEntity.setCreatedBy(loginUserInfo.getUsername());
 			businessGroupMapper.insertSelective(groupEntity);
 			//
 			param.setGroupId(groupEntity.getId());

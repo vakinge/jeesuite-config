@@ -128,7 +128,7 @@ public class AppAdminController {
 		UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getMasterUid());
 		appEntity.setMaster(master.getName());
 		appEntity.setCreatedAt(new Date());
-		appEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
+		appEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		appMapper.insertSelective(appEntity);
 		//
 		List<ProfileEntity> profiles = profileMapper.selectAll();
@@ -161,7 +161,7 @@ public class AppAdminController {
 			appEntity.setMaster(master.getName());
 		}
 		
-		appEntity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getName());
+		appEntity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		appEntity.setUpdatedAt(new Date());
 		appMapper.updateByPrimaryKeySelective(appEntity);
 		//发送事件
@@ -181,7 +181,7 @@ public class AppAdminController {
 		}
 		//
 		app.setEnabled(false);
-		app.setUpdatedBy(SecurityUtil.getLoginUserInfo().getName());
+		app.setUpdatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		app.setUpdatedAt(new Date());
 		appMapper.updateByPrimaryKey(app);
 		//删除关联的配置

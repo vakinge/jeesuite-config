@@ -129,7 +129,7 @@ public class ConfigAdminController {
 			Integer groupId = appMapper.selectByPrimaryKey(addRequest.getAppId()).getGroupId();
 			entity.setGroupId(groupId);
 		}
-		entity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
+		entity.setCreatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		entity.setCreatedAt(new Date());
 		entity.setUpdatedAt(entity.getCreatedAt());
 		entity.setUpdatedBy(entity.getCreatedBy());
@@ -157,7 +157,7 @@ public class ConfigAdminController {
 		entity.setContents(addRequest.getContents());
 		//
 		encryptPropItemIfRequired(entity);
-		entity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getName());
+		entity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		entity.setUpdatedAt(new Date());
 		appconfigMapper.updateByPrimaryKeySelective(entity);
 		//
@@ -362,7 +362,7 @@ public class ConfigAdminController {
 		historyEntity.setContents(entity.getContents());
 		historyEntity.setVersion(entity.getVersion());
 		historyEntity.setCreatedAt(new Date());
-		historyEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getName());
+		historyEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		appconfigHisMapper.insertSelective(historyEntity);
 	}
 	

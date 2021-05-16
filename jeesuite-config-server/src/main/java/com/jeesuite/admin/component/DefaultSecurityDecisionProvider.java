@@ -62,7 +62,7 @@ public class DefaultSecurityDecisionProvider extends SecurityConfigurerProvider<
 
 		LoginUserInfo userInfo = new LoginUserInfo();
 		userInfo.setId(userEntity.getId().toString());
-		userInfo.setName(userEntity.getName());
+		userInfo.setUsername(userEntity.getName());
 		userInfo.setUserType(userEntity.getType());
 		userInfo.setGroupId(userEntity.getGroupId());
 		if(!userInfo.isSuperAdmin()){
@@ -117,12 +117,12 @@ public class DefaultSecurityDecisionProvider extends SecurityConfigurerProvider<
 	}
 
 	@Override
-	public String _401_Error_Page() {
+	public String error401Page() {
 		return null;
 	}
 
 	@Override
-	public String _403_Error_Page() {
+	public String error403Page() {
 		return null;
 	}
 }
