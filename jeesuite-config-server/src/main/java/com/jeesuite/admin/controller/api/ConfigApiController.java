@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.jeesuite.admin.annotation.ValidateSign;
 import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.component.ProfileZkClient;
-import com.jeesuite.admin.constants.AppExtrAttrName;
 import com.jeesuite.admin.controller.admin.ConfigAdminController;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
 import com.jeesuite.admin.dao.entity.AppEntity;
@@ -34,8 +34,6 @@ import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.WrapperResponseEntity;
 import com.jeesuite.admin.util.ConfigParseUtils;
 import com.jeesuite.common.JeesuiteBaseException;
-import com.jeesuite.common.crypt.DES;
-import com.jeesuite.common.util.DigestUtils;
 
 @Controller
 @RequestMapping("/api")
@@ -48,6 +46,7 @@ public class ConfigApiController {
 	private @Autowired ProfileZkClient profileZkClient;
 	private @Autowired AppConfigsHistoryEntityMapper appconfigHisMapper;
 
+	@ValidateSign
 	@RequestMapping(value = "fetch_all_configs", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> fetchConfigs(HttpServletRequest request,
 			@RequestParam(value = "appName") String appName, @RequestParam(value = "env") String env,
@@ -59,10 +58,6 @@ public class ConfigApiController {
 		}
 
 		AppEntity appEntity = appMapper.findByAppKey(appName);
-		if (appEntity == null)
-			throw new JeesuiteBaseException(1001, "app不存在");
-
-		validateSignature(request,appEntity.getId(),env);
 
 		List<AppconfigEntity> globalConfigs = ignoreGlobal ? new  ArrayList<>(0) : appconfigMapper.findGlobalConfig(env,appEntity.getGroupId(), version);
 		// 再查应用的
@@ -105,19 +100,17 @@ public class ConfigApiController {
 
 
 	@RequestMapping(value = "fetch_changed_configs", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<WrapperResponseEntity> syncStatus(HttpServletRequest request,@RequestBody Map<String, Object> params) {
+	public @ResponseBody ResponseEntity<WrapperResponseEntity> fetchChangedConfigs(HttpServletRequest request,@RequestBody Map<String, Object> params) {
 		String version = Objects.toString(params.remove("version"), null);
 		Date lastFetchTime = new Date(Long.parseLong(params.remove("lastTime").toString()));
 		boolean ignoreGlobal = params.containsKey("ignoreGlobal") && Boolean.parseBoolean(params.remove("ignoreGlobal").toString());
 		boolean fetchAll = params.containsKey("fetchAll") && Boolean.parseBoolean(params.remove("fetchAll").toString());
-		String env = params.get("env").toString();
 		
 		if (StringUtils.isBlank(version)){
 			version = Constants.DEFAULT_CONFIG_VERSION;
 		}
 		AppEntity appEntity = appMapper.findByAppKey(params.remove("appName").toString());
 		//
-		validateSignature(request, appEntity.getId(),env);
 		params.put("groupId", appEntity.getGroupId());
 		params.put("lastUpdateTime", lastFetchTime);
 		
@@ -167,24 +160,4 @@ public class ConfigApiController {
 		return "200";
 	}
 
-	private void validateSignature(HttpServletRequest request,int appId,String env ) {
-		String authtoken = request.getParameter("authtoken");
-		if (StringUtils.isBlank(authtoken))
-			throw new JeesuiteBaseException(400,"[authtoken] is miss");
-		
-		String token = appMapper.findExtrAttr(appId, env, AppExtrAttrName.API_TOKEN.name());
-		String decryptStr = null;
-		try {
-			decryptStr = DES.decrypt(token.substring(0,8), authtoken);
-		} catch (Exception e) {
-			throw new JeesuiteBaseException("[authtoken] is error");
-		}
-		long timestamp = Long.parseLong(decryptStr.substring(6));
-		if(!DigestUtils.md5Short(token).equals(decryptStr.substring(0,6))) {
-			throw new JeesuiteBaseException(4005, "[authtoken] is error");
-		}
-		if(new Date().getTime() - timestamp > 180 * 1000){
-			throw new JeesuiteBaseException(4005, "[authtoken] is expired");
-		}
-	}
 }

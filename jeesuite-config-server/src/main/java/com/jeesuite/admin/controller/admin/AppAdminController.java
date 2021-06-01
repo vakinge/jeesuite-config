@@ -5,12 +5,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -60,6 +62,10 @@ public class AppAdminController {
 	private @Autowired ProfileEntityMapper profileMapper;
 	private @Autowired UserEntityMapper userMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
+	
+	//所有环境统一TOKEN
+	@Value("${same-app-token.strategy.enabled:false}")
+	private boolean sameAppTokenStrategy;
 	
 	@RequestMapping(value = "listAll", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<WrapperResponseEntity> findApps(
@@ -130,13 +136,6 @@ public class AppAdminController {
 		appEntity.setCreatedAt(new Date());
 		appEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getUsername());
 		appMapper.insertSelective(appEntity);
-		//
-		List<ProfileEntity> profiles = profileMapper.selectAll();
-		String token;
-		for (ProfileEntity profile : profiles) {
-			token = TokenGenerator.generate();
-			appMapper.insertAttr(appEntity.getId(), profile.getName(), AppExtrAttrName.API_TOKEN.name(), token);
-		}
 		//
 		SecurityUtil.reloadPermssionDatas();
 		//发送事件
@@ -241,6 +240,17 @@ public class AppAdminController {
 	@RequestMapping(value = "tokens", method = RequestMethod.GET)
 	public @ResponseBody WrapperResponseEntity getAppTokens(@RequestParam int appId){
 		List<KeyValuePair> list = appMapper.findProfileExtrAttrs(appId, AppExtrAttrName.API_TOKEN.name());
+		if(list.isEmpty()) {
+			List<ProfileEntity> profiles = profileMapper.selectAll();
+			
+			list = new ArrayList<>(profiles.size());
+			String token = StringUtils.remove(UUID.randomUUID().toString(), "-");
+			for (ProfileEntity profile : profiles) {
+				token = sameAppTokenStrategy ? token : StringUtils.remove(UUID.randomUUID().toString(), "-");
+				appMapper.insertAttr(appId, profile.getName(), AppExtrAttrName.API_TOKEN.name(), token);
+				list.add(new KeyValuePair(profile.getName(), token));
+			}
+		}
 		return new WrapperResponseEntity(list);
 	}
 
