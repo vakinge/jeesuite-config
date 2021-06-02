@@ -415,8 +415,7 @@ public class ConfigcenterContext {
 			byte[] bytes = AES.decrypt(Base64.decode(data.getBytes(StandardCharsets.UTF_8)),  secretKey.getBytes(StandardCharsets.UTF_8));
 			return  new String(bytes, StandardCharsets.UTF_8);
 		} catch (Exception e) {
-			System.err.println(String.format("解密错误:%s",data));
-			throw new RuntimeException(e);
+			throw new RuntimeException(String.format("解密错误:%s",data));
 		}
 	}
 
