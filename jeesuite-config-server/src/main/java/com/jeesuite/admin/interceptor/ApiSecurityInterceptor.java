@@ -16,14 +16,13 @@ import com.jeesuite.admin.constants.ProfileExtrAttrName;
 import com.jeesuite.admin.dao.entity.AppEntity;
 import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
-import com.jeesuite.common.JeesuiteBaseException;
+import com.jeesuite.common.WebConstants;
 import com.jeesuite.common.crypt.DES;
 import com.jeesuite.common.util.DigestUtils;
+import com.jeesuite.common.util.IpUtils;
 import com.jeesuite.common.util.ResourceUtils;
+import com.jeesuite.common.util.WebUtils;
 import com.jeesuite.spring.InstanceFactory;
-import com.jeesuite.springweb.WebConstants;
-import com.jeesuite.springweb.utils.IpUtils;
-import com.jeesuite.springweb.utils.WebUtils;
 
 public class ApiSecurityInterceptor implements HandlerInterceptor {
 
