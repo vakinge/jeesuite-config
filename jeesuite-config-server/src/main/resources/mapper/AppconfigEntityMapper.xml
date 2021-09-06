@@ -8,6 +8,7 @@
     <id column="id" property="id" jdbcType="INTEGER" />
     <result column="group_id" property="groupId" jdbcType="INTEGER" />
     <result column="app_id" property="appId" jdbcType="INTEGER" />
+    <result column="app_code" property="appCode" jdbcType="VARCHAR" />
     <result column="env" property="env" jdbcType="VARCHAR" />
     <result column="version" property="version" jdbcType="VARCHAR" />
     <result column="name" property="name" jdbcType="VARCHAR" />
@@ -37,6 +38,7 @@
       <if test="version != null and version !=''">  AND version = #{version}</if> 
       <if test="groupId != null">  AND group_id = #{groupId}</if> 
       <if test="appId != null">  AND app_id = #{appId}</if> 
+      <if test="appCode != null">  AND app_code LIKE concat(#{appCode}, '%')</if> 
       <if test="isGlobal != null"> AND (app_id is null OR app_id = 0)</if>
       <if test="lastUpdateTime != null">  AND updated_at &gt; #{lastUpdateTime}</if> 
       <if test="appIds != null and appIds.size() gt 0">

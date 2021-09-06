@@ -49,29 +49,32 @@ layui.define(['layer', 'laytpl', 'form', 'element', 'util'], function(exports){
   var jeesuitelayui = {
 		//Ajax
 			get: function(url, success) {
-				jeesuitelayui.ajax(url,'GET',null,success);
+				jeesuitelayui.ajax(url,'GET',null,success,true);
 			},
 			post: function(url,data, success) {
-				jeesuitelayui.ajax(url,'POST',data,success);
+				jeesuitelayui.ajax(url,'POST',data,success,true);
 			},
-			ajax: function(url, method,data, success) {
+			ajax: function(url, method,data, success,async) {
+				if(async == undefined)async = true;
 				success = success || 'alert';
 				return $.ajax({
 					dataType: "json",
 					type: method,
 					url: url,
 					contentType: "application/json",
+					async:async,
 					data: data ? JSON.stringify(data) : ( method === 'POST' ? '{}' : ''),
 					success: function(res) {
 						if (res.code == 401) {
 							top.location.href = "/login.html";
 							return;
 						}
-						if (res.code == 200) {
+						if (!res.code || res.code == 200) {
+							var rspData = res.code ? res.data : res;
 							if (success === 'alert') {
 								jeesuitelayui.success(res.msg || '操作成功');
 							} else if (typeof(success) === 'function') {
-								success(res.data);
+								success(rspData);
 							}
 						} else {
 							jeesuitelayui.error(res.msg || res.code);

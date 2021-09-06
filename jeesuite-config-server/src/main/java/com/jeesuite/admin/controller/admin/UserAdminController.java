@@ -30,7 +30,7 @@ import com.jeesuite.admin.dao.entity.BusinessGroupEntity;
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.entity.UserPermissionEntity;
-import com.jeesuite.admin.dao.mapper.AppEntityMapper;
+import com.jeesuite.admin.dao.mapper.ApplicationEntityMapper;
 import com.jeesuite.admin.dao.mapper.BusinessGroupEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
@@ -51,7 +51,7 @@ import com.jeesuite.security.SecurityDelegating;
 public class UserAdminController {
 
 	private @Autowired UserEntityMapper userMapper;
-	private @Autowired AppEntityMapper appMapper;
+	private @Autowired ApplicationEntityMapper appMapper;
 	private @Autowired ProfileEntityMapper profileMapper;
 	private @Autowired  UserPermissionEntityMapper userPermissionMapper;
     private @Autowired BusinessGroupEntityMapper businessGroupMapper;
@@ -296,8 +296,8 @@ public class UserAdminController {
 			throw new JeesuiteBaseException(1002, "该用户还没分配业务组");
 		}
 		List<UserGrantPermItem> datas = appMapper.findByGroupId(userEntity.getGroupId()).stream().map(e -> {
-			String operate = userId.equals(e.getMasterUid()) ? GrantOperate.RW.name() : null;
-			return new UserGrantPermItem(e.getId(), e.getAppName(), operate);
+			String operate = userId.equals(e.getOwnerId()) ? GrantOperate.RW.name() : null;
+			return new UserGrantPermItem(e.getId(), e.getName(), operate);
 		}).collect(Collectors.toList());
 		
 		Map<Integer, UserPermissionEntity> userPermissons = userPermissionMapper.findByUserId(userId).stream().collect(Collectors.toMap(UserPermissionEntity::getAppId, e -> e));

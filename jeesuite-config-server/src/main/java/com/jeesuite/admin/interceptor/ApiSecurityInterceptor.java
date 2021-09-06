@@ -13,8 +13,8 @@ import org.springframework.web.servlet.ModelAndView;
 import com.jeesuite.admin.annotation.ValidateSign;
 import com.jeesuite.admin.constants.AppExtrAttrName;
 import com.jeesuite.admin.constants.ProfileExtrAttrName;
-import com.jeesuite.admin.dao.entity.AppEntity;
-import com.jeesuite.admin.dao.mapper.AppEntityMapper;
+import com.jeesuite.admin.dao.entity.ApplicationEntity;
+import com.jeesuite.admin.dao.mapper.ApplicationEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.common.WebConstants;
 import com.jeesuite.common.crypt.DES;
@@ -31,14 +31,14 @@ public class ApiSecurityInterceptor implements HandlerInterceptor {
 	
 	private static String commonErrorRspTemplate= "{\"code\": %s,\"msg\":\"%s\"}";
 	
-	private AppEntityMapper appMapper;
+	private ApplicationEntityMapper appMapper;
 	
 
-	public AppEntityMapper getAppMapper() {
+	public ApplicationEntityMapper getAppMapper() {
 		if(appMapper != null) {
 			return appMapper;
 		}
-		appMapper = InstanceFactory.getInstance(AppEntityMapper.class);
+		appMapper = InstanceFactory.getInstance(ApplicationEntityMapper.class);
 		return appMapper;
 	}
 
@@ -114,7 +114,7 @@ public class ApiSecurityInterceptor implements HandlerInterceptor {
 			return false;
 		}
 		
-		AppEntity entity = getAppMapper().findByAppKey(appName);
+		ApplicationEntity entity = getAppMapper().findByAppKey(appName);
 		
 		if(entity == null) {
 			WebUtils.responseOutJson(response,String.format(commonErrorRspTemplate,400, "[appName]不存在"));

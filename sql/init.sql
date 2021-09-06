@@ -40,6 +40,7 @@ CREATE TABLE `app_configs` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `group_id` INT(10) NULL COMMENT '所属业务组',
   `app_id` INT(10) DEFAULT NULL,
+  `app_code` varchar(32) DEFAULT NULL,
   `env` varchar(16) DEFAULT NULL,
   `version` varchar(32) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
@@ -53,21 +54,21 @@ CREATE TABLE `app_configs` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
 -- ----------------------------
---  Table structure for `apps`
+--  Table structure for `application`
 -- ----------------------------
-DROP TABLE IF EXISTS `apps`;
-CREATE TABLE `apps` (
+DROP TABLE IF EXISTS `application`;
+CREATE TABLE `application` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `group_id` INT(10) NULL COMMENT '所属业务组',
-  `app_key` varchar(32) DEFAULT NULL,
-  `app_name` varchar(32) DEFAULT NULL,
+  `parent_id` INT(10) NULL,
+  `name` varchar(32) DEFAULT NULL,
+  `code` varchar(32) DEFAULT NULL,
   `service_id` varchar(64) DEFAULT NULL,
-  `app_type` varchar(32) DEFAULT 1 COMMENT '应用类型',
-  `master` varchar(16) DEFAULT NULL,
-  `master_uid` int(10) DEFAULT NULL,
-  `health_uri` varchar(200) DEFAULT NULL,
-  `scm_link` varchar(100) DEFAULT NULL,
+  `is_module` tinyint(1) DEFAULT 1 COMMENT '是否业务模块',
+  `owner_id` int(10) DEFAULT NULL,
+  `owner_name` varchar(16) DEFAULT NULL,
   `remarks` text,
   `enabled` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT NULL,

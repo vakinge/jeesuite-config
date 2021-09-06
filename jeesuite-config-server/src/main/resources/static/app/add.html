@@ -12,26 +12,22 @@
         <div class="layui-form-item">
 			<label class="layui-form-label">应用名称</label>
 			<div class="layui-input-block" style="width: 600px;">
-				<input type="text" name="appName" placeholder="中文名称" required lay-verify="required" autocomplete="off" class="layui-input">
+				<input type="text" name="name" placeholder="中文名称" required lay-verify="required" autocomplete="off" class="layui-input">
 			</div>
 		</div>
 		<div class="layui-form-item">
 			<label class="layui-form-label">应用标识</label>
 			<div class="layui-input-block" style="width: 600px;">
-				<input type="text" name="appKey" placeholder="应用标识" required lay-verify="required" autocomplete="off" class="layui-input">
+				<input type="text" name="code" placeholder="应用标识" required lay-verify="required" autocomplete="off" class="layui-input">
 			</div>
 		</div>
 		<div class="layui-form-item">
-			<label class="layui-form-label">注册服务名</label>
-			<div class="layui-input-block" style="width: 600px;">
-				<input type="text" name="serviceId" placeholder="对应注册中心注册服务名" autocomplete="off" class="layui-input">
+			<label class="layui-form-label">是否多模块</label>
+			<div class="layui-input-inline" style="width: 180px;">
+			   <input type="radio" name="isModule" value="true" title="否" lay-filter="isModule">
+               <input type="radio" name="isModule" value="false" title="是" checked lay-filter="isModule">
 			</div>
-		</div>
-		<div class="layui-form-item">
-			<label class="layui-form-label">应用类型</label>
-			<div class="layui-input-block" style="width: 600px;">
-			   <select name="appType" asnycSelect="../admin/app/type/options"></select>
-			</div>
+			<div class="layui-form-mid layui-word-aux">多模块项目可以添加子模块</div>
 		</div>
 	   <div class="layui-form-item">
 		   <label class="layui-form-label">业务组</label>
@@ -51,7 +47,7 @@
 		<div class="layui-form-item" id="master_div">
 			<label class="layui-form-label">负责人</label>
 			<div class="layui-input-block" style="width: 600px;"> 
-             <select id="masterUid" name="masterUid" asnycSelect="../admin/user/options" lay-filter="masterUid_select"> 
+             <select id="masterUid" name="ownerId" asnycSelect="../admin/user/options" lay-filter="masterUid_select"> 
                <option value="">请选择负责人</option> 
              </select> 
             </div>

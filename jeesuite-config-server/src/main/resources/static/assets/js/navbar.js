@@ -93,6 +93,15 @@ layui.define(['element', 'jeesuitelayui'], function (exports) {
                         element.init();
                     },
                     error: function (xhr, status, error) {
+
+						if (xhr.status == 401) {
+							top.location.href = "/login.html";
+							return;
+						}
+						if (xhr.status == 403) {
+							$this.html('无接口权限');
+							return;
+						}
                         jeesuitelayui.error('Navbar error:' + error);
                     },
                     complete: function (xhr, status) {

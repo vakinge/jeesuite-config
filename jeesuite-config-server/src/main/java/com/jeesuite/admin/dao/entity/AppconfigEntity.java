@@ -9,8 +9,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.jeesuite.mybatis.core.BaseEntity;
 
@@ -23,8 +21,12 @@ public class AppconfigEntity extends BaseEntity {
     @Column(name = "group_id",updatable = false)
     private Integer groupId;
 
-    @Column(name = "app_id")
+    @Column(name = "app_id",updatable = false)
     private Integer appId;
+    
+    @Column(name = "app_code",updatable = false)
+    private String appCode;
+    
     @Column(name = "env",updatable = false)
     private String env;
 
@@ -80,6 +82,15 @@ public class AppconfigEntity extends BaseEntity {
 
 	public void setAppId(Integer appId) {
 		this.appId = appId;
+	}
+    
+	
+	public String getAppCode() {
+		return appCode;
+	}
+
+	public void setAppCode(String appCode) {
+		this.appCode = appCode;
 	}
 
 	/**

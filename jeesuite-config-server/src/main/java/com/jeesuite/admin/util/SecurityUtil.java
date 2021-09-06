@@ -5,10 +5,10 @@ import java.util.List;
 
 import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.constants.UserType;
-import com.jeesuite.admin.dao.entity.AppEntity;
+import com.jeesuite.admin.dao.entity.ApplicationEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
 import com.jeesuite.admin.dao.entity.UserPermissionEntity;
-import com.jeesuite.admin.dao.mapper.AppEntityMapper;
+import com.jeesuite.admin.dao.mapper.ApplicationEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserPermissionEntityMapper;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.common.JeesuiteBaseException;
@@ -84,14 +84,14 @@ public class SecurityUtil {
 	
 	public static void  initPermssionDatas(LoginUserInfo loginUserInfo){
 
-		List<AppEntity> apps = new ArrayList<>(0);
+		List<ApplicationEntity> apps = new ArrayList<>(0);
 		if(loginUserInfo.getUserType().equals(UserType.user.name())) {
-			apps = InstanceFactory.getInstance(AppEntityMapper.class).findByMaster(Integer.parseInt(loginUserInfo.getId()));
+			apps = InstanceFactory.getInstance(ApplicationEntityMapper.class).findByMaster(Integer.parseInt(loginUserInfo.getId()));
 		} else if (loginUserInfo.getUserType().equals(UserType.groupAdmin.name())) {
- 			apps = InstanceFactory.getInstance(AppEntityMapper.class).findByGroupId(loginUserInfo.getGroupId());
+ 			apps = InstanceFactory.getInstance(ApplicationEntityMapper.class).findByGroupId(loginUserInfo.getGroupId());
 		}
 		String permissionCode;
-		for (AppEntity entity : apps) {
+		for (ApplicationEntity entity : apps) {
 			permissionCode = buildPermissionCode(entity.getId().toString(), GrantOperate.RW);
 			loginUserInfo.getGrantPermissons().add(permissionCode);
 			loginUserInfo.getGrantAppIds().add(entity.getId());

@@ -1,8 +1,10 @@
 package com.jeesuite.admin.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,16 +28,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesuite.admin.component.EventPublishClient;
 import com.jeesuite.admin.constants.AppExtrAttrName;
-import com.jeesuite.admin.constants.AppType;
 import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.constants.UserType;
-import com.jeesuite.admin.dao.entity.AppEntity;
+import com.jeesuite.admin.dao.entity.ApplicationEntity;
 import com.jeesuite.admin.dao.entity.ProfileEntity;
 import com.jeesuite.admin.dao.entity.UserEntity;
-import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
+import com.jeesuite.admin.dao.mapper.ApplicationEntityMapper;
 import com.jeesuite.admin.dao.mapper.ProfileEntityMapper;
 import com.jeesuite.admin.dao.mapper.UserEntityMapper;
+import com.jeesuite.admin.model.AppTreeModel;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.PageResult;
 import com.jeesuite.admin.model.SelectOption;
@@ -50,6 +52,7 @@ import com.jeesuite.common.model.PageParams;
 import com.jeesuite.common.util.AssertUtil;
 import com.jeesuite.common.util.BeanUtils;
 import com.jeesuite.mybatis.plugin.pagination.PageExecutor;
+import com.jeesuite.springweb.model.WrapperResponse;
 
 @Controller
 @RequestMapping("/admin/app")
@@ -57,7 +60,7 @@ public class AppAdminController {
 
 	final static Logger logger = LoggerFactory.getLogger("controller");
 	
-	private @Autowired AppEntityMapper appMapper;
+	private @Autowired ApplicationEntityMapper appMapper;
 	private @Autowired ProfileEntityMapper profileMapper;
 	private @Autowired UserEntityMapper userMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
@@ -66,17 +69,9 @@ public class AppAdminController {
 	@Value("${same-app-token.strategy.enabled:false}")
 	private boolean sameAppTokenStrategy;
 	
-	@RequestMapping(value = "listAll", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<WrapperResponseEntity> findApps(
-			@RequestParam(value="appType",required = false) String appType
-			){
-		
-		List<AppEntity> list = findAppByCurrentUserAndParams(appType,null);
-		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(list),HttpStatus.OK);
-	}
 
 	@RequestMapping(value = "list",method = RequestMethod.POST)
-	public @ResponseBody PageResult<AppEntity> pageQuery(
+	public @ResponseBody PageResult<ApplicationEntity> pageQuery(
 			@RequestParam(value="appType",required = false) String appType,
 		    @RequestParam(value = "pageNo")Integer pageNo,
 		    @RequestParam(value = "pageSize")Integer pageSize){
@@ -94,18 +89,38 @@ public class AppAdminController {
 			queryParams.put("appType", appType);
 		}
 
-		Page<AppEntity> page = PageExecutor.pagination(new PageParams(pageNo, pageSize), new PageExecutor.PageDataLoader<AppEntity>() {
+		Page<ApplicationEntity> page = PageExecutor.pagination(new PageParams(pageNo, pageSize), new PageExecutor.PageDataLoader<ApplicationEntity>() {
 			@Override
-			public List<AppEntity> load() {
+			public List<ApplicationEntity> load() {
 				return appMapper.findByQueryParams(queryParams);
 			}
 		});
 		return new PageResult<>(pageNo, pageSize, page.getTotal(), page.getData());
 	}
 	
+	@RequestMapping(value = "tree", method = RequestMethod.GET)
+	public @ResponseBody WrapperResponse<Collection<AppTreeModel>> findAppTree(){
+		Map<String, Object> queryParams = new HashMap<>();
+		List<ApplicationEntity> apps = appMapper.findByQueryParams(queryParams);
+		Map<String, AppTreeModel> map = new LinkedHashMap<>();
+		
+		AppTreeModel model;
+		for (ApplicationEntity app : apps) {
+			model = new AppTreeModel(app.getId().toString(), app.getName(), app.getCode());
+			model.setServiceId(app.getServiceId());
+			if(app.getParentId() == null) {
+				map.put(app.getId().toString(), model);
+			}else {
+				map.get(app.getParentId().toString()).addChild(model);
+			}
+		}
+		
+		return new WrapperResponse<>(map.values());
+	}
+	
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<WrapperResponseEntity> getApp(@PathVariable("id") int id){
-		AppEntity entity = appMapper.selectByPrimaryKey(id);
+		ApplicationEntity entity = appMapper.selectByPrimaryKey(id);
 		return new ResponseEntity<WrapperResponseEntity>(new WrapperResponseEntity(entity),HttpStatus.OK);
 	}
 	
@@ -113,27 +128,38 @@ public class AppAdminController {
 	@Transactional
 	public ResponseEntity<WrapperResponseEntity> addApp(@RequestBody AddOrEditAppRequest addAppRequest){
 		LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
-		if(!loginUserInfo.isSuperAdmin() || addAppRequest.getMasterUid() == null || addAppRequest.getMasterUid() == 0){
-			addAppRequest.setMasterUid(Integer.parseInt(loginUserInfo.getId()));
+		//
+		if(!loginUserInfo.isSuperAdmin() || addAppRequest.getOwnerId() == null || addAppRequest.getOwnerId() == 0){
+			addAppRequest.setOwnerId(Integer.parseInt(loginUserInfo.getId()));
 		}
 
 		if(!loginUserInfo.isSuperAdmin() && addAppRequest.getGroupId() == null){
 			addAppRequest.setGroupId(loginUserInfo.getGroupId());
 		}
 		
-		if(addAppRequest.getGroupId() == null){
+		if(addAppRequest.getParentId() == null && addAppRequest.getGroupId() == null){
 			throw new JeesuiteBaseException(1002, "业务组必填");
 		}
 
-		if(appMapper.findByAppKey(addAppRequest.getAppKey()) != null){
-			throw new JeesuiteBaseException(1002, "应用["+addAppRequest.getAppKey()+"]已存在");
-		}
-		AppEntity appEntity = BeanUtils.copy(addAppRequest, AppEntity.class);
+		ApplicationEntity appEntity = BeanUtils.copy(addAppRequest, ApplicationEntity.class);
 		//
-		UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getMasterUid());
-		appEntity.setMaster(master.getName());
+		UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getOwnerId());
+		appEntity.setOwnerId(master.getId());
+		appEntity.setOwnerName(master.getName());
 		appEntity.setCreatedAt(new Date());
 		appEntity.setCreatedBy(SecurityUtil.getLoginUserInfo().getUsername());
+		//
+		if(appEntity.getParentId() != null) {
+			ApplicationEntity parent = appMapper.selectByPrimaryKey(appEntity.getParentId());
+			appEntity.setGroupId(parent.getGroupId());
+			appEntity.setIsModule(true);
+			appEntity.setCode(parent.getCode() + "-" + appEntity.getCode());
+		}
+		
+		if(appMapper.findByAppKey(appEntity.getCode()) != null){
+			throw new JeesuiteBaseException(1002, "应用["+addAppRequest.getCode()+"]已存在");
+		}
+		
 		appMapper.insertSelective(appEntity);
 		//
 		SecurityUtil.reloadPermssionDatas();
@@ -145,18 +171,18 @@ public class AppAdminController {
 	
 	@RequestMapping(value = "update", method = RequestMethod.POST)
 	public ResponseEntity<WrapperResponseEntity> updateApp(@RequestBody AddOrEditAppRequest addAppRequest){
-		AppEntity app = appMapper.selectByPrimaryKey(addAppRequest.getId());
+		ApplicationEntity app = appMapper.selectByPrimaryKey(addAppRequest.getId());
 		if(app == null){
 			throw new JeesuiteBaseException(1002, "应用不存在");
 		}
 		SecurityUtil.requireAllPermission(app.getGroupId(), app.getId(), GrantOperate.RW);
 
-		AppEntity appEntity = BeanUtils.copy(addAppRequest, AppEntity.class);
+		ApplicationEntity appEntity = BeanUtils.copy(addAppRequest, ApplicationEntity.class);
 		
-		if(addAppRequest.getMasterUid() != null && addAppRequest.getMasterUid() > 0 
-				&& !addAppRequest.getMasterUid().equals(app.getMasterUid())){
-			UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getMasterUid());
-			appEntity.setMaster(master.getName());
+		if(addAppRequest.getOwnerId() != null && addAppRequest.getOwnerId() > 0 
+				&& !addAppRequest.getOwnerId().equals(app.getOwnerId())){
+			UserEntity master = userMapper.selectByPrimaryKey(addAppRequest.getOwnerId());
+			appEntity.setOwnerName(master.getName());
 		}
 		
 		appEntity.setUpdatedBy(SecurityUtil.getLoginUserInfo().getUsername());
@@ -173,9 +199,17 @@ public class AppAdminController {
 		
 		SecurityUtil.requireSuperAdmin();
 		//
-		AppEntity app = appMapper.selectByPrimaryKey(id);
+		ApplicationEntity app = appMapper.selectByPrimaryKey(id);
 		if(app == null){
 			throw new JeesuiteBaseException(1002, "应用不存在");
+		}
+		if(app.getParentId() == null && !app.getIsModule()) {
+			ApplicationEntity example = new ApplicationEntity();
+			example.setParentId(app.getId());
+			example.setEnabled(true);
+			if(appMapper.countByExample(example) > 0) {
+				throw new JeesuiteBaseException(1002, "该应用下包含启用状态模块");
+			}
 		}
 		//
 		app.setEnabled(false);
@@ -192,7 +226,7 @@ public class AppAdminController {
 	
 	@RequestMapping(value = "toggle", method = RequestMethod.POST)
 	public @ResponseBody WrapperResponseEntity enableSwitch(@RequestBody IdParam<Integer> param){
-        AppEntity entity = appMapper.selectByPrimaryKey(param.getId());
+        ApplicationEntity entity = appMapper.selectByPrimaryKey(param.getId());
 		AssertUtil.notNull(entity);
 		SecurityUtil.requireAllPermission(entity.getGroupId(), entity.getId(), GrantOperate.RW);
 		entity.setEnabled(!entity.getEnabled());
@@ -205,25 +239,15 @@ public class AppAdminController {
 	}
 	
 	@RequestMapping(value = "options", method = RequestMethod.GET)
-	public @ResponseBody List<SelectOption> getAppOptions(@RequestParam(value="env",required=false) String env
-			,@RequestParam(value="grantType",required=false) String grantType
-			,@RequestParam(value="appType",required = false) String appType
-			,@RequestParam(value="formatValue",required = false) String formatValue){
-		List<AppEntity> list = findAppByCurrentUserAndParams(appType, grantType);
+	public @ResponseBody List<SelectOption> getAppOptions(@RequestParam(value="type",required = false) String type
+			,@RequestParam(value="format",required = false) String format){
+		List<ApplicationEntity> list = findAppByCurrentUserAndParams("app".equals(type));
 		return list.stream().map(e -> {
-			return new SelectOption("appKey".equals(formatValue) ? e.getAppKey() : String.valueOf(e.getId()), e.getFullName());
+			String value = "code".equals(format) ? e.getCode() : String.valueOf(e.getId());
+			return new SelectOption(value, e.getFullName());
 		}).collect(Collectors.toList());
 	}
 	
-	@RequestMapping(value = "type/options", method = RequestMethod.GET)
-	public @ResponseBody List<SelectOption> getAppTypeOptions(){
-		AppType[] values = AppType.values();
-		List<SelectOption> list = new ArrayList<>(values.length);
-        for (AppType appType : values) {
-        	list.add(new SelectOption(appType.name(), appType.getCnName()));
-		}
-		return list;
-	}
 	
 	@RequestMapping(value = "extrAttrs", method = RequestMethod.GET)
 	public @ResponseBody WrapperResponseEntity getExtrAttrs(@RequestParam int appId,@RequestParam String name){
@@ -254,7 +278,7 @@ public class AppAdminController {
 	}
 
 	
-	private List<AppEntity> findAppByCurrentUserAndParams(String appType,String operate){
+	private List<ApplicationEntity> findAppByCurrentUserAndParams(boolean onlyParentApp){
 		
 		Map<String, Object> param = new HashMap<String, Object>(4);
 		LoginUserInfo loginUserInfo = SecurityUtil.getLoginUserInfo();
@@ -262,16 +286,11 @@ public class AppAdminController {
 			param.put("groupId", loginUserInfo.getGroupId());
 		}else if(!loginUserInfo.isSuperAdmin()){
 			param.put("userId", loginUserInfo.getId());
-		}else{
-			if(StringUtils.isNotBlank(operate)){
-				param.put("operate", operate);
-			}
 		}
-
-		if(appType != null){
-			param.put("appType", appType);
+		if(onlyParentApp) {
+			param.put("onlyParentApp", onlyParentApp);
 		}
-
+		
 		return appMapper.findByQueryParams(param);
 	}
 }

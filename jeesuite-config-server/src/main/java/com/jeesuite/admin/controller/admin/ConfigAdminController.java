@@ -32,9 +32,10 @@ import com.jeesuite.admin.component.ProfileZkClient;
 import com.jeesuite.admin.constants.GrantOperate;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
+import com.jeesuite.admin.dao.entity.ApplicationEntity;
 import com.jeesuite.admin.dao.mapper.AppConfigsHistoryEntityMapper;
-import com.jeesuite.admin.dao.mapper.AppEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
+import com.jeesuite.admin.dao.mapper.ApplicationEntityMapper;
 import com.jeesuite.admin.model.LoginUserInfo;
 import com.jeesuite.admin.model.PageResult;
 import com.jeesuite.admin.model.WrapperResponseEntity;
@@ -60,7 +61,7 @@ public class ConfigAdminController {
 	private static List<String> allow_upload_suffix = new ArrayList<>(Arrays.asList("xml","properties","yml","yaml"));
 	private boolean sensitiveForceEncrypt = ResourceUtils.getBoolean("sensitive.config.force.encrypt",false);
 	
-	private @Autowired AppEntityMapper appMapper;
+	private @Autowired ApplicationEntityMapper appMapper;
 	private @Autowired AppconfigEntityMapper appconfigMapper;
 	private @Autowired AppConfigsHistoryEntityMapper appconfigHisMapper;
 	private @Autowired CryptComponent cryptComponent;
@@ -123,8 +124,10 @@ public class ConfigAdminController {
 //    	   throw new JeesuiteBaseException(4001,"配置名称已经存在");
 //       }
 
+		ApplicationEntity application = appMapper.selectByPrimaryKey(addRequest.getAppId());
 		AppconfigEntity entity = BeanUtils.copy(addRequest, AppconfigEntity.class);
-		entity.setAppId(addRequest.getAppId());
+		entity.setAppId(application.getId());
+		entity.setAppCode(application.getCode());
 		if(!addRequest.getGlobal()){
 			Integer groupId = appMapper.selectByPrimaryKey(addRequest.getAppId()).getGroupId();
 			entity.setGroupId(groupId);
@@ -190,8 +193,9 @@ public class ConfigAdminController {
 		if(appId != null){
 			if(appId <= 0){
 				queryParams.put("isGlobal", true);
-			}else{				
-				queryParams.put("appId", appId);
+			}else{	
+				ApplicationEntity application = appMapper.selectByPrimaryKey(appId);
+				if(application != null)queryParams.put("appCode", application.getCode());
 			}
 		}
 		if(StringUtils.isNotBlank(env)){
@@ -290,9 +294,9 @@ public class ConfigAdminController {
 			List<String> appKeys;
 			//通知所有应用
 			if(entity.getGlobal()){
-				appKeys = appMapper.findByGroupId(entity.getGroupId()).stream().map(e -> {return e.getAppKey();}).collect(Collectors.toList());
+				appKeys = appMapper.findByGroupId(entity.getGroupId()).stream().map(e -> {return e.getCode();}).collect(Collectors.toList());
 			}else{
-				appKeys = Arrays.asList(appMapper.selectByPrimaryKey(entity.getAppId()).getAppKey());
+				appKeys = Arrays.asList(appMapper.selectByPrimaryKey(entity.getAppId()).getCode());
 			}
 			
 			profileZkClient.publishChangeConfig(entity.getEnv(), appKeys, changedMap);
@@ -370,7 +374,8 @@ public class ConfigAdminController {
 		if(appconfigEntity.getGlobal()){
 			return "全局配置";
 		}else{
-			return appMapper.selectByPrimaryKey(appconfigEntity.getAppId()).getFullName();
+			ApplicationEntity app = appMapper.selectByPrimaryKey(appconfigEntity.getAppId());
+			return String.format("%s(%s)", app.getName(),app.getCode());
 		}
 	}
 	

@@ -25,10 +25,10 @@ import com.jeesuite.admin.component.CryptComponent;
 import com.jeesuite.admin.component.ProfileZkClient;
 import com.jeesuite.admin.controller.admin.ConfigAdminController;
 import com.jeesuite.admin.dao.entity.AppConfigsHistoryEntity;
-import com.jeesuite.admin.dao.entity.AppEntity;
+import com.jeesuite.admin.dao.entity.ApplicationEntity;
 import com.jeesuite.admin.dao.entity.AppconfigEntity;
 import com.jeesuite.admin.dao.mapper.AppConfigsHistoryEntityMapper;
-import com.jeesuite.admin.dao.mapper.AppEntityMapper;
+import com.jeesuite.admin.dao.mapper.ApplicationEntityMapper;
 import com.jeesuite.admin.dao.mapper.AppconfigEntityMapper;
 import com.jeesuite.admin.model.Constants;
 import com.jeesuite.admin.model.WrapperResponseEntity;
@@ -41,7 +41,7 @@ public class ConfigApiController {
 
 	private static final String LATEST_FETCH_TIMESTAMP = "latest.fetch.timestamp";
 	private @Autowired AppconfigEntityMapper appconfigMapper;
-	private @Autowired AppEntityMapper appMapper;
+	private @Autowired ApplicationEntityMapper appMapper;
 	private @Autowired CryptComponent cryptComponent;
 	private @Autowired ProfileZkClient profileZkClient;
 	private @Autowired AppConfigsHistoryEntityMapper appconfigHisMapper;
@@ -57,36 +57,35 @@ public class ConfigApiController {
 			version = Constants.DEFAULT_CONFIG_VERSION;
 		}
 
-		AppEntity appEntity = appMapper.findByAppKey(appName);
-
-		List<AppconfigEntity> globalConfigs = ignoreGlobal ? new  ArrayList<>(0) : appconfigMapper.findGlobalConfig(env,appEntity.getGroupId(), version);
+		ApplicationEntity appEntity = appMapper.findByAppKey(appName);
+        //全局的
+		List<AppconfigEntity> configs = ignoreGlobal ? new  ArrayList<>() : appconfigMapper.findGlobalConfig(env,appEntity.getGroupId(), version);
 		// 再查应用的
 		Map<String, Object> queyParams = new HashMap<>();
 		queyParams.put("env", env);
 		queyParams.put("version", version);
+		//
+		if(appEntity.getParentId() != null) {
+			queyParams.put("appId", appEntity.getParentId());
+			configs.addAll(appconfigMapper.findByQueryParams(queyParams));
+		}
+		//
 		queyParams.put("appId", appEntity.getId());
-		List<AppconfigEntity> appConfigs = appconfigMapper.findByQueryParams(queyParams);
+		configs.addAll(appconfigMapper.findByQueryParams(queyParams));
 
-		if (globalConfigs.isEmpty() && appConfigs.isEmpty()) {
+		if (configs.isEmpty()) {
 			throw new JeesuiteBaseException(1001, "配置不存在");
 		}
 
 		Map<String, Object> result = new HashMap<>();
-
-		if (!globalConfigs.isEmpty()) {
-			for (AppconfigEntity config : globalConfigs) {
-				ConfigParseUtils.parseConfigToKVMap(result, config);
-			}
-			String cryptKey = cryptComponent.getCryptKey(0, env);
-			result.put("jeesuite.configcenter.global-encrypt-secret", cryptKey);
-		}
-
-		for (AppconfigEntity config : appConfigs) {
+		for (AppconfigEntity config : configs) {
 			ConfigParseUtils.parseConfigToKVMap(result, config);
 		}
-		String cryptKey = cryptComponent.getCryptKey(appEntity.getId(), env);
+		//
+		String cryptKey = cryptComponent.getCryptKey(0, env);
+		result.put("jeesuite.configcenter.global-encrypt-secret", cryptKey);
+		cryptKey = cryptComponent.getCryptKey(appEntity.getId(), env);
 		result.put("jeesuite.configcenter.encrypt-secret", cryptKey);
-
 		//
 		String zkServers = profileZkClient.getZkServer(env);
 		if (zkServers != null) {
@@ -109,7 +108,7 @@ public class ConfigApiController {
 		if (StringUtils.isBlank(version)){
 			version = Constants.DEFAULT_CONFIG_VERSION;
 		}
-		AppEntity appEntity = appMapper.findByAppKey(params.remove("appName").toString());
+		ApplicationEntity appEntity = appMapper.findByAppKey(params.remove("appName").toString());
 		//
 		params.put("groupId", appEntity.getGroupId());
 		params.put("lastUpdateTime", lastFetchTime);

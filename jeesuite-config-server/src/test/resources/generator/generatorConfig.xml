@@ -15,7 +15,7 @@
 		</plugin>
 
 		<jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-			connectionURL="jdbc:mysql://127.0.0.1:3306/zy_framework_admin?serverTimezone=UTC&amp;characterEncoding=utf-8" userId="root" password="123456">
+			connectionURL="jdbc:mysql://127.0.0.1:3306/configcenter?serverTimezone=UTC&amp;characterEncoding=utf-8" userId="root" password="123456">
 		</jdbcConnection>
 
 		<javaModelGenerator targetPackage="com.jeesuite.admin.dao.entity" targetProject="src/main/java">
@@ -26,7 +26,8 @@
 		<javaClientGenerator targetPackage="com.jeesuite.admin.dao.mapper"
 			targetProject="src/main/java" type="XMLMAPPER" />
 
-		<table tableName="business_group" domainObjectName="BusinessGroupEntity">
+		
+		<table tableName="application" domainObjectName="ApplicationEntity">
 			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
 

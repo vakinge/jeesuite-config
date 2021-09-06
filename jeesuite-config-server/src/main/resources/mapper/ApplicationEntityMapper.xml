@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesuite.admin.dao.mapper.ApplicationEntityMapper">
+  <resultMap id="BaseResultMap" type="com.jeesuite.admin.dao.entity.ApplicationEntity">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="id" jdbcType="INTEGER" property="id" />
+    <result column="group_id" jdbcType="INTEGER" property="groupId" />
+    <result column="parent_id" jdbcType="INTEGER" property="parentId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="service_id" jdbcType="VARCHAR" property="serviceId" />
+    <result column="is_module" jdbcType="BIT" property="isModule" />
+    <result column="owner_id" jdbcType="INTEGER" property="ownerId" />
+    <result column="owner_name" jdbcType="VARCHAR" property="ownerName" />
+    <result column="enabled" jdbcType="BIT" property="enabled" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="remarks" jdbcType="LONGVARCHAR" property="remarks" />
+     <result column="parentName" jdbcType="VARCHAR" property="parentName" />
+  </resultMap>
+  
+  <select id="findByQueryParams" parameterType="map" resultMap="BaseResultMap">
+     SELECT app.*,parent.name AS parentName FROM application app
+     LEFT JOIN application parent ON app.parent_id = parent.id
+     <where>
+       <if test="groupId != null">AND app.group_id=#{groupId}</if>
+       <if test="onlyParentApp != null">AND app.parent_id IS NULL AND app.is_module = 0</if>
+       <if test="enabled != null">AND app.enabled=#{enabled}</if>
+       <if test="userId != null">
+     AND (
+      app.owner_id = #{userId} 
+      OR exists (
+       select app_id FROM user_permissions up where (up.app_id = app.id OR up.app_id = parent.id) AND user_id = #{userId} 
+       <if test="operate != null">AND up.operate=#{operate}</if>
+      )
+     )
+     </if>
+     </where>
+     ORDER BY id  
+  </select>
+</mapper>
